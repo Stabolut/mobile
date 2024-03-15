@@ -1,0 +1,530 @@
+import React, { useEffect, useState, useContext } from 'react';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  SafeAreaView,
+  ActivityIndicator,
+  ScrollView,
+  Dimensions
+} from 'react-native';
+
+import { COLORS, ENUMS, Images, Str } from '../../common';
+import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
+import AsyncStorage from '@react-native-community/async-storage';
+import { ethers } from 'ethers';
+
+import Transaction from './Transaction';
+
+import MnemonicsShowModal from '../../components/Modal/MnemonicsShowModal';
+import uuid from 'react-native-uuid';
+import Realm from 'realm';
+import moment from 'moment';
+import { SocketContext } from '../../App';
+import socketDisconnectMessage from '../../components/CustomHook/socketDisconnectMessage';
+import axios from 'axios';
+import BalanceCard from './BalanceCard';
+import Clipboard from '@react-native-community/clipboard';
+import DropDownHolder from '../../components/dropDownHolder';
+
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import SliderOption from './SliderOption';
+import TransactionRefreshAndView from './TransactionRefreshAndView';
+import NoTransactionFound from './NoTransactionFound';
+import TransactionLoader from './TransactionLoader';
+import { checkInternetConnectivity } from '../../utils/utils';
+import { ErrorMessages } from '../../messages/errorMessage';
+
+const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl, {
+  chainId: 97,
+});
+
+function Dashboard({ navigation }) {
+  const [userAddress, setUserAddress] = useState('');
+  const socketConnection = useContext(SocketContext);
+  const [privateKey, setPrivateKey] = useState('');
+  const [balance, setBalance] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTransactionLoading, setTransactionLoading] = useState(false);
+  const [transactionRecord, setTransactionRecord] = useState([]);
+  const [visible, setVisible] = useState(false);
+  const [transactionHash, setTransactionHash] = useState("")
+  socketDisconnectMessage(socketConnection.connectionStatus);
+
+
+  useEffect(() => {
+    getLocalData();
+    getFromDB();
+  }, []);
+
+
+  let getLocalData = async () => {
+
+    getUserTransactionListFromLocalDb()
+    let address = await AsyncStorage.getItem('address');
+    let privateKey = await AsyncStorage.getItem('mnemonics');
+    setUserAddress(address);
+    setPrivateKey(privateKey);
+  };
+
+  // if user address get from localStorage then we get the balance of address
+  useEffect(() => {
+    if (userAddress) {
+      getUserTransactionListFromApi()
+      getERC20Balance(userAddress, Str.contractAddress);
+    }
+  }, [userAddress]);
+
+
+  // get user balance
+  let getERC20Balance = async (address, contractAddress) => {
+    let isConnected = await checkInternetConnectivity()
+    if (!isConnected) {
+      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+      return
+
+    }
+    try {
+      setIsLoading(true);
+      const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
+      const balance = await contract.balanceOf(address);
+      setBalance(balance / 1e2);
+      setIsLoading(false);
+    } catch (e) {
+      setIsLoading(false);
+      alert('We are experiencing difficulties retrieving the balance at the moment.');
+    }
+  };
+
+
+
+  // get transactionList of user
+
+  getUserTransactionListFromLocalDb = async () => {
+
+    // console.log("Get Data from the local Db")
+    try {
+      const transactionHistoryDBSchema = {
+        name: 'TransactionsHistorySchema',
+        properties: {
+          uniqueKey: 'string',
+          senderAddress: 'string',
+          receiverAddress: 'string',
+          amountToSend: 'double',
+          transactionStatus: 'string',
+          sendDate: 'date',
+          transactionHash: 'string', // Add the date property,
+          transactionNotes: 'string'
+        },
+      };
+      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
+      // get data sorting by date
+      let transaction = realm
+        .objects('TransactionsHistorySchema')
+        .sorted('sendDate', true);
+
+      console.log("transaction transaction", transaction)
+
+      const uniqueArr = [];
+      const uniqueObj = {};
+
+      transaction.forEach((elem) => {
+        if (!uniqueObj[elem.transactionHash]) {
+          uniqueObj[elem.transactionHash] = true;
+          uniqueArr.push(elem);
+        }
+      });
+
+
+      console.log("uniqueArr uniqueArr", uniqueArr)
+
+
+      // set data in state
+      setTransactionRecord(uniqueArr);
+
+    } catch (e) {
+      console.log('OI am error', e);
+    }
+  }
+
+  getUserTransactionListFromApi = async () => {
+
+    let isConnected = await checkInternetConnectivity()
+    if (!isConnected) {
+      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+      return
+
+    }
+
+    try {
+
+      setTransactionLoading(true)
+      let data = await axios.post(`${Str.apiUrl}/v1/eurb/transaction`, { walletAddress: userAddress })
+      console.log("data.data.wallet", data.data.wallet)
+
+      const filteredApiRecords = data.data.wallet.filter(apiRecord => {
+        return !transactionRecord.find(localDbRecord => localDbRecord.transactionHash === apiRecord.transactionHash);
+      });
+
+      // now store filter record in loca DB
+      if (filteredApiRecords.length > 0) {
+        for (var i = 0; i < filteredApiRecords.length; i++) {
+          saveDB(filteredApiRecords[i].sendDate, filteredApiRecords[i].transactionHash, filteredApiRecords[i].senderAddress, filteredApiRecords[i].receiverAddress, filteredApiRecords[i].amountToSend, filteredApiRecords[i].transactionStatus, filteredApiRecords[i].notes)
+        }
+
+      }
+      setTransactionLoading(false)
+
+    }
+    catch (e) {
+      setTransactionLoading(false)
+      console.log("Eroror", e)
+    }
+  }
+
+
+  // connecte socket and receive incoming transaction and store in DB
+  useEffect(() => {
+    if (socketConnection.isSocketConnected && userAddress) {
+      socketConnection.socket.emit('addUser', { address: userAddress });
+      socketConnection.socket.on('getTransaction', data => {
+
+
+        saveDB(
+          data.data.date,
+          data.data.transactionHash,
+          data.data.senderAddress,
+          data.data.receiverAddress,
+          data.data.amount,
+          "Pending",
+          data.data.transactionNotes
+        );
+
+        let formatDate = moment(data.data.date).format(
+          'dddd, MMMM Do YYYY, h:mm:ss a',
+        );
+
+        // return () => {
+        socketConnection.socket.off('getTransaction');
+        navigation.navigate(`${ENUMS.SCREENS.SUCCESS}`, {
+          amount: parseFloat(data.data.amount),
+          date: formatDate,
+          transactionHash: data.data.transactionHash,
+        });
+        // };
+        getERC20Balance(userAddress, Str.contractAddress);
+      });
+    }
+  }, [userAddress, socketConnection.isSocketConnected]);
+
+
+
+
+
+
+  // get data in db methos
+  const getFromDB = async () => {
+
+    try {
+      const transactionHistoryDBSchema = {
+        name: 'TransactionsHistorySchema',
+        properties: {
+          uniqueKey: 'string',
+          senderAddress: 'string',
+          receiverAddress: 'string',
+          amountToSend: 'double',
+          transactionStatus: 'string',
+          sendDate: 'date',
+          transactionHash: 'string', // Add the date property
+          transactionNotes: 'string'
+        },
+      };
+      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
+
+
+      // get pending transaction
+      const pendingEntries = realm
+        .objects('TransactionsHistorySchema')
+        .filtered('transactionStatus = "Pending"');
+      //console.log("pendingEntries", pendingEntries)
+
+      // if pending transaction exist then check the status from the
+      if (pendingEntries.length > 0) {
+
+        pendingEntries.forEach(async entry => {
+          let status;
+          try {
+
+            status = await verifyTransactionSuccess(
+              provider,
+              entry.transactionHash,
+            );
+
+
+            if (status === 1) {
+
+              updateTransactionStatus(entry.transactionHash, status)
+              realm.write(() => {
+                //console.log("go inseid wrote")
+                entry.transactionStatus = 'Success';
+                getUserTransactionListFromLocalDb()
+
+              });
+            } else if (status === 0) {
+              updateTransactionStatus(entry.transactionHash)
+              realm.write(() => {
+                entry.transactionStatus = 'Fail';
+                getUserTransactionListFromLocalDb()
+              });
+            }
+          } catch (e) {
+            console.log("Catch eror")
+          }
+        });
+
+      }
+    } catch (e) {
+      console.log('OI am error', e);
+    }
+  };
+
+  updateTransactionStatus = async (transactionHash, status) => {
+    let isConnected = await checkInternetConnectivity()
+    if (!isConnected) {
+      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+      return
+
+    }
+    try {
+      await axios.post(`${Str.apiUrl}/v1/eurb/update-transaction-status`, {
+        walletAddress: userAddress,
+        transactionHash: transactionHash,
+        status: status
+      });
+    }
+    catch (e) {
+    }
+
+  }
+  let verifyTransactionSuccess = async (provider, transactionHash) => {
+
+    try {
+
+      const transaction = await provider.getTransactionReceipt(transactionHash);
+      return transaction.status;
+    } catch (error) {
+      console.log("isseerror", error)
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    let interval = null;
+    navigation.addListener('focus', () => {
+      interval = setInterval(() => {
+        getFromDB();
+      }, 1000);
+    });
+    navigation.addListener('blur', () => {
+      clearInterval(interval);
+    });
+  }, [navigation]);
+
+  const saveDB = (date, transactionHash, sender, receiver, amount, status, notes = "") => {
+
+
+    try {
+      const uniqueID = uuid.v4();
+      const transactionHistoryDBSchema = {
+        name: 'TransactionsHistorySchema',
+        properties: {
+          uniqueKey: 'string',
+          senderAddress: 'string',
+          receiverAddress: 'string',
+          amountToSend: 'double',
+          transactionStatus: 'string',
+          sendDate: 'date',
+          transactionHash: 'string', // Add the date property
+          transactionNotes: 'string'
+        },
+      };
+      // Create a new Realm with the transaction schema
+      let realm;
+      try {
+        realm = new Realm({ schema: [transactionHistoryDBSchema] });
+      } catch (e) {
+        console.log('Actuall eroroor', e);
+      }
+
+      // Create a w transaction object with the current date
+      const transactionObject = {
+        uniqueKey: uniqueID,
+        senderAddress: sender,
+        receiverAddress: receiver,
+        amountToSend: parseFloat(amount),
+        transactionStatus: status,
+        sendDate: date, // Set the date property to the current date
+        transactionHash: transactionHash,
+        transactionNotes: notes
+      };
+      console.log("record save in DB")
+      // Save the transaction object to the Realm
+      realm.write(() => {
+        realm.create('TransactionsHistorySchema', transactionObject);
+      });
+      getUserTransactionListFromLocalDb()
+    } catch (e) {
+      console.log('Execptionsssssss', e, e.data);
+    }
+  };
+
+  onRefresh = () => {
+
+    getERC20Balance(userAddress, Str.contractAddress);
+    getUserTransactionListFromApi()
+  };
+
+  return (
+    <React.Fragment>
+     
+
+
+      <StatusBarNU
+        backgroundColor={COLORS.BACKGROUND_COLOR}
+        barStyle="light-content"
+
+      />
+
+      {/* <Header
+        backButton={false}
+        headerText="Stabolut Chain (US₿)"
+        // refreshButton={true}
+        // settingButton={true}
+        onRefreshClick={this.onRefresh}
+        navigation={navigation}></Header> */}
+
+
+      <View style={styles.mainContainer}>
+
+        <BalanceCard isLoading={isLoading} balance={balance} userAddress={userAddress} copy={() => {
+
+          Clipboard.setString(userAddress);
+          DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
+        }}></BalanceCard>
+
+
+
+
+
+        <SliderOption
+          balance={balance}
+          transfer={async () => {
+            let contactOnly = await AsyncStorage.getItem("allowContact")
+            if (contactOnly === "true") {
+              navigation.navigate(`${ENUMS.SCREENS.SHOW_CONTACT_LIST}`)
+            }
+            else {
+              navigation.navigate(`${ENUMS.SCREENS.TRANSFER}`)
+            }
+
+
+
+
+          }}
+          showKey={() => navigation.navigate(`${ENUMS.SCREENS.STAKE}`, { userAddress: userAddress, balance: balance ? balance : 0 })}
+          receive={() => navigation.navigate(`${ENUMS.SCREENS.RECEIVE}`)}
+          purchase={() => navigation?.navigate(ENUMS.SCREENS.SETTING)}
+        >
+
+        </SliderOption>
+        <TransactionRefreshAndView viewAll={() => navigation.navigate(`${ENUMS.SCREENS.ALL_TRANSACTION}`)}
+          refresh={() => this.onRefresh()}
+
+
+
+
+        ></TransactionRefreshAndView>
+
+
+
+        {
+          isTransactionLoading === true ? <TransactionLoader></TransactionLoader>
+            :
+            transactionRecord.length > 0 ?
+
+              <FlatList
+
+                data={transactionRecord}
+                keyExtractor={(item, index) => index.toString()}
+                inverted={false}
+                renderItem={({ item }) => (
+                  <Transaction
+                    userAddress={userAddress}
+                    navigation={navigation}
+                    item={item}></Transaction>
+                )}
+              />
+              : <NoTransactionFound></NoTransactionFound>
+        }
+
+
+
+
+
+
+
+
+
+        {/* </ScrollView> */}
+      </View>
+
+
+
+
+      <MnemonicsShowModal
+        privateKey={privateKey}
+        visible={visible}
+        onClose={() => {
+          setVisible(false);
+        }}></MnemonicsShowModal>
+
+
+
+    </React.Fragment>
+  );
+}
+
+const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND_COLOR
+  },
+
+  iconViewStyle: {
+    width: Dimensions.get("window").width * 0.2098,
+    height: 100,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    borderColor: COLORS.SLIDER_BORDER_COLOR,
+    borderWidth: 2
+
+  },
+  iconDesign: {
+    fontWeight: "800"
+  },
+  textStyle: {
+    color: COLORS.WHITE,
+    fontSize: 12,
+    marginTop: 6,
+    fontFamily: "Poppins"
+  },
+
+
+
+});
+
+export default Dashboard;

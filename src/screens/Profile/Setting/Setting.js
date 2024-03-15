@@ -1,0 +1,677 @@
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import MnemonicsShowModal from '../../../components/Modal/MnemonicsShowModal';
+import Header from '../../../components/Header/Header';
+import { COLORS, ENUMS, Images } from '../../../common';
+import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import ToggleSwitch from 'toggle-switch-react-native'
+import DropDownHolder from '../../../components/dropDownHolder';
+import Entypo from 'react-native-vector-icons/Entypo';
+// import PushNotification from 'react-native-push-notification'
+import TouchID from 'react-native-touch-id';
+import messaging from '@react-native-firebase/messaging'
+import { request, PERMISSIONS } from 'react-native-permissions';
+import SetUsernameModal from '../../../components/Modal/SetUsernameModal';
+import AsyncStorage from '@react-native-community/async-storage';
+import LoadingModal from '../../../components/LoadingModal/modal';
+import TransactionLoader from '../../Dashboard/TransactionLoader';
+function Setting({ navigation }) {
+    const [toggle, setToggle] = useState(false)
+    const [toggleBioMetrics, setToggleBiometrics] = useState(false)
+    const [bioMetricSupport, setBiometricSupport] = useState(false)
+    const [showUsernameModal, setShowUsernameModal] = useState(false)
+    const [allowContact, setAllowContact] = useState(false)
+    const [privateKey, setPrivateKey] = useState('');
+    const [visible, setVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        getLocalData();
+
+    }, []);
+
+    useEffect(() => {
+        let getAllowContacts = async () => {
+            let allowContacts = await AsyncStorage.getItem("allowContact")
+            if (allowContacts === "true") setAllowContact(true)
+        }
+        getAllowContacts()
+
+
+    }, [])
+
+
+    let getLocalData = async () => {
+        let privateKey = await AsyncStorage.getItem('mnemonics');
+        setPrivateKey(privateKey);
+    };
+
+
+    useEffect(() => {
+        let getBiometrics = async () => {
+            let bioMetrics = await AsyncStorage.getItem("fingerPrint")
+            if (bioMetrics === "true") setToggleBiometrics(true)
+        }
+        getBiometrics()
+
+
+    }, [])
+
+
+    useEffect(() => {
+
+        checkBioMetrics = async () => {
+            const optionalConfigObject = {
+                unifiedErrors: false, // use unified error messages (default false)
+                passcodeFallback: false,
+            }
+            try {
+                let biometryType = await TouchID.isSupported(optionalConfigObject)
+                if (biometryType) {
+
+                    setBiometricSupport(true)
+                }
+
+            }
+            catch (e) {
+
+            }
+
+        }
+        checkBioMetrics()
+
+    }, [])
+
+    const clearRealmDB = async () => {
+        // Define your Realm schema
+        const TransactionsHistorySchema = {
+            name: 'TransactionsHistorySchema',
+            properties: {
+                uniqueKey: 'string',
+                senderAddress: 'string',
+                receiverAddress: 'string',
+                amountToSend: 'double',
+                transactionStatus: 'string',
+                sendDate: 'date',
+                transactionHash: 'string',
+                transactionNotes: 'string',
+            },
+        };
+
+        // Open the Realm database
+        Realm.open({ schema: [TransactionsHistorySchema] })
+            .then((realm) => {
+                // Begin a write transaction
+                realm.write(() => {
+                    // Get all the objects in the TransactionsHistorySchema schema and delete them
+                    const allObjects = realm.objects('TransactionsHistorySchema');
+                    realm.delete(allObjects);
+                });
+
+                // Close the Realm database
+                realm.close();
+
+                console.log('Records cleared successfully.');
+            })
+            .catch((error) => {
+                console.log('Error clearing records:', error);
+            });
+    };
+
+
+    const handleYesButtonPress = async () => {
+        setIsLoading(true);
+        await AsyncStorage.removeItem('address');
+        await AsyncStorage.removeItem('mnemonics');
+        await AsyncStorage.removeItem('privateKey');
+        await AsyncStorage.removeItem('pin');
+        await AsyncStorage.removeItem('PinSet');
+        await AsyncStorage.removeItem("fingerPrint")
+        await AsyncStorage.removeItem("allowContact")
+        await clearRealmDB()
+
+        setTimeout(() => {
+            setIsLoading(false);
+            DropDownHolder.alert('Success', 'Copy', `Your account is deleted successfully`);
+            navigation.navigate(ENUMS.SCREENS.INTRODUCTION_SLIDE)
+            // Continue with your logic or perform any necessary actions
+        }, 2000);
+    };
+
+    const showAlertDialog = () => {
+        Alert.alert(
+            'Delete Account',
+            'Are you sure you want to delete your account?',
+            [
+                { text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' },
+                { text: 'Delete', onPress: handleYesButtonPress },
+            ],
+            { cancelable: false }
+        );
+    };
+
+
+    return (
+        <React.Fragment>
+
+            <StatusBarNU
+                backgroundColor={COLORS.BACKGROUND_COLOR}
+                barStyle="light-content" />
+            <Header
+                backButton={true}
+                headerText="settings"
+                navigation={navigation}></Header>
+
+
+
+
+
+
+            <View style={styles.mainContainer}>
+
+
+
+                <ScrollView>
+                    <TouchableOpacity onPress={() => {
+                        navigation.navigate(ENUMS.SCREENS.ABOUT)
+                    }} style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row" }}>
+
+                        <View style={{ width: 30, height: 30, backgroundColor: "#fe55a7", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                            <FontAwesome
+                                name="heart"
+                                style={{ fontWeight: '900' }}
+                                size={18}
+                                color={COLORS.WHITE}
+                            />
+
+
+
+                        </View>
+                        <Text style={{ marginLeft: 30, fontSize: 15, alignSelf: "center", color: COLORS.WHITE, fontFamily: "Poppins" }}>About</Text>
+
+
+                    </TouchableOpacity>
+
+
+                    {/* <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
+
+                        <View style={{ width: 30, height: 30, backgroundColor: COLORS.BLACK, borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                            <MaterialCommunityIcons
+                                name="theme-light-dark"
+                                style={{ fontWeight: '900' }}
+                                size={18}
+                                color={COLORS.WHITE}
+                            />
+
+
+                        </View>
+                        <Text style={{ marginLeft: 12, fontSize: 15, color: COLORS.WHITE, flex: 1, alignSelf: "center" }}>Dark Mode</Text>
+
+                        <ToggleSwitch
+                            style={{ alignSelf: "center" }}
+                            isOn={toggle}
+                            onColor="green"
+                            offColor="red"
+                            size="medium"
+                            onToggle={isOn => setToggle(!toggle)}
+                        />
+
+
+                    </View> */}
+
+                    <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
+
+
+
+                        <TouchableOpacity onPress={showAlertDialog} style={{ flexDirection: "row" }}>
+                            {/* // when contact us on  use marginTop: 32  */}
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "red", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                                <MaterialCommunityIcons
+                                    name="delete"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={COLORS.WHITE}
+                                />
+
+
+                            </View>
+
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Delete Account</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+                            {isLoading &&
+                                // <ActivityIndicator size="large" color={COLORS.WHITE} />
+                                <LoadingModal task={'Deleting account...'} modalVisible={isLoading} />
+                                
+                                
+                                }
+
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => {
+
+
+
+
+                            navigation?.navigate(ENUMS.SCREENS.UPDATE_PIN, {
+                                goToScreen: ENUMS.SCREENS.SETTING,
+                                pinState: 'choose',
+                            });
+                        }} style={{ flexDirection: "row", marginTop: 32 }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "#8d8c92", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                                <FontAwesome
+                                    name="lock"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={COLORS.WHITE}
+                                />
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Change Pin</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+
+                        </TouchableOpacity>
+
+
+
+                        <TouchableOpacity onPress={() => {
+
+                            setVisible(true)
+                        }} style={{ flexDirection: "row", marginTop: 32 }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "#3476b4", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+
+                                <MaterialCommunityIcons
+                                    name="eye"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={COLORS.WHITE}
+                                />
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Show Key</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+
+                        </TouchableOpacity>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </View>
+
+
+
+
+                    <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
+
+
+                        <TouchableOpacity onPress={() => {
+                            navigation?.navigate(ENUMS.SCREENS.WEB_VIEW, {
+                                url: "https://twitter.com/stabolut",
+                                headerText: "Twitter"
+
+                            });
+
+
+
+                        }} style={{ flexDirection: "row" }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "#3476b4", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                                <Ionicons
+                                    name="md-logo-twitter"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={COLORS.WHITE}
+                                />
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Twitter</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => {
+                            navigation?.navigate(ENUMS.SCREENS.WEB_VIEW, {
+                                url: "https://t.me/stabolut",
+                                headerText: "Telegram"
+
+                            });
+
+
+
+                        }} style={{ flexDirection: "row", marginTop: 32 }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: COLORS.APP_BLUE_COLOR, borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                                <EvilIcons
+                                    name="sc-telegram"
+                                    style={{ fontWeight: '900' }}
+                                    size={25}
+                                    color={COLORS.WHITE}
+                                />
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Telegram</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+
+                        </TouchableOpacity>
+
+
+
+
+                        <TouchableOpacity onPress={() => {
+
+                            navigation?.navigate(ENUMS.SCREENS.BIO)
+
+
+                        }} style={{ flexDirection: "row", marginTop: 32 }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "#f3b854", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                                <FontAwesome
+                                    name="euro"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={COLORS.WHITE}
+                                />
+                                {/* <Image
+        style={{ width: 30, height: 30 }}
+        source={Images.coinIcon}></Image> */}
+
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >News </Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+
+                        </TouchableOpacity>
+
+
+
+
+
+
+
+
+
+                    </View>
+                    {
+                        bioMetricSupport === true &&
+                        <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "gray", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                                <MaterialCommunityIcons
+                                    name="fingerprint"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={COLORS.WHITE}
+                                />
+
+
+                            </View>
+                            <Text style={{ marginLeft: 12, fontSize: 15, color: COLORS.WHITE, flex: 1, alignSelf: "center", fontFamily: "Poppins" }}>BioMetrics</Text>
+
+                            <ToggleSwitch
+                                style={{ alignSelf: "center" }}
+                                isOn={toggleBioMetrics}
+                                onColor="green"
+                                offColor="red"
+                                size="medium"
+                                onToggle={async (isOn) => {
+                                    setToggleBiometrics(!toggleBioMetrics)
+                                    if (isOn) await AsyncStorage.setItem("fingerPrint", "true")
+                                    else await AsyncStorage.setItem("fingerPrint", "false")
+
+                                }}
+                            />
+
+
+                        </View>
+
+
+                    }
+
+
+
+
+
+                    <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
+
+                        <TouchableOpacity onPress={async () => {
+                            setShowUsernameModal(true)
+                        }} style={{ flexDirection: "row" }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "#fe3b2d", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                                <Entypo
+                                    name="user"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={COLORS.WHITE}
+                                />
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Set Username</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={async () => {
+                            navigation?.navigate(ENUMS.SCREENS.ADD_CONTACT_LIST);
+                        }} style={{ flexDirection: "row", marginTop: 32 }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "#fe3b2d", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                                <MaterialCommunityIcons
+                                    name="contacts"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={COLORS.WHITE}
+                                />
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Add Contacts</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+
+
+                        </TouchableOpacity>
+
+
+
+                    </View>
+
+                    <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 12 }}>
+
+                        <View style={{ width: 30, height: 30, backgroundColor: "#808080", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+                            <FontAwesome5
+                                name="user-circle"
+                                style={{ fontWeight: '900' }}
+                                size={18}
+                                color={COLORS.WHITE}
+                            />
+
+
+                        </View>
+                        <Text style={{ marginLeft: 30, fontSize: 15, color: COLORS.WHITE, flex: 1, alignSelf: "center", fontFamily: "Poppins" }}>Contacts Only</Text>
+
+                        <ToggleSwitch
+                            style={{ alignSelf: "center" }}
+                            isOn={allowContact}
+                            onColor="green"
+                            offColor="red"
+                            size="medium"
+                            onToggle={async (isOn) => {
+
+                                setAllowContact(!allowContact)
+                                let isContactOnly = isOn === true ? "true" : "false"
+                                await AsyncStorage.setItem("allowContact", isContactOnly)
+
+
+                            }}
+                        />
+
+
+                    </View>
+
+
+                </ScrollView>
+            </View>
+
+
+
+            <SetUsernameModal visible={showUsernameModal} onClose={() => {
+                setShowUsernameModal(false)
+
+            }}
+
+
+
+
+
+            ></SetUsernameModal>
+
+
+
+            <MnemonicsShowModal
+                privateKey={privateKey}
+                visible={visible}
+                onClose={() => {
+                    setVisible(false);
+                }}></MnemonicsShowModal>
+
+
+
+
+
+
+        </React.Fragment>
+    );
+}
+
+const styles = StyleSheet.create({
+    mainContainer: {
+        flex: 1,
+        backgroundColor: COLORS.BACKGROUND_COLOR
+    },
+    image: {
+        width: 300,
+        height: 200,
+    },
+    headingStyle: {
+        color: COLORS.APP_HEADING_TEXT_COLOR_BALCK,
+        fontSize: 18,
+        fontFamily: 'Poppins',
+
+        fontWeight: "500"
+    },
+    paragraphStyle: {
+        marginTop: 8,
+        color: COLORS.BLACK,
+        opacity: 0.6,
+        fontSize: 12,
+        fontFamily: 'Poppins',
+    },
+    menuTextStyle: {
+
+    },
+    overlay: {
+        ...StyleSheet.absoluteFill,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+});
+
+export default Setting;

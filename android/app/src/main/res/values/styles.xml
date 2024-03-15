@@ -1,0 +1,15 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+        <!-- <item name="android:editTextBackground">@drawable/rn_edit_text_material</item> -->
+         <item name="android:windowBackground">@drawable/ic_dashboardbg</item>
+         <item name="android:windowDisablePreview">true</item>
+    </style>
+<style name="DeviceCredentialHandlerTheme">
+        <item name="colorAccent">#2b79d6</item>
+         <!-- <item name="android:windowDisablePreview">true</item> -->
+          <item name="android:windowBackground">@drawable/ic_dashboardbg</item>
+    </style>
+</resources>
