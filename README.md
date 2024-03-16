@@ -15,12 +15,12 @@ The USB Token Wallet Mobile App provides a comprehensive solution for managing U
 
 ## Technology Stack
 
-  1. **Frontend:** React Native
-  2. **Backend API:** Node.js
-  3. **Database:** MongoDB (User wallet private keys are not stored for security)
-  4. **Live Updates:** Socket.io (For live transaction updates)
-  5. **Notification:** Firebase (For transaction notifications)
-  6. **Dependencies:** Make sure to have Node.js, npm,React Native CLI, Xcode (for iOS), and Android Studio (for Android) installed on your system to run the app locally.
+  - **Frontend:** React Native
+  - **Backend API:** Node.js
+  - **Database:** MongoDB (User wallet private keys are not stored for security)
+  - **Live Updates:** Socket.io (For live transaction updates)
+  - **Notification:** Firebase (For transaction notifications)
+  - **Dependencies:** Make sure to have Node.js, npm,React Native CLI, Xcode (for iOS), and Android Studio (for Android) installed on your system to run the app locally.
 
 ## Installation
 
