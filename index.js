@@ -107,7 +107,7 @@ if (Platform.OS !== 'ios') {
 }
 
 else {
-    console.log("IOS plaeform index.js")
+    console.log("iOS platform index.js")
 }
 
 AppRegistry.registerComponent(appName, () => App);
