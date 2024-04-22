@@ -1,123 +1,26 @@
 {
   "project_info": {
-    "project_number": "64207372969",
-    "project_id": "eurb-3a677",
-    "storage_bucket": "eurb-3a677.appspot.com"
+    "project_number": "52427838230",
+    "project_id": "com-stabolut-usb",
+    "storage_bucket": "com-stabolut-usb.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:64207372969:android:2207498d0c79d195ea1fb8",
-        "android_client_info": {
-          "package_name": "com.eurob"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "64207372969-d8cm736t839mauc26hln3q27sst2vk1a.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.eurob",
-            "certificate_hash": "ba4d4c3d174a91b845db6646f2594526fa83f504"
-          }
-        },
-        {
-          "client_id": "64207372969-91706690dfi2cjspegq77hjfr86scsn5.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAds83qnTw13LYDCaPpBPmrd7Bqil-mWxY"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "64207372969-91706690dfi2cjspegq77hjfr86scsn5.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "64207372969-hi4kv6cdb4134enpd83rtubv497clb4i.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "org.reactjs.native.example.EuroB"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:64207372969:android:08b841a8c13d2527ea1fb8",
-        "android_client_info": {
-          "package_name": "com.stabolut.sub"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "64207372969-91706690dfi2cjspegq77hjfr86scsn5.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAds83qnTw13LYDCaPpBPmrd7Bqil-mWxY"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "64207372969-91706690dfi2cjspegq77hjfr86scsn5.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "64207372969-hi4kv6cdb4134enpd83rtubv497clb4i.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "org.reactjs.native.example.EuroB"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:64207372969:android:b23547225838d9e7ea1fb8",
+        "mobilesdk_app_id": "1:52427838230:android:e940a3ea21767a00b27637",
         "android_client_info": {
           "package_name": "com.stabolut.usb"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "64207372969-91706690dfi2cjspegq77hjfr86scsn5.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAds83qnTw13LYDCaPpBPmrd7Bqil-mWxY"
+          "current_key": "AIzaSyAXPjjznyc0BbYfPlNH1401TQs94Ane1wg"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "64207372969-91706690dfi2cjspegq77hjfr86scsn5.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "64207372969-hi4kv6cdb4134enpd83rtubv497clb4i.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "org.reactjs.native.example.EuroB"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

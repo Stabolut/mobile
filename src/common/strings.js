@@ -1,14 +1,15 @@
 const Str = {
   headerTitle: "Y",
   //contractAddress:"0x04790704ae59daDDF5258a0B52bC1dfd5Be85f0E",
-  contractAddress: "0xb9193C22E895eA3ef46f67Cb1633B66C6e718aFe",
+  contractAddress: "0x24c8479b8af9742c5160e0c29197e87a584cfe99",
   // rpcUrl: "https://rpc.ankr.com/polygon_mumbai/",
 
-  rpcUrl: "https://silent-hardworking-fog.arbitrum-goerli.discover.quiknode.pro/644204ee97ff9e5f0a6fc1e136c3fca78ed13159/",
+  rpcUrl: "https://boldest-snowy-putty.arbitrum-sepolia.quiknode.pro/1f392d02eb2231054a585bf86a27a4bd0c27a8d5/",
   fees: 10,
-  apiUrl: "https://ares.stabolut.com",
-  //apiUrl: "http://192.168.100.6:8003",
-  FUNDING_ADDRESS: "0x6983cB83052588AF94Cf9a937e664698e4E63490",
+  //apiUrl: "https://ares.stabolut.com",
+  apiUrl: "http://192.168.100.50:8003/api/v1/stabolut",
+  socketUrl: "http://192.168.100.50:8003",
+  FUNDING_ADDRESS: "0x23F6b853d75f34F0A16dc97E4A2827cE8aA9A7C7",
 
 
   ABI: [

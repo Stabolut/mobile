@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
 import { COLORS, Images } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import AsyncStorage from '@react-native-community/async-storage';
-import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+
 import PINCode from '@haskkor/react-native-pincode';
 import Biometrics from 'react-native-biometrics';
 import TouchID from 'react-native-touch-id';

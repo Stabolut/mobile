@@ -21,7 +21,7 @@ import moment from 'moment';
 import ErrorMessage from '../../components/ErrorComponent/ErrroMessage';
 import StakingBalance from './StakingBalance';
 import { ErrorMessages } from '../../messages/errorMessage';
-import { checkInternetConnectivity } from '../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 
 
 
@@ -69,18 +69,18 @@ function Stake(props) {
 
     try {
 
-      let { data } = await axios.post(`${Str.apiUrl}/v1/eurb/get-in-stake`, {
+      console.log("url",`${Str.apiUrl}/staking/get-in-stake`)
+      let { data } = await axios.post(`${Str.apiUrl}/staking/get-in-stake`, {
         account: address
       });
-      console.log("dataaa", data)
+      console.log("data", data)
+
 
       dispatch({ type: "fetchSuccess", payload: { stakeList: data.data[0].stakeBucketsList, stakeAmount: data.data[0].totalAmountInStake } })
     }
     catch (e) {
-      console.log("dddd", e)
-      let msg = e?.response?.data ? e.response.data.errors[0].message : e?.message
-        ? e.message
-        : 'We apologize for any inconvenience caused. Currently, we are experiencing difficulties with retrieving stake reward information. We kindly ask you to please try your request again at a later time.';
+
+      let msg = errorMessageHandler(e)
 
       dispatch({ type: "fetchFail", payload: msg })
       return;
@@ -96,7 +96,7 @@ function Stake(props) {
 
   return (
     <React.Fragment>
-    
+
 
 
       <StatusBarNU

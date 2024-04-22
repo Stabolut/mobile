@@ -1,7 +1,8 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
 import Header from '../../components/Header/Header';
-import { COLORS } from '../../common';
+import { COLORS, ENUMS } from '../../common';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 
 function TransactionDetail(props) {
@@ -16,10 +17,11 @@ function TransactionDetail(props) {
         backButton={true}
         headerText="Transaction Detail"
         navigation={props.navigation}></Header>
+      
 
       <WebView
         source={{
-          uri: `https://testnet.arbiscan.io/tx/${props.route.params.transactionHash}`,
+          uri: `${ENUMS.EXTERNAL_URL.EXPLORER_URL}/${props.route.params.transactionHash}`,
         }}
       />
     </React.Fragment>

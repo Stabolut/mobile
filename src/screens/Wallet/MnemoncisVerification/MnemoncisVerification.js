@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  Dimensions
 } from 'react-native';
 import { COLORS, ENUMS, Str } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
@@ -18,9 +19,9 @@ import messaging from '@react-native-firebase/messaging'
 import { storeWalletInfo } from '../../../redux/action/auth';
 import axios from "axios"
 import { store } from '../../../store';
-import { checkInternetConnectivity } from '../../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../../utils/utils';
 import { ErrorMessages } from '../../../messages/errorMessage';
-
+const windowHeight = Dimensions.get('window').height;
 
 
 
@@ -58,7 +59,6 @@ class MnemoncisVerification extends React.Component {
       },
       () => {
 
-
         const isMatch = this.checkUserSelection(this.state.userSelection);
 
         if (isMatch) {
@@ -76,14 +76,25 @@ class MnemoncisVerification extends React.Component {
   }
 
   addElement(element) {
+
+
     this.setState(
       {
         userSelection: [...this.state.userSelection, element],
-        shuffledArray: this.state.shuffledArray.filter(function (item) {
-          return item !== element;
-        }),
+        shuffledArray: (() => {
+          const index = this.state.shuffledArray.indexOf(element);
+          if (index !== -1) {
+            const newArray = [...this.state.shuffledArray];
+            newArray.splice(index, 1); // Remove one instance of element
+            return newArray;
+          }
+          return this.state.shuffledArray; // If element is not found, return the original array
+        })()
+
+
       },
       () => {
+
         const isMatch = this.checkUserSelection(this.state.userSelection);
 
         if (isMatch) {
@@ -207,46 +218,67 @@ class MnemoncisVerification extends React.Component {
             <TouchableOpacity
               onPress={async () => {
 
+
                 let isConnected = await checkInternetConnectivity()
                 if (!isConnected) {
                   alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
                   return
 
                 }
-
-
-
-
-
-
-
-                this.setState({ isLoading: true });
+                this.setState({ isLoading: true, disabled: true });
                 setTimeout(async () => {
 
-                  let mobileFcmToken
-
+                  let mobileFcmToken = null
+                  let fcmToken
                   if (Platform.OS === 'ios') {
-                    let fcmToken = await AsyncStorage.getItem("fcmToken")
+
+                    fcmToken = await AsyncStorage.getItem("fcmToken")
                     if (fcmToken) mobileFcmToken = fcmToken
-                    else mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+                    else
+                      try {
+                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+                      }
+                      catch (e) {
+                        // this.setState({ isLoading: false });
+                        // alert('We are currently experiencing issues with verifying the account. Please try again later.');
+                        // return
+                      }
+
                   }
 
 
                   if (Platform.OS === 'android') {
-                    let fcmToken = await AsyncStorage.getItem("fcmToken")
+                    fcmToken = await AsyncStorage.getItem("fcmToken")
                     if (fcmToken) mobileFcmToken = fcmToken
-                    else mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+
+                    else
+                      try {
+
+                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+                      }
+                      catch (e) {
+                        console.log("Error", e)
+                        this.setState({ isLoading: false, disabled: false });
+                        alert('We are currently experiencing issues with verifying the account. Please try again later.');
+                        return
+
+                      }
+
                   }
+                  console.log("Fcm Token", mobileFcmToken)
+
 
                   try {
+
 
                     const wallet = ethers.Wallet.fromMnemonic(
                       this.props.route.params.actualMnemonics,
                     );
-                    console.log("wallet", wallet)
 
 
-                    await axios.post(`${Str.apiUrl}/v1/eurb/add-wallet`, {
+                    console.log("My url", `${Str.apiUrl}/wallet/add-wallet`, "wallet.address", wallet.address)
+
+                    await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
                       account: wallet.address,
                       token: mobileFcmToken
                     })
@@ -258,16 +290,20 @@ class MnemoncisVerification extends React.Component {
                     await AsyncStorage.setItem('privateKey', wallet.privateKey);
                     store.dispatch(storeWalletInfo(true))
 
-
-                    this.setState({ isLoading: false });
+                    this.setState({ isLoading: false, disabled: false });
                     this.props.navigation.popToTop();
                     this.props.navigation.replace(`${ENUMS.SCREENS.DASHBOARD}`);
 
                   }
                   catch (error) {
-                    console.log("Error", error)
-                    this.setState({ isLoading: false });
-                    alert('We are currently experiencing issues with verifying the account. Please try again later.');
+
+                    let msg = errorMessageHandler(error)
+                    this.setState({
+                      isLoading: false,
+                      disable: false,
+                      isError: true,
+                      message: msg
+                    });
                   }
                 }, 500);
               }
@@ -330,22 +366,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
 
-    paddingLeft: 32,
-    paddingRight: 48,
-    paddingBottom: 64,
+    paddingLeft: windowHeight >= 630 ? 32 : 0,
+    paddingRight: windowHeight >= 630 ? 32 : 0,
+
+    paddingBottom: windowHeight >= 630 ? 64 : 32,
     paddingTop: 64,
 
     backgroundColor: COLORS.BALANCE_CARD_BACKGROUND
   },
-  selectMnemonicsChild: {
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
 
-    paddingLeft: 32,
-    paddingRight: 32,
-  },
+
+
   selectMnemonicsBox: {
     paddingLeft: 12,
     paddingRight: 12,
@@ -367,9 +398,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 24,
-    paddingLeft: 32,
-    paddingRight: 32,
+    paddingLeft: windowHeight >= 630 ? 32 : 8,
+    paddingRight: windowHeight >= 630 ? 32 : 8,
   },
+
+
   shuffleMnemonicsBox: {
     padding: 8,
     marginRight: 8,

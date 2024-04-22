@@ -18,7 +18,7 @@ class Transaction extends React.Component {
 
   render() {
     const { item } = this.props;
-    //console.log("Item", item.transactionHash)
+    
 
     return (
       <TouchableOpacity
@@ -43,12 +43,12 @@ class Transaction extends React.Component {
             {
               item.transactionStatus === 'Success' ?
                 <View style={[styles.statusCircleView, { backgroundColor: "#3ada77", }]}>
-                  <Ionicons name="md-checkmark-sharp" size={25} color={COLORS.BLACK} />
+                  <Ionicons name="checkmark" size={25} color={COLORS.WHITE} />
                 </View>
                 :
                 item.transactionStatus === 'Fail' ?
                   <View style={[styles.statusCircleView, { backgroundColor: "red" }]}>
-                    <Entypo name="cross" size={25} color={COLORS.BLACK}></Entypo>
+                    <Entypo name="cross" size={25} color={COLORS.WHITE}></Entypo>
                   </View> :
 
                   item.transactionStatus === 'Pending' ?
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
 
     width: 30,
     height: 30,
-    marginLeft: 8,
+   
     borderRadius: 30 / 2,
     justifyContent: "center",
     alignItems: "center"

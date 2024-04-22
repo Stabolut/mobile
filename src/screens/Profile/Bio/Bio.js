@@ -6,8 +6,9 @@ import { WebView } from 'react-native-webview';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 // import { COLORS } from '../../common';
-import { COLORS } from "../../../common"
+import { COLORS,ENUMS } from "../../../common"
 import { Text, StyleSheet, View } from 'react-native';
+
 
 // import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 
@@ -28,6 +29,7 @@ function Bio(props) {
                 headerText="News"
                 navigation={props.navigation}
             ></Header>
+           
 
 
             <View style={styles.mainContainer}>
@@ -36,7 +38,7 @@ function Bio(props) {
 
                 <WebView
                     source={{
-                        uri:"https://nitter.net/stabolut",
+                        uri:ENUMS.EXTERNAL_URL.NEWS
                     }}
                 />
 

@@ -32,8 +32,18 @@ import socketDisconnectMessage from '../../../components/CustomHook/socketDiscon
 import Notes from '../../../components/Modal/Notes';
 import ErrorMessage from '../../../components/ErrorComponent/ErrroMessage';
 import SuccessMessage from '../../../components/SuccessComponent/SuccessMessage';
-import { checkInternetConnectivity } from '../../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../../utils/utils';
 import { ErrorMessages } from '../../../messages/errorMessage';
+
+const getDecimalSeparator = () => {
+  if (Platform.OS === 'ios') {
+    return '.';
+  } else {
+    // For simplicity, let's assume using period for Android
+    return '.';
+  }
+};
+
 
 function Transfer({ navigation, route }) {
   const [sender, setSender] = useState('');
@@ -55,7 +65,7 @@ function Transfer({ navigation, route }) {
   const [account, setAccount] = useState("");
   const [isContactOnly, setIsContactOnly] = useState(false);
 
-
+  const decimalSeparator = getDecimalSeparator();
 
   const socketConnection = useContext(SocketContext);
   socketDisconnectMessage(socketConnection.connectionStatus);
@@ -112,6 +122,10 @@ function Transfer({ navigation, route }) {
 
 
   checkValidation = () => {
+
+    let amountToSend = parseFloat(amount) * 1e2;
+
+
     // Check Validation
     if (receiver === '' || receiver === null || receiver === undefined) {
       setIsError(true);
@@ -128,7 +142,7 @@ function Transfer({ navigation, route }) {
     } else if (parseFloat(amount) < 0.01) {
       setIsError(true);
       setMessage(
-        "It appears that the entered amount value is incorrect. Please ensure that the amount value is greater than 0.01.",
+        "It appears that the entered amount value is incorrect. Please ensure that the amount value is greater than 0.01",
       );
       return false
     }
@@ -170,6 +184,7 @@ function Transfer({ navigation, route }) {
       // convert amount to send to right decimel which is 2
       let amountToSend = parseFloat(amount) * 1e2;
 
+
       if (parseInt(balance) === amountToSend) {
         setIsError(true);
         setMessage("To ensure a successful transaction, please make sure that the amount you are sending is less than your current balance.");
@@ -194,6 +209,8 @@ function Transfer({ navigation, route }) {
       const wallet = new ethers.Wallet(privateKey);
       const nonce = await contract.countOf(sender);
 
+      console.log("nonce", nonce)
+
       const transferHex = await contract.getTransferPreSignedHash(
         Str.contractAddress,
         username === true ? account : receiver,
@@ -201,14 +218,17 @@ function Transfer({ navigation, route }) {
         Str.fees,
         parseInt(nonce),
       );
+      console.log("transferHex", transferHex)
 
       const signature = await wallet.signMessage(
         ethers.utils.arrayify(transferHex),
       );
       //  =======get signature=======//
 
+      console.log("url", `${Str.apiUrl}/wallet/transfer`)
+      // await axios.post(`${Str.apiUrl}/wallet/transfer-token`
       //hit api to transfer funds
-      let { data } = await axios.post(`${Str.apiUrl}/v1/eurb/transfer`, {
+      let { data } = await axios.post(`${Str.apiUrl}/wallet/transfer-token`, {
         signature: signature,
         toAddress: username === true ? account : receiver,
         amount: amountToSend, //TODO:Minus the fess Str.fees
@@ -218,12 +238,13 @@ function Transfer({ navigation, route }) {
         transNotes: transactionNotes
       });
 
+      console.log("Data", data)
 
       // set transaction to the state and we have useEffect which is call and socket emit notificatio
-      setTransferHash(data.txnHash.transactionHash);
+      setTransferHash(data.data.txnHash.transactionHash);
 
       let date = new Date();
-      saveDB(date, data.txnHash.transactionHash);
+      saveDB(date, data.data.txnHash.transactionHash);
       setIsLoading(false);
       setDisable(false);
 
@@ -231,19 +252,18 @@ function Transfer({ navigation, route }) {
       navigation.replace(`${ENUMS.SCREENS.SUCCESS}`, {
         amount: parseFloat(amount),
         date: formatDate,
-        transactionHash: data.txnHash.transactionHash,
+        transactionHash: data.data.txnHash.transactionHash,
         successType: 'Send',
       });
     } catch (e) {
-      // console.log('Error in catch',e.response.data.message,"error in cath2", e.message);
-      let msg = e?.response?.data ? e.response.data.message : e?.message
-        ? e.message
-        : 'There is currently an issue with transferring coins. Please try again later.';
+
+      let msg = errorMessageHandler(e)
+
       setIsError(true);
       setIsLoading(false);
       setDisable(false);
       setMessage(msg);
-      return;
+
     }
   };
 
@@ -297,7 +317,7 @@ function Transfer({ navigation, route }) {
         transactionNotes: transactionNotes
 
       };
-      console.log("transactionObject", transactionObject)
+
       // Save the transaction object to the Realm
       realm.write(() => {
         realm.create('TransactionsHistorySchema', transactionObject);
@@ -310,7 +330,7 @@ function Transfer({ navigation, route }) {
 
   return (
     <React.Fragment>
-      {console.log("selec", isSelected)}
+
       <StatusBarNU
         backgroundColor={COLORS.BACKGROUND_COLOR}
         barStyle="light-content"
@@ -372,9 +392,10 @@ function Transfer({ navigation, route }) {
                     const newTimeoutId = setTimeout(async () => {
                       try {
 
-                        let { data } = await axios.post(`${Str.apiUrl}/v1/eurb/get-user-by-wallet`, {
-                          id: newValue
+                        let { data } = await axios.post(`${Str.apiUrl}/user/retrieve-user-by-wallet-or-username`, {
+                          userID: newValue
                         });
+                        console.log("fffff",data)
                         if (!isEmpty(data.data)) {
                           setAccountInfo(`Receiver address is: ${data.data.account.substring(0, 6)}... Username: ${data.data.username}`)
                           setUsername(true)
@@ -391,6 +412,7 @@ function Transfer({ navigation, route }) {
 
                       }
                       catch (e) {
+                        console.log("dddd",e.response.data)
                         setAccountInfo(null)
                         setUsername(false)
                       }
@@ -446,7 +468,8 @@ function Transfer({ navigation, route }) {
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={newValue => {
-                  setAmount(newValue);
+                  const formattedValue = newValue.replace(',', decimalSeparator);
+                  setAmount(formattedValue);
                 }}
                 multiline={true}
                 placeholder={'Enter amount to send'}

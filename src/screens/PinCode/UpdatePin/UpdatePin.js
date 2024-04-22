@@ -4,7 +4,7 @@ import { COLORS } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 import AsyncStorage from '@react-native-community/async-storage';
-import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+
 import PINCode from '@haskkor/react-native-pincode';
 import DropDownHolder from '../../../components/dropDownHolder';
 

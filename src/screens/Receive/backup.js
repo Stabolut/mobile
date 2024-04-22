@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import {SocketContext} from '../../../App';
 import QRCode from 'react-native-qrcode-svg';
 import {useNavigation} from '@react-navigation/native';
-import Clipboard from '@react-native-community/clipboard';
+//import Clipboard from '@react-native-community/clipboard';
 import DropDownHolder from '../../../components/dropDownHolder';
 import socketDisconnectMessage from '../../../components/CustomHook/socketDisconnectMessage';
 import {useRef} from 'react';
@@ -32,7 +32,7 @@ export default Receive = props => {
   }, []);
 
   let copyToClipBoard = () => {
-    Clipboard.setString(address.substring(2));
+   // Clipboard.setString(address.substring(2));
     DropDownHolder.alert('Success', 'Copy', `Wallet address is copied`);
   };
 

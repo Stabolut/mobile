@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     View,
     StyleSheet,
@@ -12,12 +12,35 @@ import Header from '../../../../components/Header/Header';
 import { COLORS, ENUMS } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import { ethers } from 'ethers';
-import Clipboard from '@react-native-community/clipboard';
+//import Clipboard from '@react-native-community/clipboard';
 import DropDownHolder from '../../../../components/dropDownHolder';
 import RNFS from 'react-native-fs';
 import { request, PERMISSIONS } from 'react-native-permissions';
 import { err } from 'react-native-svg/lib/typescript/xml';
+import AsyncStorage from '@react-native-community/async-storage';
+import messaging from '@react-native-firebase/messaging';
 function ChooseImportOption({ navigation }) {
+
+    useEffect(() => {
+        try {
+            getFcmToken()
+        }
+        catch (e) {
+            console.log("execeptio", e)
+        }
+    }, [])
+
+    let getFcmToken = async () => {
+        try {
+           
+            let fcmToken = await messaging().getToken()
+
+            console.log("fcmToken", fcmToken)
+        }
+        catch (e) {
+            console.log("Myu toke", e)
+        }
+    }
 
     return (
         <React.Fragment>
@@ -40,7 +63,7 @@ function ChooseImportOption({ navigation }) {
                         <View>
                             <Text style={styles.title}>Import With Mnemonics</Text>
                             <Text style={styles.body}>Restore your external account using your mnemonic phrase</Text>
-                            
+
                         </View>
 
                     </TouchableOpacity>

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ImageBackground,
+  Dimensions
 } from 'react-native';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Header from '../../components/Header/Header';
@@ -14,6 +15,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import { SocketContext } from '../../App';
 import { useState, useContext } from 'react';
 import socketDisconnectMessage from '../../components/CustomHook/socketDisconnectMessage';
+const windowHeight = Dimensions.get('window').height;
 
 // class TransactionSuccess extends React.Component {
 function TransactionSuccess(props) {
@@ -36,10 +38,10 @@ function TransactionSuccess(props) {
           <View
 
             style={{
-              height: 250,
+              height:windowHeight >= 630 ? 250:160,
               justifyContent: 'center',
               alignItems: 'center',
-              marginTop: 32,
+              marginTop:windowHeight >= 630 ? 32:0,
               resizeMode: 'contain',
               marginLeft: 4,
               marginRight: 4,
@@ -56,7 +58,7 @@ function TransactionSuccess(props) {
           <Text
             style={{
               alignSelf: 'center',
-              marginTop: 40,
+              marginTop:windowHeight >= 630 ? 40 : 20,
               fontSize: 18,
               color: '#3faf80',
               marginBottom: 8,
@@ -259,6 +261,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+
   coin1: {
     // backgroundColor: "#f7a03d",
     backgroundColor: '#e7fbf2',
@@ -268,6 +271,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  
+
+
   coin: {
     backgroundColor: '#21be79',
     width: 100,
@@ -289,8 +296,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.29,
     shadowRadius: 4.65,
     elevation: 7,
-    marginBottom: 32,
-    marginTop: 16,
+    // marginBottom: 8,
+    // marginTop: 8,
+    marginBottom:windowHeight >= 630 ? 32 : 8,
+    
+    marginTop:windowHeight >= 630 ? 16 : 8
+    
   },
 
   textStyleContinue: {

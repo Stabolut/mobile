@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity,Platform } from 'react-native';
 import { COLORS, ENUMS, Images } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
@@ -35,13 +35,16 @@ let Intro = props => {
 
   return (
     <React.Fragment>
-      {console.log("my pros", props)}
+
       <StatusBarNU
         backgroundColor={COLORS.BACKGROUND_COLOR}
         barStyle="light-content"
       />
 
       <View style={styles.mainContainer}>
+        {/* {
+          Platform.OS !== 'ios'? */}
+        
         <View style={styles.mainContainerChild1}>
           <Carousel
             layout="tinder"
@@ -70,6 +73,8 @@ let Intro = props => {
             tappableDots={true}
           />
         </View>
+        {/* :null
+} */}
 
         <View style={styles.mainContainerChild2}>
           <TouchableOpacity
@@ -122,6 +127,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: COLORS.BACKGROUND_COLOR,
+    justifyContent:"flex-end"
   },
   mainContainerChild1: {
     flex: 1,
