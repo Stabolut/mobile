@@ -60,6 +60,7 @@ const AddContact = ({ navigation }) => {
         let address = await AsyncStorage.getItem('address');
 
         try {
+            console.log("Url",`${Str.apiUrl}/user/add-contact-list`)
             dispatch({ type: "sendRequest" })
             let { data } = await axios.post(`${Str.apiUrl}/user/add-contact-list`, {
                 name,
