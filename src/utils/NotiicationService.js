@@ -6,20 +6,15 @@ export async function requestUserPermission() {
     try {
 
         const authStatus = await messaging().requestPermission();
-       
+
         const enabled =
             authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
             authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-       
         if (enabled) {
-
             getFcmToken()
         }
     }
     catch (e) {
-       
-
     }
 }
 
@@ -29,15 +24,16 @@ const getFcmToken = async () => {
         let fcmToken = await AsyncStorage.getItem("fcmToken")
 
         if (!fcmToken) {
-          
+
             let fcmToken = await messaging().getToken()
             AsyncStorage.setItem("fcmToken", fcmToken)
         }
     }
     catch (e) {
-       
+
     }
 }
+
 
 export const notificationListener = () => {
     try {
@@ -59,6 +55,7 @@ export const notificationListener = () => {
         messaging()
             .getInitialNotification()
             .then(remoteMessage => {
+                console.log("hit there")
                 if (remoteMessage) {
                     console.log(
                         'Notification caused app to open from quit state:',
@@ -68,6 +65,7 @@ export const notificationListener = () => {
                 }
 
             });
+        return unsubscribe
     }
     catch (e) {
 
@@ -75,33 +73,30 @@ export const notificationListener = () => {
 }
 
 
-export const createChannel = (channelId, options) => {
+export const notificationChannel = (title,body) => {
+   
+    let channelID = Math.random().toString(36).substring(7);
     PushNotification.createChannel(
         {
-            channelId: channelId,
-            channelName: "My channel",
+            channelId: channelID,
+            channelName: "Stabolut notifcation channel",
             channelDescription: "A channel to categorize your notifications",
-            playSound: false,
+            playSound: true,
             soundName: "default",
             importance: Importance.HIGH,
             vibrate: true,
         },
         (created) => {
             PushNotification.localNotification({
-                /* Android Only Properties */
-                channelId: channelId,
+                title: title,
+                message: body,
+                channelId: channelID,
                 smallIcon: Images.coinIcon,
-                subText: options.subText,
                 bigLargeIconUrl: Images.coinIcon,
-                color: options.color,
-                vibrate: true,
-                vibration: 300,
-                priority: "high",
-                actions: ["ReplyInput"],
-                title: options.title,
-                message: options.message,
             });
         }
     );
-};
+
+}
+
 

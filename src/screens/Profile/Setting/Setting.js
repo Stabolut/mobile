@@ -70,7 +70,7 @@ function Setting({ navigation }) {
     // if user address get from localStorage then we get the balance of address
     useEffect(() => {
         if (userAddress) {
-            console.log("User addrss", userAddress)
+           
             getUsername()
         }
     }, [userAddress]);
@@ -549,7 +549,7 @@ function Setting({ navigation }) {
                     <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
                         <TouchableOpacity onPress={async () => {
-                            console.log("dddd", username)
+                            
                             setShowUsernameModal(true)
                         }} style={{ flexDirection: "row" }}>
 
@@ -649,7 +649,7 @@ function Setting({ navigation }) {
 
 
             <SetUsernameModal initialUsername={username} visible={showUsernameModal} onSet={(username) => {
-                console.log("username", username)
+               
                 setUserName(username)
 
             }} onClose={() => {

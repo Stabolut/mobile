@@ -20,7 +20,7 @@ import { storeWalletInfo } from '../../../../redux/action/auth';
 import axios from "axios"
 import Clipboard from '@react-native-clipboard/clipboard';
 import { store } from '../../../../store';
-import { checkInternetConnectivity,errorMessageHandler } from '../../../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../../../utils/utils';
 import { ErrorMessages } from '../../../../messages/errorMessage';
 
 class ImportWallet extends React.Component {
@@ -102,11 +102,11 @@ class ImportWallet extends React.Component {
         const wallet = ethers.Wallet.fromMnemonic(
           this.state.mnemonicText.trim(),
         );
-       
+        console.log("My wallet", wallet)
         await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
           account: wallet.address,
           token: mobileFcmToken
-      })
+        })
 
 
         await AsyncStorage.setItem('address', wallet.address);

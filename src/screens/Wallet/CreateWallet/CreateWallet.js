@@ -50,7 +50,7 @@ class CreateWallet extends React.Component {
     const path = RNFS.DocumentDirectoryPath + '/' + fileName;
     try {
       await RNFS.writeFile(path, content, 'utf8');
-      console.log('File written!');
+     
       const fileURI = 'file://' + path;
       return { path, fileURI };
     } catch (err) {

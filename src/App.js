@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, createContext } from 'react';
+import { PermissionsAndroid } from 'react-native';
 import Navigation from './navigation';
 import Toast from 'react-native-easy-toast';
 import DropDownHolder from './components/dropDownHolder';
@@ -6,12 +7,8 @@ import { COLORS, Str, Images } from './common';
 import { Provider } from 'react-redux';
 import io from 'socket.io-client';
 import { persistor, store } from "./store";
-import { Platform } from 'react-native';
-import messaging from '@react-native-firebase/messaging'
 import { PersistGate } from "redux-persist/integration/react";
-import { requestUserPermission, notificationListener, createChannel } from './utils/NotiicationService';
-
-//https://blog.logrocket.com/manage-notifications-react-native-notifications/
+import { requestUserPermission, notificationListener } from './utils/NotiicationService';
 export const SocketContext = createContext(null);
 
 
@@ -22,34 +19,8 @@ const App = () => {
 
 
   useEffect(() => {
-    if (Platform.OS !== 'ios') {
-
-      try {
-        const unsubscribe = messaging().onMessage(async remoteMsg => {
-          const channelId = Math.random().toString(36).substring(7)
-          createChannel(channelId, { bigImage: remoteMsg.notification.android.imageUrl, title: remoteMsg.notification.title, message: remoteMsg.notification.body, subText: remoteMsg.data.subTitle })
-        })
-        messaging().setBackgroundMessageHandler(async remoteMsg => {
-          const channelId = Math.random().toString(36).substring(7)
-          createChannel(channelId, { bigImage: remoteMsg.notification.android.imageUrl, title: remoteMsg.notification.title, message: remoteMsg.notification.body, subText: remoteMsg.data.subTitle })
-
-        })
-        return unsubscribe
-
-      }
-      catch (e) {
-
-      }
-    }
-
-    if (Platform.OS === 'ios') {
-     
-  
-
-      requestUserPermission()
-      notificationListener()
-    }
-
+    requestUserPermission()
+    notificationListener()
   }, [])
 
 

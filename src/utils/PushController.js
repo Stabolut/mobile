@@ -1,13 +1,14 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import axios from 'axios';
-import { Str } from '../common';
+import { Str, Images } from '../common';
 import PushNotification, { Importance } from 'react-native-push-notification';
+import { notificationChannel } from './NotiicationService';
 
 export const configurePushNotifications = () => {
     try {
         PushNotification.configure({
             onRegister: async function (token) {
-              
+
 
                 let fcmToken = await AsyncStorage.getItem("fcmToken")
 
@@ -17,9 +18,9 @@ export const configurePushNotifications = () => {
                     let address = await AsyncStorage.getItem('address');
                     if (address) {
                         try {
-                            
-                          
-                         await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+
+
+                            await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
                                 account: address,
                                 token: token.token
                             });
@@ -31,32 +32,16 @@ export const configurePushNotifications = () => {
                     }
                 }
             },
-            requestPermissions: false,
+            requestPermissions: true,
             popInitialNotification: true,
             onNotification: function (notification) {
+
+
                 if (notification.action === "ReplyInput") {
                     // Handle reply action
                 }
                 if (notification?.userInteraction === false) {
-                    let channelID = Math.random().toString(36).substring(7);
-                    PushNotification.createChannel(
-                        {
-                            channelId: channelID,
-                            channelName: "My channel A",
-                            channelDescription: "A channel to categorize your notifications",
-                            playSound: false,
-                            soundName: "default",
-                            importance: Importance.HIGH,
-                            vibrate: true,
-                        },
-                        (created) => {
-                            PushNotification.localNotification({
-                                title: notification.title,
-                                message: notification.message,
-                                channelId: channelID
-                            });
-                        }
-                    );
+                    notificationChannel(notification.title, notification.message)
                 }
             },
             onAction: function (notification) {

@@ -13,10 +13,10 @@ export default function SetUsernameModal({ onClose, visible, initialUsername, on
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [disable, setDisable] = useState(false);
-    console.log("initialUsername",initialUsername,"username",username)
+   
 
     useEffect(() => {
-        console.log("initialUsername inside",initialUsername)
+      
         setUsername(initialUsername);
     }, [initialUsername]);
 
@@ -61,7 +61,7 @@ export default function SetUsernameModal({ onClose, visible, initialUsername, on
         catch (e) {
 
             let msg = errorMessageHandler(e)
-            console.log("message", message)
+           
             setIsLoading(false)
             setIsError(true)
             setDisable(false)

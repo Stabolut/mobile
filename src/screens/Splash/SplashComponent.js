@@ -28,7 +28,7 @@ export default props => {
             pinState: 'enter', // Indicates that the user needs to enter the PIN
           });
         } else {
-          console.log("Pin is set and address is not set")
+          
           // If 'address' is not available in AsyncStorage
 
           // Replace the current screen with the PIN code screen, passing parameters for navigation

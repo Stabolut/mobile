@@ -209,7 +209,7 @@ function Transfer({ navigation, route }) {
       const wallet = new ethers.Wallet(privateKey);
       const nonce = await contract.countOf(sender);
 
-      console.log("nonce", nonce)
+      
 
       const transferHex = await contract.getTransferPreSignedHash(
         Str.contractAddress,
@@ -218,14 +218,14 @@ function Transfer({ navigation, route }) {
         Str.fees,
         parseInt(nonce),
       );
-      console.log("transferHex", transferHex)
+
 
       const signature = await wallet.signMessage(
         ethers.utils.arrayify(transferHex),
       );
       //  =======get signature=======//
 
-      console.log("url", `${Str.apiUrl}/wallet/transfer`)
+    
       // await axios.post(`${Str.apiUrl}/wallet/transfer-token`
       //hit api to transfer funds
       let { data } = await axios.post(`${Str.apiUrl}/wallet/transfer-token`, {
@@ -238,7 +238,7 @@ function Transfer({ navigation, route }) {
         transNotes: transactionNotes
       });
 
-      console.log("Data", data)
+    
 
       // set transaction to the state and we have useEffect which is call and socket emit notificatio
       setTransferHash(data.data.txnHash.transactionHash);
@@ -322,7 +322,7 @@ function Transfer({ navigation, route }) {
       realm.write(() => {
         realm.create('TransactionsHistorySchema', transactionObject);
       });
-      console.log("Data is written")
+     
     } catch (e) {
       console.log('Execption', e, e.data);
     }
@@ -395,7 +395,7 @@ function Transfer({ navigation, route }) {
                         let { data } = await axios.post(`${Str.apiUrl}/user/retrieve-user-by-wallet-or-username`, {
                           userID: newValue
                         });
-                        console.log("fffff",data)
+
                         if (!isEmpty(data.data)) {
                           setAccountInfo(`Receiver address is: ${data.data.account.substring(0, 6)}... Username: ${data.data.username}`)
                           setUsername(true)
@@ -412,7 +412,7 @@ function Transfer({ navigation, route }) {
 
                       }
                       catch (e) {
-                        console.log("dddd",e.response.data)
+                       
                         setAccountInfo(null)
                         setUsername(false)
                       }

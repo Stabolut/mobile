@@ -69,12 +69,11 @@ function Stake(props) {
 
     try {
 
-      console.log("url",`${Str.apiUrl}/staking/get-in-stake`)
+     
       let { data } = await axios.post(`${Str.apiUrl}/staking/get-in-stake`, {
         account: address
       });
-      console.log("data", data)
-
+     
 
       dispatch({ type: "fetchSuccess", payload: { stakeList: data.data[0].stakeBucketsList, stakeAmount: data.data[0].totalAmountInStake } })
     }
