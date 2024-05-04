@@ -239,9 +239,7 @@ class MnemoncisVerification extends React.Component {
                         mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
                       }
                       catch (e) {
-                        // this.setState({ isLoading: false });
-                        // alert('We are currently experiencing issues with verifying the account. Please try again later.');
-                        // return
+                      
                       }
 
                   }
@@ -257,7 +255,7 @@ class MnemoncisVerification extends React.Component {
                         mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
                       }
                       catch (e) {
-                        console.log("Error", e)
+                       
                         this.setState({ isLoading: false, disabled: false });
                         alert('We are currently experiencing issues with verifying the account. Please try again later.');
                         return
