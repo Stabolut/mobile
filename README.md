@@ -1,134 +1,79 @@
-# USB Token Wallet Mobile App
+This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-## Table of Contents
+# Getting Started
 
-- [Overview](#overview)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Why Choose USB Token Wallet Mobile App?](#why-choose-usb-token-wallet-mobile-app)
-- [High-Level Process](#high-level-process)
-- [Contact](#contact-us)
+>**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
 
-## Overview
+## Step 1: Start the Metro Server
 
-The USB Token Wallet Mobile App provides a comprehensive solution for managing USB tokens on the go. With features like wallet creation, import, gasless transactions, transaction history, USB deposit, staking USB tokens, and more, users can easily manage their USB tokens securely and efficiently.
+First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
 
-## Features
+To start Metro, run the following command from the _root_ of your React Native project:
 
- 
-1. **Wallet Creation and Management**: Seamlessly create new USB token wallets or import existing ones with ease. Each wallet is securely stored locally on your device, ensuring complete control over your digital assets. Our intuitive interface simplifies wallet management, allowing users to organize and access their USB tokens effortlessly.
+```bash
+# using npm
+npm start
 
-2. **Gasless Transactions**: Say goodbye to gas fees! Our app revolutionizes the transaction experience by enabling gasless transfers of USB tokens. Whether you're sending tokens to friends or making payments, enjoy swift and cost-effective transactions without worrying about additional fees.
+# OR using Yarn
+yarn start
+```
 
-3. **Transaction Tracking and History**: Stay informed about your USB token activity with our comprehensive transaction tracking and history feature. Monitor incoming and outgoing transactions, view transaction details, and track the status of each transaction in real-time. Our detailed transaction history provides valuable insights into your spending habits and financial activity.
+## Step 2: Start your Application
 
-4. **USB Deposit via QR Code**: Users are provided with a unique QR code containing their wallet address directly from the app. Simply share this QR code with others to allow them to transfer funds to your account effortlessly. This feature eliminates the need for manual input of wallet addresses and enhances the convenience of receiving USB tokens.
+Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
 
-5. **Staking USB Tokens**: Unlock the potential of your USB tokens by staking them within the app. Our staking feature allows users to earn rewards by participating in network validation and consensus. Stake your USB tokens with confidence and watch your rewards grow over time, all while contributing to the security and stability of the network.
+### For Android
 
-6. **Pin Authentication**: Secure your wallet with pin authentication to prevent unauthorized access and protect your digital assets. Users can set up a unique pin code to unlock their wallet, adding an extra layer of security to their USB token management experience.
+```bash
+# using npm
+npm run android
 
+# OR using Yarn
+yarn android
+```
 
+### For iOS
 
+```bash
+# using npm
+npm run ios
 
+# OR using Yarn
+yarn ios
+```
 
-## Technologies Used
+If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
 
- 
-- **React Native**: Framework for building the mobile application.
-- **Realm**: Used for local storage of transaction records.
-- **Web3 (Ether.js)**: Utilized for interacting with blockchain functions such as transferring USB tokens.
-- **Firebase**: Integrated for real-time notifications.
-- **Socket.io**: Utilized for live socket notifications.
-- **QR Code Scanner**: Integrated for depositing USB tokens via QR code.
--  **Dependencies:** Make sure to have Node.js, npm,React Native CLI, Xcode (for iOS), and Android Studio (for Android) installed on your system to run the app locally.
+This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
 
+## Step 3: Modifying your App
 
-### Additional Technology:
+Now that you have successfully run the app, let's modify it.
 
-- **Redux**: Used for state management in the application.
+1. Open `App.tsx` in your text editor of choice and edit some lines.
+2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
 
+   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
 
-## Installation
+## Congratulations! :tada:
 
-To run the app locally, follow these steps:
+You've successfully run and modified your React Native App. :partying_face:
 
-1.   Clone the repository:
+### Now what?
 
-         git clone https://github.com/Stabolut/mobile.git
-     
+- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
+- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
 
-3.   Navigate to the project directory:
+# Troubleshooting
 
-         cd mobile
+If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
 
-3.   Install dependencies:
+# Learn More
 
-         npm install
-   
-4.  For IOS
+To learn more about React Native, take a look at the following resources:
 
-       - Navigate to the iOS directory:
-
-              cd ios
-
-      * Install CocoaPods dependencies:
-
-             pod install
-      
-      * Return to the project directory:
-
-             cd ..
-
-6. Run the Android app:
-
-        npx react-native run-android
-
-7. Run the iOS app:
-
-        npx react-native run-ios
-
-   ### Why Choose USB Token Wallet Mobile App?
-
-
-- **Security and Privacy**: Rest assured that your USB token wallets and transactions are protected by state-of-the-art security measures, including secure local storage and encryption.
-- **Cost-Effective Transactions**: With gasless transactions, users can enjoy significant cost savings on transaction fees, making it more affordable and accessible to engage in cryptocurrency transactions.
-- **Passive Income Opportunities**: Take advantage of our staking feature to earn passive income by staking your USB tokens. Participate in network consensus and receive rewards for your contribution.
-
-
-## High-Level Process
-
-1. **Wallet Creation and Management**:
-   - Users can create new USB token wallets or import existing ones using the React Native framework.
-   - Wallets are securely stored locally on the device using Realm, ensuring complete control over digital assets.
-   - The application utilizes Web3 (Ether.js) to interact with blockchain functions such as transferring USB tokens.
-
-2. **Transaction Handling**:
-   - Users can initiate transactions, including gasless transfers of USB tokens, directly from the app.
-   - Real-time transaction notifications are provided via Firebase integration.
-   - Socket.io is used for live socket notifications to keep users updated on transaction status.
-
-3. **Transaction Tracking and History**:
-   - The app features comprehensive transaction tracking and history functionality, allowing users to monitor incoming and outgoing transactions.
-   - Transaction details are stored locally using Realm for easy access and reference.
-
-4. **QR Code Deposit**:
-   - To receive USB tokens, users are provided with a unique QR code containing their wallet address directly from the app.
-   - Sharing this QR code enables others to transfer funds to the user's account seamlessly.
-
-5. **Staking USB Tokens**:
-   - Users have the option to stake USB tokens within the app to earn rewards.
-   - Staking functionality is implemented using Web3 (Ether.js), allowing users to participate in network validation and consensus.
-
-
-## Contact Us
-
-If you have any questions, suggestions, or feedback, feel free to reach out to us. We're here to help!
-
-- Email: [press@stabolut.com](mailto:press@stabolut.com)
-
-
-
-
-
+- [React Native Website](https://reactnative.dev) - learn more about React Native.
+- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
+- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
+- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
+- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.

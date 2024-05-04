@@ -11,6 +11,8 @@ import {
   ScrollView,
   Dimensions
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+
 
 import { COLORS, ENUMS, Images, Str } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
@@ -27,7 +29,7 @@ import { SocketContext } from '../../App';
 import socketDisconnectMessage from '../../components/CustomHook/socketDisconnectMessage';
 import axios from 'axios';
 import BalanceCard from './BalanceCard';
-import Clipboard from '@react-native-community/clipboard';
+// import Clipboard from '@react-native-community/clipboard';
 import DropDownHolder from '../../components/dropDownHolder';
 
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -37,6 +39,7 @@ import NoTransactionFound from './NoTransactionFound';
 import TransactionLoader from './TransactionLoader';
 import { checkInternetConnectivity } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
+
 
 const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl, {
   chainId: 97,
@@ -70,6 +73,155 @@ function Dashboard({ navigation }) {
     setPrivateKey(privateKey);
   };
 
+
+// Method to retrieve data from the local database
+const getFromDB = async () => {
+  try {
+      // Define the schema for the transaction history database
+      const transactionHistoryDBSchema = {
+          name: 'TransactionsHistorySchema',
+          properties: {
+              uniqueKey: 'string',
+              senderAddress: 'string',
+              receiverAddress: 'string',
+              amountToSend: 'double',
+              transactionStatus: 'string',
+              sendDate: 'date',
+              transactionHash: 'string', // Unique identifier for transactions
+              transactionNotes: 'string'
+          },
+      };
+
+      // Open a connection to the Realm database
+      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
+
+      // Retrieve pending transactions from the database
+      const pendingEntries = realm
+          .objects('TransactionsHistorySchema')
+          .filtered('transactionStatus = "Pending"');
+
+      // If there are pending transactions, check their status
+      if (pendingEntries.length > 0) {
+          pendingEntries.forEach(async entry => {
+              let status;
+              try {
+                  // Verify the status of the transaction from an external provider
+                  status = await verifyTransactionSuccess(provider, entry.transactionHash);
+
+                  // Update transaction status based on verification result
+                  if (status === 1) {
+                      // If transaction is successful, update status to 'Success'
+                      updateTransactionStatus(entry.transactionHash, status);
+                      realm.write(() => {
+                          entry.transactionStatus = 'Success';
+                          // Update user transaction list from local database
+                          getUserTransactionListFromLocalDb();
+                      });
+                  } else if (status === 0) {
+                      // If transaction failed, update status to 'Fail'
+                      updateTransactionStatus(entry.transactionHash);
+                      realm.write(() => {
+                          entry.transactionStatus = 'Fail';
+                          // Update user transaction list from local database
+                          getUserTransactionListFromLocalDb();
+                      });
+                  }
+              } catch (e) {
+                  // Handle any errors that occur during transaction verification
+              }
+          });
+      }
+  } catch (e) {
+      // Handle any errors that occur during database access
+  }
+};
+
+
+let verifyTransactionSuccess = async (provider, transactionHash) => {
+
+  try {
+
+    const transaction = await provider.getTransactionReceipt(transactionHash);
+    return transaction.status;
+  } catch (error) {
+
+    throw error;
+  }
+};
+
+updateTransactionStatus = async (transactionHash, status) => {
+  let isConnected = await checkInternetConnectivity()
+  if (!isConnected) {
+    alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+    return
+
+  }
+  try {
+    await axios.post(`${Str.apiUrl}/wallet/update-transaction-status`, {
+      walletAddress: userAddress,
+      transactionHash: transactionHash,
+      status: status
+    });
+  }
+  catch (e) {
+  }
+
+}
+
+
+// Method to retrieve the transaction list of the user from the local database
+getUserTransactionListFromLocalDb = async () => {
+  try {
+      // Define the schema for the transaction history database
+      const transactionHistoryDBSchema = {
+          name: 'TransactionsHistorySchema',
+          properties: {
+              uniqueKey: 'string',
+              senderAddress: 'string',
+              receiverAddress: 'string',
+              amountToSend: 'double',
+              transactionStatus: 'string',
+              sendDate: 'date',
+              transactionHash: 'string', // Unique identifier for transactions
+              transactionNotes: 'string'
+          },
+      };
+
+      // Open a connection to the Realm database
+      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
+
+      // Retrieve transaction data from the database and sort it by date in descending order
+      let transaction = realm
+          .objects('TransactionsHistorySchema')
+          .sorted('sendDate', true);
+
+      // Remove duplicate transactions based on transactionHash
+      const uniqueArr = [];
+      const uniqueObj = {};
+
+      // Iterate through transactions to filter out duplicates
+      transaction.forEach((elem) => {
+          if (!uniqueObj[elem.transactionHash]) {
+              uniqueObj[elem.transactionHash] = true;
+              uniqueArr.push(elem);
+          }
+      });
+
+      // Set the unique transaction records in the state for further processing
+      setTransactionRecord(uniqueArr);
+
+  } catch (e) {
+      // Handle any errors that occur during database access
+  }
+}
+
+
+
+
+
+
+
+
   // if user address get from localStorage then we get the balance of address
   useEffect(() => {
     if (userAddress) {
@@ -101,89 +253,55 @@ function Dashboard({ navigation }) {
 
 
 
-  // get transactionList of user
-
-  getUserTransactionListFromLocalDb = async () => {
-
-    // console.log("Get Data from the local Db")
-    try {
-      const transactionHistoryDBSchema = {
-        name: 'TransactionsHistorySchema',
-        properties: {
-          uniqueKey: 'string',
-          senderAddress: 'string',
-          receiverAddress: 'string',
-          amountToSend: 'double',
-          transactionStatus: 'string',
-          sendDate: 'date',
-          transactionHash: 'string', // Add the date property,
-          transactionNotes: 'string'
-        },
-      };
-      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
-      // get data sorting by date
-      let transaction = realm
-        .objects('TransactionsHistorySchema')
-        .sorted('sendDate', true);
-
-      console.log("transaction transaction", transaction)
-
-      const uniqueArr = [];
-      const uniqueObj = {};
-
-      transaction.forEach((elem) => {
-        if (!uniqueObj[elem.transactionHash]) {
-          uniqueObj[elem.transactionHash] = true;
-          uniqueArr.push(elem);
-        }
-      });
-
-
-      console.log("uniqueArr uniqueArr", uniqueArr)
-
-
-      // set data in state
-      setTransactionRecord(uniqueArr);
-
-    } catch (e) {
-      console.log('OI am error', e);
-    }
-  }
-
   getUserTransactionListFromApi = async () => {
 
-    let isConnected = await checkInternetConnectivity()
+    // Check internet connectivity
+    let isConnected = await checkInternetConnectivity();
     if (!isConnected) {
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-      return
-
+      // If there's no internet, display an alert and return
+      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
+      return;
     }
 
     try {
+      // Set loading state to true before making the API request
+      setTransactionLoading(true);
 
-      setTransactionLoading(true)
-      let data = await axios.post(`${Str.apiUrl}/v1/eurb/transaction`, { walletAddress: userAddress })
-      console.log("data.data.wallet", data.data.wallet)
+      // Make API request to fetch transaction data
+      let {data} = await axios.post(`${Str.apiUrl}/wallet/transacions-list-with-limit`, { walletAddress: userAddress });
 
+
+      // Filter out records that are already present in the local database
       const filteredApiRecords = data.data.wallet.filter(apiRecord => {
         return !transactionRecord.find(localDbRecord => localDbRecord.transactionHash === apiRecord.transactionHash);
       });
 
-      // now store filter record in loca DB
+      // Store filtered records in the local database
       if (filteredApiRecords.length > 0) {
         for (var i = 0; i < filteredApiRecords.length; i++) {
-          saveDB(filteredApiRecords[i].sendDate, filteredApiRecords[i].transactionHash, filteredApiRecords[i].senderAddress, filteredApiRecords[i].receiverAddress, filteredApiRecords[i].amountToSend, filteredApiRecords[i].transactionStatus, filteredApiRecords[i].notes)
+          saveDB(
+            filteredApiRecords[i].sendDate,
+            filteredApiRecords[i].transactionHash,
+            filteredApiRecords[i].senderAddress,
+            filteredApiRecords[i].receiverAddress,
+            filteredApiRecords[i].amountToSend,
+            filteredApiRecords[i].transactionStatus,
+            filteredApiRecords[i].notes
+          );
         }
-
       }
-      setTransactionLoading(false)
 
+      // Reset loading state to false after API request is completed
+      setTransactionLoading(false);
     }
     catch (e) {
-      setTransactionLoading(false)
-      console.log("Eroror", e)
+      // Handle errors by resetting loading state to false
+      setTransactionLoading(false);
     }
   }
+
+
+
 
 
   // connecte socket and receive incoming transaction and store in DB
@@ -225,101 +343,10 @@ function Dashboard({ navigation }) {
 
 
 
-  // get data in db methos
-  const getFromDB = async () => {
-
-    try {
-      const transactionHistoryDBSchema = {
-        name: 'TransactionsHistorySchema',
-        properties: {
-          uniqueKey: 'string',
-          senderAddress: 'string',
-          receiverAddress: 'string',
-          amountToSend: 'double',
-          transactionStatus: 'string',
-          sendDate: 'date',
-          transactionHash: 'string', // Add the date property
-          transactionNotes: 'string'
-        },
-      };
-      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
 
 
-      // get pending transaction
-      const pendingEntries = realm
-        .objects('TransactionsHistorySchema')
-        .filtered('transactionStatus = "Pending"');
-      //console.log("pendingEntries", pendingEntries)
 
-      // if pending transaction exist then check the status from the
-      if (pendingEntries.length > 0) {
-
-        pendingEntries.forEach(async entry => {
-          let status;
-          try {
-
-            status = await verifyTransactionSuccess(
-              provider,
-              entry.transactionHash,
-            );
-
-
-            if (status === 1) {
-
-              updateTransactionStatus(entry.transactionHash, status)
-              realm.write(() => {
-                //console.log("go inseid wrote")
-                entry.transactionStatus = 'Success';
-                getUserTransactionListFromLocalDb()
-
-              });
-            } else if (status === 0) {
-              updateTransactionStatus(entry.transactionHash)
-              realm.write(() => {
-                entry.transactionStatus = 'Fail';
-                getUserTransactionListFromLocalDb()
-              });
-            }
-          } catch (e) {
-            console.log("Catch eror")
-          }
-        });
-
-      }
-    } catch (e) {
-      console.log('OI am error', e);
-    }
-  };
-
-  updateTransactionStatus = async (transactionHash, status) => {
-    let isConnected = await checkInternetConnectivity()
-    if (!isConnected) {
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-      return
-
-    }
-    try {
-      await axios.post(`${Str.apiUrl}/v1/eurb/update-transaction-status`, {
-        walletAddress: userAddress,
-        transactionHash: transactionHash,
-        status: status
-      });
-    }
-    catch (e) {
-    }
-
-  }
-  let verifyTransactionSuccess = async (provider, transactionHash) => {
-
-    try {
-
-      const transaction = await provider.getTransactionReceipt(transactionHash);
-      return transaction.status;
-    } catch (error) {
-      console.log("isseerror", error)
-      throw error;
-    }
-  };
+ 
 
   useEffect(() => {
     let interval = null;
@@ -356,7 +383,7 @@ function Dashboard({ navigation }) {
       try {
         realm = new Realm({ schema: [transactionHistoryDBSchema] });
       } catch (e) {
-        console.log('Actuall eroroor', e);
+
       }
 
       // Create a w transaction object with the current date
@@ -370,14 +397,14 @@ function Dashboard({ navigation }) {
         transactionHash: transactionHash,
         transactionNotes: notes
       };
-      console.log("record save in DB")
+
       // Save the transaction object to the Realm
       realm.write(() => {
         realm.create('TransactionsHistorySchema', transactionObject);
       });
       getUserTransactionListFromLocalDb()
     } catch (e) {
-      console.log('Execptionsssssss', e, e.data);
+
     }
   };
 
@@ -389,7 +416,7 @@ function Dashboard({ navigation }) {
 
   return (
     <React.Fragment>
-     
+
 
 
       <StatusBarNU

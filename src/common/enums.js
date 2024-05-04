@@ -23,10 +23,17 @@ const ENUMS = {
     DASHBOARD_MAIN: "DASHBOARD_MAIN",
     PURCHASE: "PURCHASE",
     STAKE: "STAKE",
-    SHOW_CONTACT_LIST:"SHOW_CONTACT_LIST",
-    ADD_CONTACT_LIST:"ADD_CONTACT_LIST",
-    ADD_STAKE:"ADD_STAKE"
+    SHOW_CONTACT_LIST: "SHOW_CONTACT_LIST",
+    ADD_CONTACT_LIST: "ADD_CONTACT_LIST",
+    ADD_STAKE: "ADD_STAKE"
 
+
+  },
+  EXTERNAL_URL: {
+    NEWS: "https://nitter.net/stabolut",
+    TWITTER: "https://twitter.com/stabolut",
+    TELEGRAM: "https://t.me/stabolut",
+    EXPLORER_URL: "https://sepolia.arbiscan.io/tx/"
 
   }
 }

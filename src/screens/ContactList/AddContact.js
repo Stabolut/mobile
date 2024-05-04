@@ -10,7 +10,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-community/async-storage';
 import { ErrorMessages } from '../../messages/errorMessage';
-import { checkInternetConnectivity } from '../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 import { store } from '../../store';
 import axios from 'axios';
 
@@ -60,10 +60,10 @@ const AddContact = ({ navigation }) => {
         let address = await AsyncStorage.getItem('address');
 
         try {
+            console.log("Url",`${Str.apiUrl}/user/add-contact-list`)
             dispatch({ type: "sendRequest" })
-            let { data } = await axios.post(`${Str.apiUrl}/v1/eurb/add-contact`, {
+            let { data } = await axios.post(`${Str.apiUrl}/user/add-contact-list`, {
                 name,
-                // mobieNumber: contact,
                 receiverAccount: account,
                 senderAccount: address
             });
@@ -75,10 +75,8 @@ const AddContact = ({ navigation }) => {
             setAccount("")
         }
         catch (e) {
-            console.log("e.response.data.", e.response.data)
-            let msg = e?.response?.data ? e.response.data.errors[0].message : e?.message
-                ? e.message
-                : 'Apologies for the inconvenience, but we are currently facing some issues with adding contact information. We kindly request you to try again at a later time.';
+
+            let msg = errorMessageHandler(e)
             dispatch({ type: "FetchFail", payload: msg })
             return;
         }
@@ -106,14 +104,14 @@ const AddContact = ({ navigation }) => {
 
             <View style={styles.mainContainer}>
                 <ScrollView>
-                    
+
 
 
                     <View style={{ paddingHorizontal: 24, flexDirection: "column", marginTop: 24 }}>
                         <Text style={{ color: COLORS.WHITE, fontFamily: "Poppins" }} >Enter Name</Text>
-                        <View style={{ marginTop: 12, backgroundColor: COLORS.WHITE, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8,justifyContent:"center",alignItems:"center" }}>
+                        <View style={{ marginTop: 12, backgroundColor: COLORS.WHITE, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
                             <TextInput
-                                style={{ flex: 1, fontFamily: "Poppins" }}
+                                style={{ flex: 1, fontFamily: "Poppins", color: COLORS.BLACK }}
 
                                 value={name}
                                 onChangeText={newValue => {
@@ -127,7 +125,7 @@ const AddContact = ({ navigation }) => {
 
                             <FontAwesome
                                 name="user-circle"
-                               style={{marginRight:4}}
+                                style={{ marginRight: 4 }}
                                 size={30}
                                 color="orange"
                             />
@@ -147,9 +145,9 @@ const AddContact = ({ navigation }) => {
 
                     <View style={{ paddingHorizontal: 24, flexDirection: "column", marginTop: 24 }}>
                         <Text style={{ color: COLORS.WHITE, fontFamily: "Poppins" }} >Enter Receiver Wallet</Text>
-                        <View style={{ marginTop: 12, backgroundColor: COLORS.WHITE, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8,justifyContent:"center",alignItems:"center" }}>
+                        <View style={{ marginTop: 12, backgroundColor: COLORS.WHITE, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
                             <TextInput
-                                style={{ flex: 1, fontFamily: "Poppins" }}
+                                style={{ flex: 1, fontFamily: "Poppins", color: COLORS.BLACK }}
 
                                 value={account}
                                 onChangeText={account => {
@@ -163,7 +161,7 @@ const AddContact = ({ navigation }) => {
 
                             <MaterialIcons
                                 name="account-balance-wallet"
-                                style={{marginRight:4}}
+                                style={{ marginRight: 4 }}
                                 // style={{ fontWeight: '900' }}
                                 size={30}
                                 color="orange"

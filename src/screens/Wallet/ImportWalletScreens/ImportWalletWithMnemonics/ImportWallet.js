@@ -9,7 +9,7 @@ import {
 import { ENUMS, COLORS, Str } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../../components/Header/Header';
-import Clipboard from '@react-native-community/clipboard';
+//import Clipboard from '@react-native-community/clipboard';
 import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
@@ -18,8 +18,9 @@ import messaging from '@react-native-firebase/messaging'
 import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
 import { storeWalletInfo } from '../../../../redux/action/auth';
 import axios from "axios"
+import Clipboard from '@react-native-clipboard/clipboard';
 import { store } from '../../../../store';
-import { checkInternetConnectivity } from '../../../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../../../utils/utils';
 import { ErrorMessages } from '../../../../messages/errorMessage';
 
 class ImportWallet extends React.Component {
@@ -76,12 +77,17 @@ class ImportWallet extends React.Component {
 
 
 
-      let mobileFcmToken
+      let mobileFcmToken = null
 
       if (Platform.OS === 'ios') {
         let fcmToken = await AsyncStorage.getItem("fcmToken")
         if (fcmToken) mobileFcmToken = fcmToken
-        else mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+        else try {
+          mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+        }
+        catch (e) {
+
+        }
       }
       if (Platform.OS === 'android') {
         let fcmToken = await AsyncStorage.getItem("fcmToken")
@@ -96,7 +102,8 @@ class ImportWallet extends React.Component {
         const wallet = ethers.Wallet.fromMnemonic(
           this.state.mnemonicText.trim(),
         );
-        await axios.post(`${Str.apiUrl}/v1/eurb/add-wallet`, {
+        console.log("My wallet", wallet)
+        await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
           account: wallet.address,
           token: mobileFcmToken
         })
@@ -115,11 +122,12 @@ class ImportWallet extends React.Component {
         this.props.navigation.replace(`${ENUMS.SCREENS.DASHBOARD}`);
       }
       catch (error) {
+        let msg = errorMessageHandler(error)
         this.setState({
           isLoading: false,
           disable: false,
           isError: true,
-          message: error.message ? error.message : 'Invalid mnemonic phrase',
+          message: msg
         });
 
       }

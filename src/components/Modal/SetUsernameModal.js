@@ -3,25 +3,29 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { View, Modal, StyleSheet, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { COLORS, CS, Str } from '../../common';
 import ErrorMessage from '../ErrorComponent/ErrroMessage';
-import { checkInternetConnectivity } from '../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
 import axios from 'axios';
-export default function SetUsernameModal({ onClose, visible }) {
+export default function SetUsernameModal({ onClose, visible, initialUsername, onSet }) {
     const toastRef = useRef(null);
-    const [username, setUsername] = useState("")
+    const [username, setUsername] = useState(initialUsername)
     const [isError, setIsError] = useState(false);
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [disable, setDisable] = useState(false);
+   
 
+    useEffect(() => {
+      
+        setUsername(initialUsername);
+    }, [initialUsername]);
 
-
-    submitNotes = async () => {
+    submitUsername = async () => {
 
         let isConnected = await checkInternetConnectivity()
         if (!isConnected) {
-          alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-          return
+            alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+            return
 
         }
 
@@ -30,26 +34,34 @@ export default function SetUsernameModal({ onClose, visible }) {
             setMessage('Please ensure that the username field is filled in.');
             return;
         }
+
+        if (username === initialUsername) {
+            setIsError(true);
+            setMessage("Please ensure that the username is different from the current one.");
+            return;
+        }
+
+
         try {
 
             setIsLoading(true)
             setIsError(false)
             setDisable(true)
             let address = await AsyncStorage.getItem('address');
-            await axios.post(`${Str.apiUrl}/v1/eurb/add-username`, {
-                account: address,
+            await axios.post(`${Str.apiUrl}/user/assign-username-to-wallet`, {
+                accountID: address,
                 username: username
             });
             setIsLoading(false)
             setDisable(false)
-            setUsername("")
+           
+
             alert("The username has been successfully added.")
         }
         catch (e) {
-            // console.log('Error in catch',e.response.data.message,"error in cath2", e.message);
-            let msg = e?.response?.data ? e.response.data.message : e?.message
-                ? e.message
-                : 'We are currently experiencing difficulties setting the username. Please try again later.';
+
+            let msg = errorMessageHandler(e)
+           
             setIsLoading(false)
             setIsError(true)
             setDisable(false)
@@ -108,7 +120,7 @@ export default function SetUsernameModal({ onClose, visible }) {
                             <TouchableOpacity
                                 disabled={disable}
                                 style={[styles.Button_Ok, { marginRight: 12 }]}
-                                onPress={submitNotes}
+                                onPress={submitUsername}
                             >
 
                                 <Text style={styles.Text_style_ok}>

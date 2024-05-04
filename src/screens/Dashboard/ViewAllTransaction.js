@@ -27,7 +27,7 @@ import { SocketContext } from '../../App';
 import socketDisconnectMessage from '../../components/CustomHook/socketDisconnectMessage';
 import axios from 'axios';
 import BalanceCard from './BalanceCard';
-import Clipboard from '@react-native-community/clipboard';
+//import Clipboard from '@react-native-community/clipboard';
 import DropDownHolder from '../../components/dropDownHolder';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
@@ -39,9 +39,9 @@ import TransactionLoader from './TransactionLoader';
 import { checkInternetConnectivity } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
 
-const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl, {
-    chainId: 97,
-});
+// const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl, {
+//     chainId: 97,
+// });
 
 function AllTransaction({ navigation }) {
     const [userAddress, setUserAddress] = useState('');
@@ -88,7 +88,8 @@ function AllTransaction({ navigation }) {
 
         try {
             setTransactionLoading(true)
-            let data = await axios.post(`${Str.apiUrl}/v1/eurb/all-transaction`, { walletAddress: userAddress })
+            let {data} = await axios.post(`${Str.apiUrl}/wallet/transacions-list`, { walletAddress: userAddress })
+            
             setTransactionRecord(data.data.wallet)
             setTransactionLoading(false)
 

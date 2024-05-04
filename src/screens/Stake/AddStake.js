@@ -75,7 +75,7 @@ const AddStake = (props) => {
                 ethers.utils.arrayify(transferHex),
             );
 
-            let { data } = await axios.post(`${Str.apiUrl}/v1/eurb/add-in-stake`, {
+            let { data } = await axios.post(`${Str.apiUrl}/staking/add-in-stake`, {
                 signature: signature,
                 toAddress: Str.FUNDING_ADDRESS,
                 wallet: address,
@@ -84,6 +84,7 @@ const AddStake = (props) => {
                 senderAddress: address,
                 amountToSend: amountToSend
             });
+            setMessage(`You have successfully staked ${stakingAmount} USB coins, and after one month, you will yield ${data.data.yieldAmount} USB coins. The staking period is for one month, and at the end of the month, the tokens will be returned with a yield. The average yield is 2.5% per month.`)
             setStakingAmount(0)
             setIsLoading(false)
             setYieldAmount(data.data.yieldAmount)
@@ -108,7 +109,7 @@ const AddStake = (props) => {
 
     return (
         <React.Fragment>
-            {console.log("Balanc", props.route.params.balance)}
+
 
             <StatusBarNU
                 backgroundColor={COLORS.BACKGROUND_COLOR}
@@ -123,9 +124,9 @@ const AddStake = (props) => {
 
                 <View style={{ paddingHorizontal: 16, flexDirection: "column", marginTop: 24 }}>
                     <Text style={{ color: COLORS.WHITE, fontFamily: "Poppins" }} >Please enter the staking amount.</Text>
-                    <View style={{ marginTop: 12, backgroundColor: COLORS.WHITE, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8,justifyContent:"center",alignItems:"center" }}>
+                    <View style={{ marginTop: 12, backgroundColor: COLORS.WHITE, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
                         <TextInput
-                            style={{ flex: 1, fontFamily: "Poppins" }}
+                            style={{ flex: 1, fontFamily: "Poppins", color: COLORS.BLACK }}
 
                             placeholder="Enter staking amount"
                             value={stakingAmount}
@@ -168,7 +169,7 @@ const AddStake = (props) => {
                     {yieldAmount ?
 
 
-                        <SuccessMessage message={`You have successfully staked ${stakingAmount} USB coins, and after one month, you will yield ${yieldAmount} USB coins. The staking period is for one month, and at the end of the month, the tokens will be returned with a yield. The average yield is 2.5% per month.`}></SuccessMessage> : null
+                        <SuccessMessage message={message}></SuccessMessage> : null
                     }
                 </View>
 

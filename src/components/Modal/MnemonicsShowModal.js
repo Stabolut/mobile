@@ -3,13 +3,18 @@ import Toast from 'react-native-easy-toast'
 import { View, Modal, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { COLORS } from '../../common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Clipboard from "@react-native-community/clipboard";
+import Clipboard from '@react-native-clipboard/clipboard';
 export default function LoadingModal(props) {
     const toastRef = useRef(null);
 
     const copyToClipBoard = () => {
-        Clipboard.setString(props.privateKey);
+        try{
+       Clipboard.setString(props.privateKey);
         toastRef.current.show('The private key has been successfully copied to the clipboard!', 3000);
+        }
+        catch(e){
+            
+        }
     }
 
     return (

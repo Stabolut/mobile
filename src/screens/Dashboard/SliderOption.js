@@ -18,7 +18,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 let SCREEN_WIDTH = Dimensions.get('window').width;
 let BUTTON_MARGIN = 8;
 let ADDITIONAL_SPACE = 20; // Total additional space occupied by padding, border, etc.
-let  BUTTON_WIDTH = (SCREEN_WIDTH - (BUTTON_MARGIN * 5) - ADDITIONAL_SPACE) / 4; // Divide by 4 buttons and 5 margins
+let BUTTON_WIDTH = (SCREEN_WIDTH - (BUTTON_MARGIN * 5) - ADDITIONAL_SPACE) / 4; // Divide by 4 buttons and 5 margins
 
 if (Platform.OS === "ios") {
     SCREEN_WIDTH = Dimensions.get('window').width;
@@ -104,19 +104,8 @@ const styles = StyleSheet.create({
     },
     iconViewStyle: {
 
-        // width: BUTTON_WIDTH,
-
-        // height: 100,
-        // padding: 8,
-        // justifyContent: "center",
-        // alignItems: "center",
-        // borderRadius: 10,
-        // borderColor: COLORS.SLIDER_BORDER_COLOR,
-        // borderWidth: 2
-
         width: BUTTON_WIDTH,
         height: 100,
-        padding: 8,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 10,

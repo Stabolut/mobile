@@ -11,7 +11,8 @@ import {
 import { COLORS, Images } from '../../common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DropDownHolder from '../../components/dropDownHolder';
-import Clipboard from '@react-native-community/clipboard';
+//import Clipboard from '@react-native-community/clipboard';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 
 function StakingBalance(props) {

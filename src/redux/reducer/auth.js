@@ -5,7 +5,7 @@ const initialState = {
   walletCreated: false,
 };
 export const authReducer = (state = initialState, action) => {
-  console.log("initialState",initialState)
+ 
 
   switch (action.type) {
     case PIN_VALUE:
@@ -16,20 +16,20 @@ export const authReducer = (state = initialState, action) => {
       };
 
     case WALLET_CREATED:
-      console.log("redux", action.payload)
+     
       return {
         ...state,
         walletCreated: action.payload,
       };
 
       case WALLET_CREATED:
-        console.log("redux", action.payload)
+      
         return {
           ...state,
           walletCreated: action.payload,
         };
     case SET_PIN:
-      console.log("redux", action.payload)
+     
       return {
         ...state,
         pinSet: action.payload,

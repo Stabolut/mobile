@@ -16,7 +16,7 @@ import { connect } from 'react-redux';
 import axios from 'axios';
 import { store } from '../../store';
 import { ErrorMessages } from '../../messages/errorMessage';
-import { checkInternetConnectivity } from '../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 
 
 
@@ -39,9 +39,9 @@ const ShowContact = ({ navigation, contactList }) => {
             // Filter the contacts based on the search text
             const filteredContacts = contactList.filter(
                 (contact) =>
-                    contact.name.toLowerCase().includes(searchText.toLowerCase()) 
-                    //||
-                    //contact.mobile.includes(searchText)
+                    contact.name.toLowerCase().includes(searchText.toLowerCase())
+                //||
+                //contact.mobile.includes(searchText)
             );
             setContact(filteredContacts);
         }
@@ -57,9 +57,9 @@ const ShowContact = ({ navigation, contactList }) => {
             // Filter the contacts based on the search text
             const filteredContacts = contactList.filter(
                 (contact) =>
-                    contact.name.toLowerCase() === (searchText.toLowerCase()) 
-                    //||
-                    //contact.mobile === (searchText)
+                    contact.name.toLowerCase() === (searchText.toLowerCase())
+                //||
+                //contact.mobile === (searchText)
             );
             setContact(filteredContacts);
         }
@@ -85,7 +85,7 @@ const ShowContact = ({ navigation, contactList }) => {
 
     let getContact = async () => {
         let isConnected = await checkInternetConnectivity()
-        
+
         if (!isConnected) {
             alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
             return
@@ -96,7 +96,7 @@ const ShowContact = ({ navigation, contactList }) => {
 
         try {
             setIsLoading(true)
-            let { data } = await axios.post(`${Str.apiUrl}/v1/eurb/get-contact`, {
+            let { data } = await axios.post(`${Str.apiUrl}/user/get-contact-list`, {
                 account: address
             });
             setIsLoading(false)
@@ -106,9 +106,7 @@ const ShowContact = ({ navigation, contactList }) => {
         }
         catch (e) {
             setIsLoading(false)
-            let msg = e?.response?.data ? e.response.data.errors[0].message : e?.message
-                ? e.message
-                : 'Apologies for the inconvenience, but we are currently facing some issues with adding contact information. We kindly request you to try again at a later time.';
+            let msg = errorMessageHandler(e)
 
             Alert.alert(msg)
             return;
@@ -142,9 +140,9 @@ const ShowContact = ({ navigation, contactList }) => {
                         size={30}
                         color="orange"
                     />
-                    <View style={{ flexDirection: "column", marginLeft: 16,flex:1 }}>
-                        <Text style={{ fontFamily: "Poppins" }}>{item.name}</Text>
-                        
+                    <View style={{ flexDirection: "column", marginLeft: 16, flex: 1 }}>
+                        <Text style={{ fontFamily: "Poppins", color: COLORS.BLACK }}>{item.name}</Text>
+
                     </View>
 
                     {/* <FontAwesome
@@ -185,7 +183,7 @@ const ShowContact = ({ navigation, contactList }) => {
             <View style={styles.mainContainer}>
 
 
-                {console.log("contact abx", contact)}
+
 
                 <View style={styles.container1}>
 
@@ -210,7 +208,7 @@ const ShowContact = ({ navigation, contactList }) => {
                 </View>
 
 
-                <View style={{ }}>
+                <View style={{}}>
                     {
                         isLoading && <TransactionLoader></TransactionLoader>
                     }
@@ -222,9 +220,9 @@ const ShowContact = ({ navigation, contactList }) => {
                     />
                 </View>
                 {
-                    contact.length === 0 && searchText.length>0 &&  <Text style={{paddingHorizontal: 16,color:COLORS.WHITE,fontWeight:"500",fontFamily:"Poppins",fontSize:16,alignSelf:"center"}}>Sorry, no contacts matching your search query were found</Text>
+                    contact.length === 0 && searchText.length > 0 && <Text style={{ paddingHorizontal: 16, color: COLORS.WHITE, fontWeight: "500", fontFamily: "Poppins", fontSize: 16, alignSelf: "center" }}>Sorry, no contacts matching your search query were found</Text>
                 }
-               
+
 
 
 
@@ -271,7 +269,7 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-       
+
     },
 
     addButton: {
@@ -311,6 +309,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         marginRight: 8,
+        color: COLORS.BLACK
     },
     icon: {
         marginLeft: 8,

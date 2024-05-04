@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import MnemonicsShowModal from '../../../components/Modal/MnemonicsShowModal';
 import Header from '../../../components/Header/Header';
-import { COLORS, ENUMS, Images } from '../../../common';
+import { COLORS, ENUMS, Str } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -20,6 +20,9 @@ import SetUsernameModal from '../../../components/Modal/SetUsernameModal';
 import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../components/LoadingModal/modal';
 import TransactionLoader from '../../Dashboard/TransactionLoader';
+import { errorMessageHandler } from '../../../utils/utils';
+
+import axios from 'axios';
 function Setting({ navigation }) {
     const [toggle, setToggle] = useState(false)
     const [toggleBioMetrics, setToggleBiometrics] = useState(false)
@@ -27,6 +30,8 @@ function Setting({ navigation }) {
     const [showUsernameModal, setShowUsernameModal] = useState(false)
     const [allowContact, setAllowContact] = useState(false)
     const [privateKey, setPrivateKey] = useState('');
+    const [userAddress, setUserAddress] = useState('');
+    const [username, setUserName] = useState('');
     const [visible, setVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -34,6 +39,43 @@ function Setting({ navigation }) {
         getLocalData();
 
     }, []);
+    let getLocalData = async () => {
+
+
+        let address = await AsyncStorage.getItem('address');
+        let privateKey = await AsyncStorage.getItem('mnemonics');
+        setUserAddress(address);
+        setPrivateKey(privateKey);
+
+
+
+    };
+
+
+    let getUsername = async () => {
+        try {
+            let { data } = await axios.post(`${Str.apiUrl}/user/retrieve-user-by-wallet-or-username`, {
+                userID: userAddress
+            });
+            setUserName(data?.data?.username)
+
+
+        }
+        catch (e) {
+            console.log("api error", errorMessageHandler(e))
+
+        }
+    }
+
+    // if user address get from localStorage then we get the balance of address
+    useEffect(() => {
+        if (userAddress) {
+           
+            getUsername()
+        }
+    }, [userAddress]);
+
+
 
     useEffect(() => {
         let getAllowContacts = async () => {
@@ -46,10 +88,6 @@ function Setting({ navigation }) {
     }, [])
 
 
-    let getLocalData = async () => {
-        let privateKey = await AsyncStorage.getItem('mnemonics');
-        setPrivateKey(privateKey);
-    };
 
 
     useEffect(() => {
@@ -116,10 +154,10 @@ function Setting({ navigation }) {
                 // Close the Realm database
                 realm.close();
 
-                console.log('Records cleared successfully.');
+
             })
             .catch((error) => {
-                console.log('Error clearing records:', error);
+
             });
     };
 
@@ -256,9 +294,9 @@ function Setting({ navigation }) {
                             {isLoading &&
                                 // <ActivityIndicator size="large" color={COLORS.WHITE} />
                                 <LoadingModal task={'Deleting account...'} modalVisible={isLoading} />
-                                
-                                
-                                }
+
+
+                            }
 
                         </TouchableOpacity>
 
@@ -354,7 +392,7 @@ function Setting({ navigation }) {
 
                         <TouchableOpacity onPress={() => {
                             navigation?.navigate(ENUMS.SCREENS.WEB_VIEW, {
-                                url: "https://twitter.com/stabolut",
+                                url: ENUMS.EXTERNAL_URL.TWITTER,
                                 headerText: "Twitter"
 
                             });
@@ -365,7 +403,7 @@ function Setting({ navigation }) {
 
                             <View style={{ width: 30, height: 30, backgroundColor: "#3476b4", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
                                 <Ionicons
-                                    name="md-logo-twitter"
+                                    name="logo-twitter"
                                     style={{ fontWeight: '900' }}
                                     size={18}
                                     color={COLORS.WHITE}
@@ -389,7 +427,7 @@ function Setting({ navigation }) {
 
                         <TouchableOpacity onPress={() => {
                             navigation?.navigate(ENUMS.SCREENS.WEB_VIEW, {
-                                url: "https://t.me/stabolut",
+                                url: ENUMS.EXTERNAL_URL.TELEGRAM,
                                 headerText: "Telegram"
 
                             });
@@ -425,7 +463,8 @@ function Setting({ navigation }) {
 
 
 
-                        <TouchableOpacity onPress={() => {
+                        {/* <TouchableOpacity onPress={() => {
+                            console.log("News page call")
 
                             navigation?.navigate(ENUMS.SCREENS.BIO)
 
@@ -439,9 +478,7 @@ function Setting({ navigation }) {
                                     size={18}
                                     color={COLORS.WHITE}
                                 />
-                                {/* <Image
-        style={{ width: 30, height: 30 }}
-        source={Images.coinIcon}></Image> */}
+                              
 
 
 
@@ -458,7 +495,7 @@ function Setting({ navigation }) {
                             </View>
 
 
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
 
 
 
@@ -512,6 +549,7 @@ function Setting({ navigation }) {
                     <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
                         <TouchableOpacity onPress={async () => {
+                            
                             setShowUsernameModal(true)
                         }} style={{ flexDirection: "row" }}>
 
@@ -610,7 +648,11 @@ function Setting({ navigation }) {
 
 
 
-            <SetUsernameModal visible={showUsernameModal} onClose={() => {
+            <SetUsernameModal initialUsername={username} visible={showUsernameModal} onSet={(username) => {
+               
+                setUserName(username)
+
+            }} onClose={() => {
                 setShowUsernameModal(false)
 
             }}

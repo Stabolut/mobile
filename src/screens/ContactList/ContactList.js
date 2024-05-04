@@ -11,10 +11,10 @@ const ContactList = () => {
         Contacts.getAll()
             .then((contacts) => {
                 
-                console.log('Selected contacts:', contacts);
+               
             })
             .catch((error) => {
-                console.log('Error selecting contacts:', error);
+             
             });
     };
 
@@ -41,7 +41,7 @@ const ContactList = () => {
                 if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                     fetchContacts();
                 } else {
-                    console.log('Contacts permission denied');
+                  
                 }
             } else {
                 const status = await request(PERMISSIONS.IOS.CONTACTS);
@@ -49,11 +49,11 @@ const ContactList = () => {
                 if (status === 'granted') {
                     fetchContacts();
                 } else {
-                    console.log('Contacts permission denied');
+                   
                 }
             }
         } catch (error) {
-            console.log(error);
+           
         }
     };
 

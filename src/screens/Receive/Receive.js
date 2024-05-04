@@ -9,7 +9,7 @@ import { SocketContext } from '../../../App';
 import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share';
 import { useNavigation } from '@react-navigation/native';
-import Clipboard from '@react-native-community/clipboard';
+import Clipboard from '@react-native-clipboard/clipboard';
 import DropDownHolder from '../../../components/dropDownHolder';
 import socketDisconnectMessage from '../../../components/CustomHook/socketDisconnectMessage';
 let imageByteData
@@ -86,8 +86,13 @@ export default Receive = props => {
 
 
   let copyToClipBoard = () => {
+    try{
     Clipboard.setString(address);
     DropDownHolder.alert('Success', 'Copy', `Wallet address is copied`);
+    }
+    catch(e){
+
+    }
   };
 
   return (

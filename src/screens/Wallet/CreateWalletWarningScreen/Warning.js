@@ -92,7 +92,7 @@ class Warning extends React.Component {
                           this.enableButton();
                         })
                       }
-                      tintColors={{true: COLORS.WHITE}}
+                      tintColors={{false: COLORS.WHITE}}
                     />
                   </View>
                 </View>
@@ -121,7 +121,7 @@ class Warning extends React.Component {
                           this.enableButton();
                         });
                       }}
-                      tintColors={{true: COLORS.WHITE}}
+                      tintColors={{false: COLORS.WHITE}}
                     />
                   </View>
                 </View>
@@ -151,7 +151,7 @@ class Warning extends React.Component {
                           this.enableButton();
                         })
                       }
-                      tintColors={{true: COLORS.WHITE}}
+                      tintColors={{false: COLORS.WHITE}}
                     />
                   </View>
                 </View>
@@ -249,8 +249,8 @@ const styles = StyleSheet.create({
   },
 
   WarningMessageView: {
-    width: '100%',
-    padding: 8,
+    width: '99%',
+    padding: 10,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: COLORS.SLIDER_BORDER_COLOR,

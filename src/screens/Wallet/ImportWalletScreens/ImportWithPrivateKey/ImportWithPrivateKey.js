@@ -6,10 +6,11 @@ import {
     TouchableOpacity,
     TextInput,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { ENUMS, COLORS, Str } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../../components/Header/Header';
-import Clipboard from '@react-native-community/clipboard';
+//import Clipboard from '@react-native-community/clipboard';
 import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
@@ -19,7 +20,9 @@ import { storeWalletInfo } from '../../../../redux/action/auth';
 import axios from "axios"
 import { store } from '../../../../store';
 import { ErrorMessages } from '../../../../messages/errorMessage';
-import { checkInternetConnectivity } from '../../../../utils/utils';
+import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
+import { checkInternetConnectivity, errorMessageHandler } from '../../../../utils/utils';
+
 
 
 
@@ -28,7 +31,7 @@ class ImportWithPrivateKey extends React.Component {
         super(props);
         this.textInputRef = React.createRef();
         this.state = {
-            mnemonicText: '',
+            privateKey: '',
             isError: false,
             message: '',
             isLoading: false,
@@ -37,27 +40,34 @@ class ImportWithPrivateKey extends React.Component {
     }
 
     handleButtonPress = async () => {
-        const mnemoinc = await Clipboard.getString();
-        this.setState({ mnemonicText: mnemoinc });
+        try {
+            const key = await Clipboard.getString();
+            this.setState({ privateKey: key });
+        }
+        catch (e) {
+
+        }
     };
 
-    submitMnemonics = async () => {
+    submitPrivateKey = async () => {
 
-        if (this.state.mnemonicText === '' || this.state.mnemonicText === null) {
+        // Check it privateKey is right
+
+        if (this.state.privateKey === '' || this.state.privateKey === null) {
             return this.setState({
                 isError: true,
                 message: 'Please make sure to provide a value for the private key field!',
             });
         }
 
+        // Check if internet is connected
         let isConnected = await checkInternetConnectivity()
         if (!isConnected) {
             alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
             return
 
         }
-
-
+        //set initial state
         this.setState({
             isLoading: true,
             disable: true,
@@ -68,35 +78,60 @@ class ImportWithPrivateKey extends React.Component {
 
         setTimeout(async () => {
 
-            let mobileFcmToken
 
+            let mobileFcmToken = null
+
+            // in case of ios mobile
             if (Platform.OS === 'ios') {
                 let fcmToken = await AsyncStorage.getItem("fcmToken")
                 if (fcmToken) mobileFcmToken = fcmToken
-                else mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+                else {
+                    try {
+                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+                    }
+                    catch (e) {
+
+                    }
+                }
+
             }
+            //in case of android device
 
             if (Platform.OS === 'android') {
+
                 let fcmToken = await AsyncStorage.getItem("fcmToken")
                 if (fcmToken) mobileFcmToken = fcmToken
-                else mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+                else
+                    try {
+                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+
+                    }
+                    catch (e) {
+                        console.log("Firebase error", e)
+                        this.setState({ isLoading: false, disable: false });
+                        alert('We are currently experiencing issues with verifying the account. Please try again later.');
+                        return
+
+                    }
             }
+
 
             try {
 
-                let mnemonics = this.state.mnemonicText.trim();
+                let mnemonics = this.state.privateKey.trim();
                 const wallet = new ethers.Wallet(mnemonics);
+                console.log("mnemonics", mnemonics, "wallet", wallet)
 
-                await axios.post(`${Str.apiUrl}/v1/eurb/add-wallet`, {
+                await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
                     account: wallet.address,
                     token: mobileFcmToken
                 })
 
                 await AsyncStorage.setItem('address', wallet.address);
-                await AsyncStorage.setItem('mnemonics', mnemonics);
-                await AsyncStorage.setItem('privateKey', wallet.privateKey);
-
+                await AsyncStorage.setItem('mnemonics', mnemonics);//we are stroing private key actually
+                await AsyncStorage.setItem('privateKey', mnemonics);
                 store.dispatch(storeWalletInfo(true))
+
                 this.setState({
                     isLoading: false,
                     disable: false,
@@ -105,12 +140,15 @@ class ImportWithPrivateKey extends React.Component {
                 this.props.navigation.popToTop();
                 this.props.navigation.replace(`${ENUMS.SCREENS.DASHBOARD}`);
             }
+
             catch (error) {
+
+                let msg = errorMessageHandler(error)
                 this.setState({
                     isLoading: false,
                     disable: false,
                     isError: true,
-                    message: error.message ? error.message : 'The private key entered is invalid.',
+                    message: msg
                 });
 
             }
@@ -155,9 +193,9 @@ class ImportWithPrivateKey extends React.Component {
                         </TouchableOpacity>
 
                         <TextInput
-                            value={this.state.mnemonicText}
+                            value={this.state.privateKey}
                             onChangeText={newValue => {
-                                this.setState({ mnemonicText: newValue });
+                                this.setState({ privateKey: newValue });
                             }}
                             multiline={true}
                             placeholder={''}
@@ -187,7 +225,7 @@ class ImportWithPrivateKey extends React.Component {
                     <View>
                         <TouchableOpacity
                             disabled={this.state.disable}
-                            onPress={this.submitMnemonics}
+                            onPress={this.submitPrivateKey}
                             style={styles.btnStyleImport}>
                             <Text style={styles.textStyleImport}>Import</Text>
                         </TouchableOpacity>

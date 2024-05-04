@@ -15,7 +15,7 @@ export const contactReducer = (state = initialState, action) => {
                 contact: action.payload,
             };
         case "ADD_CONTACT":
-            console.log("Payload", action.payload)
+            
 
             return {
                 ...state,

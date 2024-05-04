@@ -5,13 +5,15 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  ToastAndroid, AlertIOS
+  ToastAndroid, Dimensions
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import RNFetchBlob from 'rn-fetch-blob';
 import { COLORS, ENUMS } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import { ethers } from 'ethers';
-import Clipboard from '@react-native-community/clipboard';
+//import Clipboard from '@react-native-community/clipboard';
 import DropDownHolder from '../../../components/dropDownHolder';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import
@@ -20,7 +22,7 @@ FontAwesome5
 import RNFS from 'react-native-fs';
 import { request, PERMISSIONS } from 'react-native-permissions';
 import { err } from 'react-native-svg/lib/typescript/xml';
-
+const windowHeight = Dimensions.get('window').height;
 class CreateWallet extends React.Component {
   state = {
     mnemonicsArray: [],
@@ -29,11 +31,9 @@ class CreateWallet extends React.Component {
   };
 
   newWallet = async () => {
-    const mnemonic = ethers.utils.HDNode.entropyToMnemonic(
+    let mnemonic = ethers.utils.HDNode.entropyToMnemonic(
       ethers.utils.randomBytes(16),
     );
-
-
 
     var splitMnemoncisArray = mnemonic.split(' ');
 
@@ -50,7 +50,7 @@ class CreateWallet extends React.Component {
     const path = RNFS.DocumentDirectoryPath + '/' + fileName;
     try {
       await RNFS.writeFile(path, content, 'utf8');
-      console.log('File written!');
+     
       const fileURI = 'file://' + path;
       return { path, fileURI };
     } catch (err) {
@@ -61,27 +61,28 @@ class CreateWallet extends React.Component {
 
 
   copyToClipBoard = () => {
-    Clipboard.setString(this.state.mnemonic);
-    DropDownHolder.alert(
-      'Success',
-      'Copy',
-      `The wallet information has been successfully copied to the clipboard.`,
-    );
+    try {
+      Clipboard.setString(this.state.mnemonic);
+      DropDownHolder.alert(
+        'sucess',
+        'Copy',
+        `The wallet information has been successfully copied to the clipboard.`,
+      );
+    }
+    catch (e) {
+      DropDownHolder.alert(
+        'sucess',
+        'Copy',
+        `Facing some problem to copy wallet information to the clipboard.`,
+      );
+
+    }
+
   };
 
 
-
-
-
-
-
-
-
   downloadMnemonics = async () => {
-
     this.saveFile()
-
-
   }
 
   saveFile = async (fileUri) => {
@@ -156,7 +157,7 @@ class CreateWallet extends React.Component {
             console.log('Error writing/downloading file:', err);
           });
 
-DropDownHolder.alert(
+        DropDownHolder.alert(
           'Success',
           'Copy', "Mnemonics file download in mobile")
         console.log('File saved successfully!');
@@ -187,7 +188,7 @@ DropDownHolder.alert(
         <View style={styles.mainContainer}>
           <ScrollView>
             <View style={styles.mainContainerChild1}>
-              <View style={styles.mainContainerChild1View1}>
+              <View style={[styles.mainContainerChild1View1, { paddingHorizontal: 32 }]}>
                 <Text style={styles.mainContainerChild1View1Text_1}>
                   Your Secret Phrase
                 </Text>
@@ -197,7 +198,8 @@ DropDownHolder.alert(
                 </Text>
               </View>
 
-              <View style={styles.mainContainerChild1View2}>
+
+              <View style={[styles.mainContainerChild1View2, { padding: windowHeight >= 630 ? 16 : 0 }]}>
                 {this.state.mnemonicsArray.map((item, index) => (
                   <View
                     key={index}
@@ -216,7 +218,7 @@ DropDownHolder.alert(
                 ))}
               </View>
 
-              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 24 }}>
+              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 4 }}>
                 <TouchableOpacity
                   onPress={this.copyToClipBoard}
                   style={{ marginRight: 24, justifyContent: "center", alignItems: "center" }}
@@ -232,25 +234,6 @@ DropDownHolder.alert(
                     COPY
                   </Text>
                 </TouchableOpacity>
-                {/* {
-                  Platform.OS !== 'ios' ? <TouchableOpacity
-                    onPress={this.downloadMnemonics}
-                    style={{ justifyContent: "center", alignItems: "center" }}>
-                    <FontAwesome5 size={25} color={COLORS.WHITE} name="cloud-download-alt" />
-
-                    <Text
-                      style={{
-                        color: COLORS.WHITE,
-                        fontSize: 14,
-                        fontWeight: '700',
-                        fontFamily: 'Poppins',
-                      }}>
-                      Download
-                    </Text>
-                  </TouchableOpacity>
-                    : null
-
-                } */}
 
 
 
@@ -276,6 +259,8 @@ DropDownHolder.alert(
 
             <TouchableOpacity
               onPress={() => {
+
+
                 this.props.navigation.navigate(
                   `${ENUMS.SCREENS.MNEMONICS_VERIFICATION}`,
                   {
@@ -300,9 +285,7 @@ const styles = StyleSheet.create({
   },
   mainContainerChild1: {
     flex: 1,
-    paddingLeft: 32,
-    paddingRight: 32,
-    paddingTop: 40,
+    paddingTop: 30
   },
 
   mainContainerChild1View1: {
@@ -327,9 +310,10 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     flexDirection: 'row',
     alignItems: 'center',
-    alignContent: 'center',
+    //alignContent: 'center',
     textAlign: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
+
   },
   mainContainerChild1View2View1: {
     padding: 8,
@@ -371,7 +355,7 @@ const styles = StyleSheet.create({
     color: COLORS.ALERT_NORMAL_COLOR,
     marginTop: 8,
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Poppins',
   },
 

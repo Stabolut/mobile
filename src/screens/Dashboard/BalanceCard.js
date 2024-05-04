@@ -20,7 +20,7 @@ function BalanceCard({ isLoading, balance, userAddress, copy }) {
 
                 <View style={{ flexDirection: "row" }}>
                     <View style={{ flex: 1, paddingLeft: 24, marginTop: 8, alignItems: "baseline", }}>
-                        <Text style={styles.balanceTextHeading}>Balance</Text>
+                        <Text style={styles.balanceTextHeading}>Balancess</Text>
 
                         {
                             isLoading === true ? <Text style={{ color: COLORS.WHITE }}>....</Text> :
@@ -54,8 +54,8 @@ function BalanceCard({ isLoading, balance, userAddress, copy }) {
                 </View>
 
 
-                <View style={{ flexDirection: "row", marginTop: 12, paddingLeft: 24, paddingRight: 24, paddingBottom: 8 }}>
-                    <View style={{ flex: 95 }}><Text style={styles.addressText}>{userAddress}</Text></View>
+                <View style={{ flexDirection: "row", marginTop: 12, paddingLeft: 24, paddingRight: 24, paddingBottom: 8}}>
+                    <View style={{ flex: 80 }}><Text style={styles.addressText}>{userAddress}</Text></View>
                     <TouchableOpacity onPress={copy} style={{ flex: 10}}>
 
                         <Ionicons
@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
         width: "100%",
         paddingLeft: 16,
         paddingRight: 16,
+     
        
 
 
@@ -101,6 +102,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         borderTopWidth: 5,
         borderTopColor: COLORS.BALANCE_CARD_UPPER_BORDER,
+       
 
         shadowColor: COLORS.WHITE,
         shadowOffset: {
