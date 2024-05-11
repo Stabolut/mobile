@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { COLORS } from '../../../common';
+import { COLORS,THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-community/async-storage';
 import { SocketContext } from '../../../App';
+import { useSelector } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share';
 import { useNavigation } from '@react-navigation/native';
@@ -19,9 +20,12 @@ export default Receive = props => {
   const [address, setAddress] = useState("");
   const [qrCodeImageByte, setQrCodeImageByte] = useState("");
   const [showShare, setShowShare] = useState(false);
-
-  const socketConnection = useContext(SocketContext);
+ 
+const socketConnection = useContext(SocketContext);
   socketDisconnectMessage(socketConnection.connectionStatus);
+
+  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  const theme = THEME[selectedTheme];
 
   const ref = useRef(null);
 
@@ -90,14 +94,14 @@ export default Receive = props => {
   return (
     <React.Fragment>
       <StatusBarNU
-        backgroundColor={COLORS.BACKGROUND_COLOR}
-        barStyle="light-content"
+        backgroundColor={theme?.BACKGROUND_COLOR}
+       
       />
-      <Header headerText="Receive USB" navigation={navigation}></Header>
+      <Header headerText="Receive USB" theme={theme} navigation={navigation}></Header>
 
-      <View style={styles.mainContainer}>
+      <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
         {/* <View style={{ width: 300, height: 300 }}> */}
-        <View style={styles.qrCodeScanCard}>
+        <View style={[styles.qrCodeScanCard,{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND}]}>
           <QRCode
             size={200}
             value={address ? address : 'null'}
@@ -114,7 +118,7 @@ export default Receive = props => {
               textAlign: 'center',
               fontSize: 12,
               marginTop: 20,
-              color: COLORS.WHITE,
+              color: theme?.WHITE,
               fontFamily: 'Poppins',
             }}>
             {address}
@@ -127,13 +131,13 @@ export default Receive = props => {
               textAlign: 'center',
               fontSize: 12,
               marginTop: 20,
-              color: COLORS.WHITE,
+              color: theme?.WHITE,
               fontFamily: 'Poppins',
             }}>
             Send only{' '}
             <Text
               style={{
-                color: COLORS.SMALL_HEADING_TEXT,
+                color: theme?.SMALL_HEADING_TEXT,
                 fontWeight: 'bold',
                 fontFamily: 'Poppins',
               }}>
@@ -144,7 +148,7 @@ export default Receive = props => {
           <Text
             style={{
               textAlign: 'center',
-              color: COLORS.WHITE,
+              color: theme?.WHITE,
               fontSize: 12,
               fontFamily: 'Poppins',
             }}>
@@ -172,7 +176,7 @@ export default Receive = props => {
             <Text
               style={{
                 marginTop: 8,
-                color: COLORS.WHITE,
+                color: theme?.WHITE,
                 fontFamily: 'Poppins',
               }}>
               Copy
@@ -193,7 +197,7 @@ export default Receive = props => {
             <Text
               style={{
                 marginTop: 8,
-                color: COLORS.WHITE,
+                color: theme?.WHITE,
                 fontFamily: 'Poppins',
               }}>
               Share
@@ -216,7 +220,7 @@ export default Receive = props => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+   
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -226,7 +230,7 @@ const styles = StyleSheet.create({
     width: 290,
     paddingLeft: 8,
     paddingRight: 8,
-    backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
+   
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',

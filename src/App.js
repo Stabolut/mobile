@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, createContext } from 'react';
-import { PermissionsAndroid } from 'react-native';
+import { useColorScheme } from 'react-native';
 import Navigation from './navigation';
 import Toast from 'react-native-easy-toast';
 import DropDownHolder from './components/dropDownHolder';
@@ -18,18 +18,14 @@ const App = () => {
   const [connectionStatus, setConnectionStatus] = useState('connected');
 
 
+
   useEffect(() => {
     requestUserPermission()
     notificationListener()
   }, [])
 
 
-
-
-
-
-
-  const socketRef = useRef(null);
+ const socketRef = useRef(null);
 
   useEffect(() => {
     socketRef.current = io(Str.socketUrl);
@@ -64,7 +60,7 @@ const App = () => {
             isSocketConnected: socketConnected,
             connectionStatus: connectionStatus,
           }}>
-          <Navigation value={socketConnected}></Navigation>
+          <Navigation  value={socketConnected}></Navigation>
         </SocketContext.Provider>
         <Toast
           style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND }}

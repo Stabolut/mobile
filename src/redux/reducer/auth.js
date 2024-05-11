@@ -1,8 +1,9 @@
-import { WALLET_CREATED, PIN_VALUE,SET_PIN } from "../types/auth";
+import { WALLET_CREATED, PIN_VALUE,SET_PIN,SET_THEME } from "../types/auth";
 
 const initialState = {
   pinValue: false,
   walletCreated: false,
+  theme:""
 };
 export const authReducer = (state = initialState, action) => {
  
@@ -33,6 +34,12 @@ export const authReducer = (state = initialState, action) => {
       return {
         ...state,
         pinSet: action.payload,
+      };
+      case SET_THEME:
+     
+      return {
+        ...state,
+        theme: action.payload,
       };
 
 

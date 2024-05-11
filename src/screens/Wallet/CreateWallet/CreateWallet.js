@@ -8,20 +8,19 @@ import {
   ToastAndroid, Dimensions
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { store } from '../../../store';
 
 import RNFetchBlob from 'rn-fetch-blob';
-import { COLORS, ENUMS } from '../../../common';
+import { COLORS, ENUMS,THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import { ethers } from 'ethers';
 //import Clipboard from '@react-native-community/clipboard';
 import DropDownHolder from '../../../components/dropDownHolder';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import
-FontAwesome5
-  from 'react-native-vector-icons/FontAwesome5';
+
 import RNFS from 'react-native-fs';
 import { request, PERMISSIONS } from 'react-native-permissions';
-import { err } from 'react-native-svg/lib/typescript/xml';
+
 const windowHeight = Dimensions.get('window').height;
 class CreateWallet extends React.Component {
   state = {
@@ -179,20 +178,23 @@ class CreateWallet extends React.Component {
 
 
   render() {
+
+    let selectedTheme = store.getState().authReducer?.theme
+    let theme = THEME[selectedTheme]
     return (
       <React.Fragment>
         <StatusBarNU
-          backgroundColor={COLORS.BACKGROUND_COLOR}
-          barStyle="light-content"
+          backgroundColor={theme?.BACKGROUND_COLOR}
+         
         />
-        <View style={styles.mainContainer}>
+        <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
           <ScrollView>
             <View style={styles.mainContainerChild1}>
               <View style={[styles.mainContainerChild1View1, { paddingHorizontal: 32 }]}>
-                <Text style={styles.mainContainerChild1View1Text_1}>
+                <Text style={[styles.mainContainerChild1View1Text_1,{ color: theme?.WHITE,}]}>
                   Your Secret Phrase
                 </Text>
-                <Text style={styles.mainContainerChild1View1Text_2}>
+                <Text style={[styles.mainContainerChild1View1Text_2,{ color: theme?.SMALL_HEADING_TEXT,}]}>
                   Write down or copy these words in the right order and save
                   them somewhere safe
                 </Text>
@@ -204,12 +206,12 @@ class CreateWallet extends React.Component {
                   <View
                     key={index}
                     style={styles.mainContainerChild1View2View1}>
-                    <Text style={{ color: COLORS.SMALL_HEADING_TEXT }}>
+                    <Text style={{ color: theme?.SMALL_HEADING_TEXT }}>
                       {index + 1}
                     </Text>
                     <Text
                       style={{
-                        color: COLORS.WHITE,
+                        color: theme?.WHITE,
                         marginLeft: 2,
                       }}>
                       {item}
@@ -223,10 +225,10 @@ class CreateWallet extends React.Component {
                   onPress={this.copyToClipBoard}
                   style={{ marginRight: 24, justifyContent: "center", alignItems: "center" }}
                 >
-                  <Ionicons size={25} color={COLORS.WHITE} name="copy" />
+                  <Ionicons size={25} color={theme?.WHITE} name="copy" />
                   <Text
                     style={{
-                      color: COLORS.WHITE,
+                      color: theme?.WHITE,
                       fontSize: 14,
                       fontWeight: '700',
                       fontFamily: 'Poppins',
@@ -280,8 +282,7 @@ class CreateWallet extends React.Component {
 }
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+    flex: 1
   },
   mainContainerChild1: {
     flex: 1,
@@ -296,13 +297,11 @@ const styles = StyleSheet.create({
 
   mainContainerChild1View1Text_1: {
     fontFamily: 'Poppins',
-    fontSize: 22,
-    color: COLORS.WHITE,
+    fontSize: 22
   },
   mainContainerChild1View1Text_2: {
     textAlign: 'center',
     marginTop: 4,
-    color: COLORS.SMALL_HEADING_TEXT,
     fontFamily: 'Poppins',
   },
 

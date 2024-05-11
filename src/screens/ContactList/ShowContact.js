@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, TextInput, ScrollView, TouchableOpacity, FlatLi
 import ContactList from './ContactList';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Header from '../../components/Header/Header';
-import { COLORS, ENUMS, Images, Str } from '../../common';
+import { COLORS, ENUMS, THEME, Str } from '../../common';
 import LoadingModal from '../../components/LoadingModal/modal';
 import ErrorMessage from '../../components/ErrorComponent/ErrroMessage';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -24,10 +24,15 @@ import { checkInternetConnectivity, errorMessageHandler } from '../../utils/util
 
 
 
+
 const ShowContact = ({ navigation, contactList }) => {
     const [contact, setContact] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [searchText, setSearchText] = useState('');
+
+    let selectedTheme = useSelector((state) => state.authReducer.theme)
+  const theme = THEME[selectedTheme];
+
 
     const handleSearch = () => {
 
@@ -131,7 +136,7 @@ const ShowContact = ({ navigation, contactList }) => {
             }} style={{ paddingHorizontal: 16, flexDirection: "column", marginTop: 18 }}>
 
 
-                <View style={{ backgroundColor: COLORS.WHITE, flexDirection: "row", padding: 12, borderRadius: 8, alignItems: "center" }}>
+                <View style={{ backgroundColor:selectedTheme===ENUMS.THEME.DARK?COLORS.WHITE:theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 12, borderRadius: 8, alignItems: "center" }}>
 
 
                     <FontAwesome
@@ -166,8 +171,8 @@ const ShowContact = ({ navigation, contactList }) => {
 
 
             <StatusBarNU
-                backgroundColor={COLORS.BACKGROUND_COLOR}
-                barStyle="light-content"
+                backgroundColor={theme?.BACKGROUND_COLOR}
+               
 
             />
 
@@ -176,11 +181,12 @@ const ShowContact = ({ navigation, contactList }) => {
             <Header
                 backButton={true}
                 headerText="Contacts"
+                theme={theme}
                 navigation={navigation}></Header>
 
 
 
-            <View style={styles.mainContainer}>
+            <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
 
 
 
@@ -220,7 +226,7 @@ const ShowContact = ({ navigation, contactList }) => {
                     />
                 </View>
                 {
-                    contact.length === 0 && searchText.length > 0 && <Text style={{ paddingHorizontal: 16, color: COLORS.WHITE, fontWeight: "500", fontFamily: "Poppins", fontSize: 16, alignSelf: "center" }}>Sorry, no contacts matching your search query were found</Text>
+                    contact.length === 0 && searchText.length > 0 && <Text style={{ paddingHorizontal: 16, color: theme?.WHITE, fontWeight: "500", fontFamily: "Poppins", fontSize: 16, alignSelf: "center" }}>Sorry, no contacts matching your search query were found</Text>
                 }
 
 
@@ -253,8 +259,7 @@ const ShowContact = ({ navigation, contactList }) => {
 };
 const styles = StyleSheet.create({
     mainContainer: {
-        flex: 1,
-        backgroundColor: COLORS.BACKGROUND_COLOR,
+        flex: 1
 
     },
     circle: {

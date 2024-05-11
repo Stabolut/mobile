@@ -1,19 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 import { View, Modal, StyleSheet, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { COLORS, CS, Str } from '../../common';
+import { COLORS, CS, Str,THEME } from '../../common';
 import ErrorMessage from '../ErrorComponent/ErrroMessage';
 import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
 import axios from 'axios';
-export default function SetUsernameModal({ onClose, visible, initialUsername, onSet }) {
+export default function SetUsernameModal({ onClose, visible, initialUsername, selectedTheme }) {
     const toastRef = useRef(null);
     const [username, setUsername] = useState(initialUsername)
     const [isError, setIsError] = useState(false);
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [disable, setDisable] = useState(false);
-   
+    const theme = THEME[selectedTheme];
 
     useEffect(() => {
       
@@ -75,11 +75,12 @@ export default function SetUsernameModal({ onClose, visible, initialUsername, on
             transparent={true}
             visible={visible}
             statusBarTranslucent={true}>
+              
 
-            <View style={styles.centeredView}>
+            <View style={[styles.centeredView]}>
 
 
-                <View style={styles.modalView}>
+                <View style={[styles.modalView,{backgroundColor: theme?.BALANCE_CARD_BACKGROUND,}]}>
 
                     <View style={{ flexDirection: 'column', width: "100%" }}>
 
@@ -92,13 +93,13 @@ export default function SetUsernameModal({ onClose, visible, initialUsername, on
 
                         <View style={styles.container}>
                             <TextInput
-                                style={{ color: COLORS.WHITE }}
+                                style={{ color: theme?.WHITE }}
                                 value={username}
                                 onChangeText={(value) => {
                                     setUsername(value)
 
                                 }}
-                                placeholderTextColor={COLORS.WHITE}
+                                placeholderTextColor={theme?.WHITE}
                                 placeholder={"Enter username"}
 
 
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
         padding: 32,
 
 
-        backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
+        
         borderRadius: 20,
         flexDirection: 'column',
         justifyContent: 'center',

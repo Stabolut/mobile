@@ -2,8 +2,9 @@ import React from 'react';
 import { View, StyleSheet, ScrollView, Text, Image, ImageBackground } from 'react-native';
 
 import Header from '../../../components/Header/Header';
-import { COLORS, ENUMS, Images } from '../../../common';
+import { COLORS, THEME, Images } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
+import { useSelector } from 'react-redux';
 // import AsyncStorage from '@react-native-community/async-storage';
 // import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 // import PINCode from '@haskkor/react-native-pincode';
@@ -11,18 +12,21 @@ import * as Animatable from "react-native-animatable";
 
 
 function About({ navigation }) {
+    const selectedTheme = useSelector((state) => state.authReducer.theme)
+    const theme = THEME[selectedTheme];
 
     return (
         <React.Fragment>
 
             <StatusBarNU
-                backgroundColor={COLORS.BACKGROUND_COLOR}
-                barStyle="light-content"
+                backgroundColor={theme?.BACKGROUND_COLOR}
+             
 
             />
             <Header
                 backButton={true}
                 headerText="About US"
+                theme={theme}
                 navigation={navigation}></Header>
 
 

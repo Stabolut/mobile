@@ -10,7 +10,7 @@ import {
   Image
 
 } from 'react-native';
-import { COLORS, ENUMS, Images, Str } from '../../common';
+import { COLORS, ENUMS, THEME, Str } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Header from '../../components/Header/Header';
 import TransactionLoader from '../Dashboard/TransactionLoader';
@@ -22,6 +22,7 @@ import ErrorMessage from '../../components/ErrorComponent/ErrroMessage';
 import StakingBalance from './StakingBalance';
 import { ErrorMessages } from '../../messages/errorMessage';
 import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
+import { useSelector } from 'react-redux';
 
 
 
@@ -51,6 +52,8 @@ let reducer = (currentState, action) => {
 
 function Stake(props) {
   const [getObject, dispatch] = useReducer(reducer, initialState)
+  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  const theme = THEME[selectedTheme];
   useEffect(() => {
     fetchStake()
   }, [])
@@ -99,14 +102,14 @@ function Stake(props) {
 
 
       <StatusBarNU
-        backgroundColor={COLORS.BACKGROUND_COLOR}
-        barStyle="light-content"
+        backgroundColor={theme?.BACKGROUND_COLOR}
+        
       />
-      <Header headerText="Stake USB" navigation={props.navigation}></Header>
-      <View style={styles.mainContainer}>
+      <Header theme={theme} headerText="Stake USB" navigation={props.navigation}></Header>
+      <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
 
 
-        <StakingBalance stakeAmount={getObject.amount} balance={props.route.params.balance} userAddress={props.route.params.userAddress}></StakingBalance>
+        <StakingBalance theme={theme} stakeAmount={getObject.amount} balance={props.route.params.balance} userAddress={props.route.params.userAddress}></StakingBalance>
 
         <View style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 16, paddingBottom: 8 }}>
           <TouchableOpacity onPress={() => {
@@ -129,9 +132,9 @@ function Stake(props) {
 
 
 
-          <Text style={[styles.eurbMainAccountText, { marginBottom: 6 }]}>Claim</Text>
+          <Text style={[styles.eurbMainAccountText, { marginBottom: 6, color: theme?.WHITE }]}>Claim</Text>
           {/* <Text style={{ color: COLORS.WHITE, textAlign: 'justify',fontSize:12,fontFamily: "Poppins" }}>Users who stake their USB coins in our staking pool have the opportunity to earn lucrative rewards. With a 0.03% return every 8 hours, you can accumulate substantial rewards by participating in our staking program. After the 8-hour period, users can claim their earned rewards.</Text> */}
-          <Text style={{ color: COLORS.WHITE, textAlign: 'justify', fontSize: 12, fontFamily: "Poppins", marginRight: 8 }}>Earn lucrative rewards by staking USB coins for a period of 1 month and claiming earnings thereafter. </Text>
+          <Text style={{ color: theme?.WHITE, textAlign: 'justify', fontSize: 12, fontFamily: "Poppins", marginRight: 8 }}>Earn lucrative rewards by staking USB coins for a period of 1 month and claiming earnings thereafter. </Text>
         </View>
 
         {/* <View style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8 }}>
@@ -142,13 +145,14 @@ function Stake(props) {
             </TouchableOpacity>
           </View> */}
         <View style={{ paddingLeft: 16, paddingTop: 8, marginLeft: 2, flexDirection: "row" }}>
-          <Text style={[styles.eurbMainAccountText, { marginBottom: 6 }]}>Buckets</Text>
+          <Text style={[styles.eurbMainAccountText, { marginBottom: 6, color: theme?.WHITE, }]}>Buckets</Text>
 
           <TouchableOpacity onPress={refresh}>
             <Feather
               name="refresh-ccw"
               style={styles.arrowRefresh}
               size={16}
+              color={theme?.WHITE}
             />
           </TouchableOpacity>
 
@@ -170,17 +174,16 @@ function Stake(props) {
                   inverted={false}
                   renderItem={({ item }) => (
                     <View style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 12 }} >
-                      <View style={styles.stakingCardMainViewStyle}>
+                      <View style={[styles.stakingCardMainViewStyle,{backgroundColor:theme?.BACKGROUND_COLOR, borderColor: theme?.STAKE_LIST_BORDER_COLOR}]}>
                         <View style={{ flexDirection: "row", flex: 1 }}>
                           <View style={{ flex: 1, justifyContent: "center" }}>
-                            <Text style={styles.totalRewardHeading} >Total Stack ({item?.amount} USB)</Text>
-                            <Text style={{ color: COLORS.WHITE, fontSize: 12, marginTop: 4 }}><Text style={{ fontWeight: "bold" }}>Date</Text>:{moment(item.timestamps.created_At).format("DD MMM YYYY, HH:mm")}</Text>
-
+                            <Text style={[styles.totalRewardHeading,{color:theme?.WHITE}]} >Total Stack ({item?.amount} USB)</Text>
+                            <Text style={{ color: theme?.WHITE, fontSize: 12, marginTop: 4 }}><Text style={{ fontWeight: "bold" }}>Date</Text>:{moment(item.timestamps.created_At).format("DD MMM YYYY, HH:mm")}</Text>
                           </View>
                           <View style={{ justifyContent: "flex-end", flex: 1, alignItems: "flex-end" }}>
-                            <Text style={[styles.balanceTextHeading, { fontWeight: "900" }]}>Reward</Text>
+                            <Text style={[styles.balanceTextHeading, { fontWeight: "900",color:theme?.WHITE }]}>Reward</Text>
 
-                            <Text style={{ color: COLORS.WHITE, fontSize: 12, marginTop: 4 }}>{item?.yieldAmount} USB</Text>
+                            <Text style={{ color: theme?.WHITE, fontSize: 12, marginTop: 4 }}>{item?.yieldAmount} USB</Text>
 
                           </View>
                         </View>
@@ -194,11 +197,11 @@ function Stake(props) {
                 :
                 <View style={{ paddingLeft: 16, paddingRight: 16, marginRight: 8 }}>
 
-                  <Text style={{ color: COLORS.WHITE, textAlign: 'justify', fontSize: 12, fontFamily: "Poppins", marginRight: 8 }}>When you stake, a bucket is reserved for the staked amount for a duration of 1 month.
+                  <Text style={{ color: theme?.WHITE, textAlign: 'justify', fontSize: 12, fontFamily: "Poppins", marginRight: 8 }}>When you stake, a bucket is reserved for the staked amount for a duration of 1 month.
                     After the month, the staked tokens are returned to you along with a yield.
                     On average, the yield is 2.5% per month.</Text>
                   <View style={{ padding: 16, borderRadius: 8, backgroundColor: "#4d4b70", marginTop: 16 }}>
-                    <Text style={[styles.totalRewardHeading, { alignSelf: "center" }]} >You have 0 non-delegated buckets</Text>
+                    <Text style={[styles.totalRewardHeading, { alignSelf: "center",color:COLORS.WHITE }]} >You have 0 non-delegated buckets</Text>
 
                   </View>
                 </View>
@@ -229,8 +232,7 @@ function Stake(props) {
 
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+    flex: 1
   },
   btnStyleSend: {
     height: 45,
@@ -245,7 +247,7 @@ const styles = StyleSheet.create({
     elevation: 7,
   },
   arrowRefresh: {
-    color: COLORS.WHITE,
+    
     marginLeft: 8,
     marginTop: 4,
     fontWeight: "bold"
@@ -257,7 +259,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins"
   },
   eurbMainAccountText: {
-    color: COLORS.WHITE,
+   
     fontSize: 18,
     fontWeight: "bold",
     fontFamily: "Poppins"
@@ -268,23 +270,22 @@ const styles = StyleSheet.create({
     width: "100%",
 
     padding: 14,
-    backgroundColor: "#0a0b1d",
-    borderRadius: 10,
+   borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#4d4b70",
+   
     shadowColor: COLORS.WHITE,
 
 
   },
   balanceTextHeading: {
-    color: COLORS.WHITE,
+    
     fontSize: 12,
     fontWeight: "400",
 
     fontFamily: "Poppins",
   },
   totalRewardHeading: {
-    color: COLORS.WHITE,
+   
 
     fontSize: 14,
     fontWeight: "700",

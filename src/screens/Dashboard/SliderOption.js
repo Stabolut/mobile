@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     Platform
 } from 'react-native';
-import { COLORS } from '../../common';
+import { COLORS, ENUMS, THEME } from '../../common';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -28,7 +28,8 @@ if (Platform.OS === "ios") {
 
 }
 
-function SliderOption({ transfer, showKey, receive, purchase, balance }) {
+function SliderOption({ transfer, showKey, receive, purchase, selectedTheme }) {
+    const theme = THEME[selectedTheme];
 
     return (
 
@@ -38,40 +39,40 @@ function SliderOption({ transfer, showKey, receive, purchase, balance }) {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.scrollViewContainer}>
 
-                <TouchableOpacity onPress={transfer} style={styles.iconViewStyle}>
+                <TouchableOpacity onPress={transfer} style={[styles.iconViewStyle,{borderColor: theme?.SLIDER_BORDER_COLOR,backgroundColor:selectedTheme===ENUMS.THEME.LIGHT?theme?.BALANCE_CARD_BACKGROUND:null}]}>
 
                     <Feather
                         name="send"
                         style={styles.iconDesign}
                         size={25}
-                        color={COLORS.WHITE}
+                        color={theme?.WHITE}
                     />
-                    <Text style={[styles.textStyle, { marginBottom: 0 }]}>SEND</Text>
-                    <Text style={[styles.textStyle, { marginTop: 0 }]}>PAY</Text>
+                    <Text style={[styles.textStyle, { marginBottom: 0, color: theme?.WHITE, }]}>SEND</Text>
+                    <Text style={[styles.textStyle, { marginTop: 0, color: theme?.WHITE, }]}>PAY</Text>
 
                 </TouchableOpacity>
-                <TouchableOpacity onPress={receive} style={[styles.iconViewStyle, { marginLeft: 8 }]}>
+                <TouchableOpacity onPress={receive} style={[styles.iconViewStyle, { marginLeft: 8, borderColor: theme?.SLIDER_BORDER_COLOR,backgroundColor:selectedTheme===ENUMS.THEME.LIGHT?theme?.BALANCE_CARD_BACKGROUND:null }]}>
                     <FontAwesome
                         name="qrcode"
                         style={styles.iconDesign}
                         size={25}
-                        color={COLORS.WHITE}
+                        color={theme?.WHITE}
                     />
-                    <Text style={[styles.textStyle, { marginBottom: 0 }]}>RECEIVE</Text>
-                    <Text style={[styles.textStyle, { marginTop: 0 }]}>GET PAID</Text>
+                    <Text style={[styles.textStyle, { marginBottom: 0, color: theme?.WHITE, }]}>RECEIVE</Text>
+                    <Text style={[styles.textStyle, { marginTop: 0, color: theme?.WHITE,}]}>GET PAID</Text>
 
 
                 </TouchableOpacity>
                 {
                     Platform.OS === "ios" ? null :
-                        <TouchableOpacity onPress={showKey} style={[styles.iconViewStyle, { marginLeft: 8 }]}>
+                        <TouchableOpacity onPress={showKey} style={[styles.iconViewStyle, { marginLeft: 8, borderColor: theme?.SLIDER_BORDER_COLOR,backgroundColor:selectedTheme===ENUMS.THEME.LIGHT?theme?.BALANCE_CARD_BACKGROUND:null }]}>
                             <FontAwesome5
                                 name="coins"
                                 style={styles.iconDesign}
                                 size={25}
-                                color={COLORS.WHITE}
+                                color={theme?.WHITE}
                             />
-                            <Text style={styles.textStyle}>Stake</Text>
+                            <Text style={[styles.textStyle,{ color: theme?.WHITE}]}>Stake</Text>
 
                         </TouchableOpacity>
                 }
@@ -80,14 +81,14 @@ function SliderOption({ transfer, showKey, receive, purchase, balance }) {
 
 
 
-                <TouchableOpacity onPress={purchase} style={[styles.iconViewStyle, { marginLeft: 8 }]}>
+                <TouchableOpacity onPress={purchase} style={[styles.iconViewStyle, { marginLeft: 8, borderColor: theme?.SLIDER_BORDER_COLOR,backgroundColor:selectedTheme===ENUMS.THEME.LIGHT?theme?.BALANCE_CARD_BACKGROUND:null }]}>
                     <Feather
                         name="settings"
                         style={[styles.iconDesign, {}]}
                         size={25}
-                        color={COLORS.WHITE}
+                        color={theme?.WHITE}
                     />
-                    <Text style={[styles.textStyle, { marginBottom: 4 }]}>Settings</Text>
+                    <Text style={[styles.textStyle, { marginBottom: 4,color: theme?.WHITE }]}>Settings</Text>
 
 
                 </TouchableOpacity>
@@ -100,7 +101,11 @@ function SliderOption({ transfer, showKey, receive, purchase, balance }) {
 const styles = StyleSheet.create({
 
     sliderMainView: {
-        paddingLeft: 16, paddingRight: 16, justifyContent: "center", alignItems: "center", marginTop: 16
+        paddingLeft: 16,
+        paddingRight: 16,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 16
     },
     iconViewStyle: {
 
@@ -109,7 +114,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 10,
-        borderColor: COLORS.SLIDER_BORDER_COLOR,
+       
         borderWidth: 2,
 
     },
@@ -117,7 +122,7 @@ const styles = StyleSheet.create({
         fontWeight: "800"
     },
     textStyle: {
-        color: COLORS.WHITE,
+       
         fontSize: 12,
         marginTop: 6,
         fontFamily: "Poppins"

@@ -9,8 +9,9 @@ import {
   Dimensions
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import {COLORS, ENUMS, Images} from '../../../common';
+import {COLORS, ENUMS, Images,THEME} from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
+import { store } from '../../../store';
 
 class Warning extends React.Component {
   state = {
@@ -41,20 +42,23 @@ class Warning extends React.Component {
   }
 
   render() {
+    let selectedTheme = store.getState().authReducer?.theme
+    let theme = THEME[selectedTheme]
+
     return (
       <React.Fragment>
         <StatusBarNU
-          backgroundColor={COLORS.BACKGROUND_COLOR}
-          barStyle="light-content"
+          backgroundColor={theme?.BACKGROUND_COLOR}
+          
         />
 
-        <View style={styles.mainContainer}>
+        <View style={[styles.mainContainer,{backgroundColor: theme?.BACKGROUND_COLOR,}]}>
           <View style={styles.mainContainerChild1}>
             <View style={styles.mainContainerChild1View1}>
-              <Text style={styles.mainContainerChild1View1Text_1}>
+              <Text style={[styles.mainContainerChild1View1Text_1,{ color: theme?.WHITE}]}>
                 Back up your wallet now!
               </Text>
-              <Text style={styles.mainContainerChild1View1Text_2}>
+              <Text style={[styles.mainContainerChild1View1Text_2,{color: theme?.SMALL_HEADING_TEXT}]}>
                 In the next step, you will see the Secret Phrase (12 words) that
                 allows you to recover a wallet
               </Text>
@@ -77,7 +81,7 @@ class Warning extends React.Component {
                     <Text
                       style={{
                         width: '85%',
-                        color: COLORS.SMALL_HEADING_TEXT,
+                        color: theme?.SMALL_HEADING_TEXT,
                         marginRight: 8,
                         fontFamily: 'Poppins',
                       }}>
@@ -92,7 +96,7 @@ class Warning extends React.Component {
                           this.enableButton();
                         })
                       }
-                      tintColors={{false: COLORS.WHITE}}
+                      tintColors={{false: theme?.WHITE}}
                     />
                   </View>
                 </View>
@@ -105,7 +109,7 @@ class Warning extends React.Component {
                     <Text
                       style={{
                         width: '85%',
-                        color: COLORS.SMALL_HEADING_TEXT,
+                        color: theme?.SMALL_HEADING_TEXT,
                         marginRight: 8,
                         fontFamily: 'Poppins',
                       }}>
@@ -121,7 +125,7 @@ class Warning extends React.Component {
                           this.enableButton();
                         });
                       }}
-                      tintColors={{false: COLORS.WHITE}}
+                      tintColors={{false: theme?.WHITE}}
                     />
                   </View>
                 </View>
@@ -135,7 +139,7 @@ class Warning extends React.Component {
                     <Text
                       style={{
                         width: '85%',
-                        color: COLORS.SMALL_HEADING_TEXT,
+                        color: theme?.SMALL_HEADING_TEXT,
                         marginRight: 8,
                         fontFamily: 'Poppins',
                       }}>
@@ -151,7 +155,7 @@ class Warning extends React.Component {
                           this.enableButton();
                         })
                       }
-                      tintColors={{false: COLORS.WHITE}}
+                      tintColors={{false: theme?.WHITE}}
                     />
                   </View>
                 </View>
@@ -181,8 +185,7 @@ class Warning extends React.Component {
 }
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+    flex: 1
   },
 
   mainContainerChild1: {
@@ -207,14 +210,12 @@ const styles = StyleSheet.create({
   mainContainerChild1View1Text_1: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: COLORS.WHITE,
     fontFamily: 'Poppins',
   },
 
   mainContainerChild1View1Text_2: {
     textAlign: 'center',
     marginTop: 4,
-    color: COLORS.SMALL_HEADING_TEXT,
     fontFamily: 'Poppins',
   },
 

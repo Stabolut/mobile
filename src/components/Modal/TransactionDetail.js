@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-export default function TransactionDetail({ item, showDetailModal, onClose, onBlochainContinue, userAddress }) {
+export default function TransactionDetail({ item, showDetailModal, onClose, onBlochainContinue, userAddress, theme }) {
 
     const navigation = useNavigation();
 
@@ -34,7 +34,7 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
 
 
 
-                <View style={styles.modalView}>
+                <View style={[styles.modalView, { backgroundColor: theme?.DETAIL_CARD_BACKGROUND, }]}>
                     <View style={{ width: 70, height: 70, backgroundColor: "green", borderRadius: 70 / 2, justifyContent: "center", alignItems: "center" }}>
                         <FontAwesomeIcon
                             name="check"
@@ -42,12 +42,12 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
                             color={COLORS.WHITE}></FontAwesomeIcon>
 
                     </View>
-                    <Text style={{ marginTop: 16, marginBottom: 12, color: COLORS.WHITE }}>
+                    <Text style={{ marginTop: 16, marginBottom: 12, color: theme?.WHITE }}>
                         {userAddress === item.senderAddress ? "You have transferred" : "You have received"}{" "}
 
 
-                        <Text style={{ color: COLORS.SMALL_HEADING_TEXT, fontWeight: "bold" }}>{item?.amountToSend?.toLocaleString('en-IN')} US₿</Text></Text>
-                    <Text style={{ marginBottom: 16, color: COLORS.WHITE }}>
+                        <Text style={{ color: theme?.SMALL_HEADING_TEXT, fontWeight: "bold" }}>{item?.amountToSend?.toLocaleString('en-IN')} US₿</Text></Text>
+                    <Text style={{ marginBottom: 16, color: theme?.WHITE }}>
 
 
                         {userAddress === item.senderAddress ? "To" : "From"}
@@ -56,18 +56,9 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
 
 
                     {/* backgroundColor: "#252549" */}
-                    <View style={{ backgroundColor: "#252549", borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", marginHorizontal: 16 }}>
-                        <Text style={styles.addressText}>
+                    <View style={{ backgroundColor: theme?.TRANSACTION_DETAIL_ADDRESS_BACKGROUND, borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", marginHorizontal: 16 }}>
+                        <Text style={[styles.addressText,{color: theme?.SMALL_HEADING_TEXT,}]}>
                             {userAddress === item.senderAddress ? item.receiverAddress : item.senderAddress}
-
-
-
-
-
-
-
-
-
 
                         </Text>
                         <TouchableOpacity
@@ -97,25 +88,25 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
 
                             style={{ justifyContent: "center", alignItems: "center" }}
                         >
-                            <Ionicons size={25} color={COLORS.WHITE} name="copy" />
+                            <Ionicons size={25} color={theme.WHITE} name="copy" />
 
                         </TouchableOpacity>
                     </View>
                     {
-                        item.transactionNotes && <Text style={{ alignSelf: "flex-start", color: COLORS.SMALL_HEADING_TEXT, marginBottom: 4, padding: 4,paddingLeft: 28 }}>Notes: <Text style={{ color: COLORS.WHITE, fontWeight: "500" }}>{item.transactionNotes != "" ? item.transactionNotes : ""}</Text></Text>
+                        item.transactionNotes && <Text style={{ alignSelf: "flex-start", color: theme?.SMALL_HEADING_TEXT, marginBottom: 4, padding: 4, paddingLeft: 28 }}>Notes: <Text style={{ color: theme?.WHITE, fontWeight: "500" }}>{item.transactionNotes != "" ? item.transactionNotes : ""}</Text></Text>
                     }
 
 
-                    <Text style={{ alignSelf: "flex-start", marginBottom: 16, color: COLORS.SMALL_HEADING_TEXT, paddingLeft: 28 }}>Date: <Text style={{ color: COLORS.WHITE }}>{moment(item.sendDate).format('MMMM D, YYYY')}</Text></Text>
+                    <Text style={{ alignSelf: "flex-start", marginBottom: 16, color: theme?.SMALL_HEADING_TEXT, paddingLeft: 28 }}>Date: <Text style={{ color: theme?.WHITE }}>{moment(item.sendDate).format('MMMM D, YYYY')}</Text></Text>
 
                     {/* <Text style={{ alignSelf: "flex-start", color: "gray", marginBottom: 4 }}>Notes: <Text style={{ color: COLORS.APP_BLUE_COLOR, fontWeight: "500" }}>{props.item.transactionNotes}</Text></Text>
                     <Text style={{ alignSelf: "flex-start", marginBottom: 24, color: "gray" }}>Send Data: <Text style={{ color: COLORS.BLACK }}>{props.item.sendDate}</Text></Text> */}
 
                     <View style={{ flexDirection: "row", justifyContent: "center", marginBottom: 16, padding: 32 }}>
-                      
+
 
                         <TouchableOpacity
-                            style={[styles.Button_Ok,{marginRight:8,backgroundColor:COLORS.BTN_BACKGROUND_COLOR}]}
+                            style={[styles.Button_Ok, { marginRight: 8, backgroundColor: COLORS.BTN_BACKGROUND_COLOR }]}
 
                             onPress={() => onBlochainContinue(item.transactionHash)}
                         >
@@ -155,11 +146,6 @@ const styles = StyleSheet.create({
         margin: 20,
         width: "90%",
         paddingTop: 32,
-
-
-
-        backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
-
         borderRadius: 20,
         flexDirection: 'column',
 
@@ -177,9 +163,8 @@ const styles = StyleSheet.create({
     addressText: {
         fontSize: 14,
         fontWeight: '500',
-        color: COLORS.SMALL_HEADING_TEXT,
+        
         paddingHorizontal: 6,
-
         fontFamily: 'Poppins',
     },
     _Modal_inner_text1: {

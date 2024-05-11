@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Header from '../../components/Header/Header';
-import { COLORS, ENUMS, Images, Str } from '../../common';
+import { COLORS, ENUMS, THEME, Str } from '../../common';
 import ErrorMessage from '../../components/ErrorComponent/ErrroMessage';
 import LoadingModal from '../../components/LoadingModal/modal';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -12,13 +12,15 @@ import SuccessMessage from '../../components/SuccessComponent/SuccessMessage';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
+import { useSelector } from 'react-redux';
 const AddStake = (props) => {
     const [stakingAmount, setStakingAmount] = useState(0);
     const [yieldAmount, setYieldAmount] = useState('');
     const [isError, setIsError] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [message, setMessage] = useState("")
-
+    let selectedTheme = useSelector((state) => state.authReducer.theme)
+    const theme = THEME[selectedTheme];
 
 
 
@@ -112,19 +114,19 @@ const AddStake = (props) => {
 
 
             <StatusBarNU
-                backgroundColor={COLORS.BACKGROUND_COLOR}
-                barStyle="light-content"
+                backgroundColor={theme?.BACKGROUND_COLOR}
+               
             />
-            <Header headerText="Stake USB" navigation={props.navigation}></Header>
+            <Header theme={theme} headerText="Stake USB" navigation={props.navigation}></Header>
 
             <LoadingModal task={'Staking US₿...'} modalVisible={isLoading} />
 
-            <View style={styles.mainContainer}>
+            <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
 
 
                 <View style={{ paddingHorizontal: 16, flexDirection: "column", marginTop: 24 }}>
-                    <Text style={{ color: COLORS.WHITE, fontFamily: "Poppins" }} >Please enter the staking amount.</Text>
-                    <View style={{ marginTop: 12, backgroundColor: COLORS.WHITE, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
+                    <Text style={{ color: theme?.WHITE, fontFamily: "Poppins" }} >Please enter the staking amount.</Text>
+                    <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor:  "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
                         <TextInput
                             style={{ flex: 1, fontFamily: "Poppins", color: COLORS.BLACK }}
 
@@ -135,7 +137,7 @@ const AddStake = (props) => {
                             }}
                             // multiline={true}
                             keyboardType="numeric"
-                            placeholderTextColor={COLORS.SMALL_HEADING_TEXT}
+                            placeholderTextColor={theme?.SMALL_HEADING_TEXT}
 
                         />
 
@@ -191,8 +193,7 @@ const AddStake = (props) => {
 
 const styles = StyleSheet.create({
     mainContainer: {
-        flex: 1,
-        backgroundColor: COLORS.BACKGROUND_COLOR,
+        flex: 1
     },
     btnStyleSend: {
         height: 45,

@@ -4,22 +4,17 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    ScrollView,
-    ToastAndroid, AlertIOS
+
 } from 'react-native';
-import RNFetchBlob from 'rn-fetch-blob';
 import Header from '../../../../components/Header/Header';
-import { COLORS, ENUMS } from '../../../../common';
+import { COLORS, ENUMS, THEME } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
-import { ethers } from 'ethers';
-//import Clipboard from '@react-native-community/clipboard';
-import DropDownHolder from '../../../../components/dropDownHolder';
-import RNFS from 'react-native-fs';
-import { request, PERMISSIONS } from 'react-native-permissions';
-import { err } from 'react-native-svg/lib/typescript/xml';
-import AsyncStorage from '@react-native-community/async-storage';
 import messaging from '@react-native-firebase/messaging';
+import { useSelector } from 'react-redux';
 function ChooseImportOption({ navigation }) {
+
+    let selectedTheme = useSelector((state) => state.authReducer.theme)
+    const theme = THEME[selectedTheme];
 
     useEffect(() => {
         try {
@@ -32,7 +27,7 @@ function ChooseImportOption({ navigation }) {
 
     let getFcmToken = async () => {
         try {
-           
+
             let fcmToken = await messaging().getToken()
 
             console.log("fcmToken", fcmToken)
@@ -45,32 +40,35 @@ function ChooseImportOption({ navigation }) {
     return (
         <React.Fragment>
             <StatusBarNU
-                backgroundColor={COLORS.BACKGROUND_COLOR}
-                barStyle="light-content"
+                backgroundColor={theme?.BACKGROUND_COLOR}
+
             />
 
             <Header
 
                 headerText="Add Account"
+                theme={theme}
                 navigation={navigation}></Header>
 
+               
 
-            <View style={styles.mainContainer}>
-                <View style={styles.mainContainerChild1}>
-                    <Text style={styles.header}>What would you</Text>
-                    <Text style={[styles.header, { marginBottom: 16 }]}>like to do?</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate(ENUMS.SCREENS.IMPORT_WALLET)} style={{ backgroundColor: "#252549", paddingLeft: 16, paddingRight: 16, paddingTop: 24, paddingBottom: 24, borderRadius: 12, marginBottom: 24 }}>
+
+            <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
+                <View style={[styles.mainContainerChild1, { backgroundColor: theme?.IMPORT_BACKGROUND }]}>
+                    <Text style={[styles.header,{ color: theme?.WHITE,}]}>What would you</Text>
+                    <Text style={[styles.header, { marginBottom: 16,color: theme?.WHITE }]}>like to do?</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate(ENUMS.SCREENS.IMPORT_WALLET)} style={{ backgroundColor: theme?. IMPORT_BACKGROUND_CARD, paddingLeft: 16, paddingRight: 16, paddingTop: 24, paddingBottom: 24, borderRadius: 12, marginBottom: 24 }}>
                         <View>
-                            <Text style={styles.title}>Import With Mnemonics</Text>
-                            <Text style={styles.body}>Restore your external account using your mnemonic phrase</Text>
+                            <Text style={[styles.title,{ color: theme?.WHITE,}]}>Import With Mnemonics</Text>
+                            <Text style={[styles.body,{ color:  theme?.SMALL_HEADING_TEXT,}]}>Restore your external account using your mnemonic phrase</Text>
 
                         </View>
 
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => navigation.navigate(ENUMS.SCREENS.IMPORT_WALLET_PRIVATE_KEY)} style={{ backgroundColor: "#252549", paddingLeft: 16, paddingRight: 16, paddingTop: 24, paddingBottom: 24, borderRadius: 12 }}>
-                        <Text style={styles.title}>Import With Private Key</Text>
-                        <Text style={styles.body}>Restore your external account using your private key</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate(ENUMS.SCREENS.IMPORT_WALLET_PRIVATE_KEY)} style={{ backgroundColor:theme?. IMPORT_BACKGROUND_CARD, paddingLeft: 16, paddingRight: 16, paddingTop: 24, paddingBottom: 24, borderRadius: 12 }}>
+                        <Text style={[styles.title,{ color: theme?.WHITE,}]}>Import With Private Key</Text>
+                        <Text style={[styles.body,{ color:  theme?.SMALL_HEADING_TEXT,}]}>Restore your external account using your private key</Text>
 
                     </TouchableOpacity>
 
@@ -83,13 +81,12 @@ function ChooseImportOption({ navigation }) {
 }
 const styles = StyleSheet.create({
     mainContainer: {
-        flex: 1,
-        backgroundColor: COLORS.BACKGROUND_COLOR,
+        flex: 1
 
     },
     mainContainerChild1: {
         flex: 1,
-        backgroundColor: "#181834",
+
         marginTop: 20,
         borderTopRightRadius: 30,
         borderTopLeftRadius: 30,
@@ -98,22 +95,21 @@ const styles = StyleSheet.create({
     },
 
     header: {
-        color: COLORS.WHITE,
+       
         fontSize: 24,
         marginLeft: 3,
         fontWeight: "500",
         fontFamily: 'Poppins',
     },
     title: {
-        color: COLORS.WHITE,
+       
         fontSize: 16,
         fontWeight: "500",
         fontFamily: 'Poppins',
 
     },
     body: {
-        color: COLORS.SMALL_HEADING_TEXT,
-        fontSize: 10,
+        fontSize: 12,
         marginTop: 4,
 
         fontFamily: 'Poppins',

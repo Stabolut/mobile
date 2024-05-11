@@ -13,12 +13,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import DropDownHolder from '../../components/dropDownHolder';
 //import Clipboard from '@react-native-community/clipboard';
 import Clipboard from '@react-native-clipboard/clipboard';
+import theme from '../../common/theme';
 
 
 function StakingBalance(props) {
 
+
     return (
         <View style={styles.mainView}>
+
 
 
             <View style={{ flexDirection: "row", paddingLeft: 4, paddingRight: 4, marginTop: 16 }}>
@@ -26,47 +29,47 @@ function StakingBalance(props) {
                 <View style={{ flex: 1, flexDirection: "row" }}>
 
                     <Image style={styles.imageLogo} source={Images.usdbLogo} />
-                    <Text style={{ color: COLORS.WHITE, fontWeight: "700", fontSize: 20, fontFamily: "Poppins", alignSelf: "center" }}>USB</Text>
+                    <Text style={{ color: props?.theme?.WHITE, fontWeight: "700", fontSize: 20, fontFamily: "Poppins", alignSelf: "center" }}>USB</Text>
 
                 </View>
 
                 <View style={{ flex: 1, flexDirection: "column", justifyContent: "flex-end", alignItems: "flex-end" }}>
                     <Text style={[styles.balanceTextHeading, { color: "#6e6e92" }]}>Total Staking</Text>
-                    <Text style={[styles.balanceTextHeading, { marginBottom: 2, fontWeight: "900" }]}>{props.stakeAmount} USB</Text>
+                    <Text style={[styles.balanceTextHeading, { marginBottom: 2, fontWeight: "900", color: props?.theme?.WHITE, }]}>{props.stakeAmount} USB</Text>
                 </View>
 
             </View>
 
 
 
-            <View style={styles.balanceCardMainViewStyle}>
+            <View style={[styles.balanceCardMainViewStyle, { backgroundColor: props?.theme?.BACKGROUND_COLOR , borderColor:props?.theme?.STAKE_LIST_BORDER_COLOR}]}>
                 <View style={{ flexDirection: "row" }}>
 
                     <View style={{ flex: 1, flexDirection: "column" }}>
 
-                        <Text style={[styles.eurbMainAccountText, { marginBottom: 2 }]}>USB - Main Account</Text>
+                        <Text style={[styles.eurbMainAccountText, { marginBottom: 2, color: props?.theme?.WHITE }]}>USB - Main Account</Text>
 
 
 
-                        <Text style={styles.addressText}>{`${props.userAddress.substring(0, 10)} .... ${props.userAddress.substring(32, props.userAddress.length)}`}</Text>
+                        <Text style={[styles.addressText, { color: props?.theme?.WHITE }]}>{`${props.userAddress.substring(0, 10)} .... ${props.userAddress.substring(32, props.userAddress.length)}`}</Text>
                     </View>
 
-                    
-                        <TouchableOpacity style={{ alignSelf: "center" }} onPress={() => {
-                            
-                            Clipboard.setString(props.userAddress);
-                            DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
-                        }}>
 
-                            <Ionicons
-                                name="copy-outline"
-                                style={styles.copyText}
+                    <TouchableOpacity style={{ alignSelf: "center" }} onPress={() => {
 
-                                size={20}
-                                color={COLORS.WHITE}
-                            />
-                        </TouchableOpacity>
-                    
+                        Clipboard.setString(props.userAddress);
+                        DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
+                    }}>
+
+                        <Ionicons
+                            name="copy-outline"
+                            style={styles.copyText}
+
+                            size={20}
+                            color={props?.theme?.WHITE}
+                        />
+                    </TouchableOpacity>
+
                 </View>
 
                 <View style={{ height: 2, backgroundColor: COLORS.BTN_BACKGROUND_COLOR, marginTop: 16, marginBottom: 16 }}></View>
@@ -77,14 +80,14 @@ function StakingBalance(props) {
 
                     <View style={{ flex: 1, flexDirection: "column" }}>
 
-                        <Text style={styles.balanceTextHeading}>Available to Stake</Text>
-                        <Text style={[styles.balanceTextHeading, { marginBottom: 2, fontWeight: "900" }]}>{props.balance} USB</Text>
+                        <Text style={[styles.balanceTextHeading, { color: props?.theme?.WHITE }]}>Available to Stake</Text>
+                        <Text style={[styles.balanceTextHeading, { marginBottom: 2, fontWeight: "900", color: props?.theme?.WHITE }]}>{props.balance} USB</Text>
 
                     </View>
 
                     <View style={{ flex: 1, flexDirection: "column", justifyContent: "flex-end", alignItems: "flex-end" }}>
-                        <Text style={styles.balanceTextHeading}>In Stake</Text>
-                        <Text style={[styles.balanceTextHeading, { marginBottom: 2, fontWeight: "900" }]}>{props.stakeAmount} USB</Text>
+                        <Text style={[styles.balanceTextHeading, { color: props?.theme?.WHITE }]}>In Stake</Text>
+                        <Text style={[styles.balanceTextHeading, { marginBottom: 2, fontWeight: "900", color: props?.theme?.WHITE }]}>{props.stakeAmount} USB</Text>
                     </View>
                 </View>
 
@@ -115,12 +118,8 @@ const styles = StyleSheet.create({
         width: "100%",
         marginTop: 16,
         padding: 16,
-        backgroundColor: "#0a0b1d",
         borderRadius: 10,
         borderWidth: 2,
-        borderColor: "#4d4b70",
-
-
         shadowColor: COLORS.WHITE,
         shadowOffset: {
             width: 0,
@@ -132,14 +131,14 @@ const styles = StyleSheet.create({
 
     },
     eurbMainAccountText: {
-        color: COLORS.WHITE,
+
         fontSize: 20,
         fontWeight: "bold",
         fontFamily: "Poppins"
 
     },
     balanceTextHeading: {
-        color: COLORS.WHITE,
+
         fontSize: 12,
         fontWeight: "400",
 
@@ -153,7 +152,7 @@ const styles = StyleSheet.create({
         fontFamily: "Poppins"
     },
     addressText: {
-        color: COLORS.WHITE,
+
         fontSize: 12,
         fontWeight: "500",
         fontFamily: "Poppins",

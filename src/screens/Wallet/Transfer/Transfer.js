@@ -12,7 +12,7 @@ import CheckBox from '@react-native-community/checkbox';
 import { isEmpty } from 'lodash';
 import Realm from 'realm';
 import { useState, useContext } from 'react';
-import { ENUMS, COLORS, commonStyle as CS, Str } from '../../../common';
+import { ENUMS, COLORS, commonStyle as CS, Str,THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -26,14 +26,14 @@ import moment from 'moment';
 import uuid from 'react-native-uuid';
 import { connect } from 'react-redux';
 import { SocketContext } from '../../../App';
-// import { PERMISSIONS, check, request } from 'react-native-permissions'
-import Permissions from 'react-native-permissions';
+
 import socketDisconnectMessage from '../../../components/CustomHook/socketDisconnectMessage';
 import Notes from '../../../components/Modal/Notes';
 import ErrorMessage from '../../../components/ErrorComponent/ErrroMessage';
 import SuccessMessage from '../../../components/SuccessComponent/SuccessMessage';
 import { checkInternetConnectivity, errorMessageHandler } from '../../../utils/utils';
 import { ErrorMessages } from '../../../messages/errorMessage';
+import { useSelector } from 'react-redux';
 
 const getDecimalSeparator = () => {
   if (Platform.OS === 'ios') {
@@ -64,6 +64,8 @@ function Transfer({ navigation, route }) {
   const [username, setUsername] = useState(false);
   const [account, setAccount] = useState("");
   const [isContactOnly, setIsContactOnly] = useState(false);
+  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  const theme = THEME[selectedTheme];
 
   const decimalSeparator = getDecimalSeparator();
 
@@ -332,10 +334,10 @@ function Transfer({ navigation, route }) {
     <React.Fragment>
 
       <StatusBarNU
-        backgroundColor={COLORS.BACKGROUND_COLOR}
-        barStyle="light-content"
+        backgroundColor={theme?.BACKGROUND_COLOR}
+       
       />
-      <Header headerText="Transfer USB" navigation={navigation}></Header>
+      <Header theme={theme} headerText="Transfer USB" navigation={navigation}></Header>
 
       <SuccessModal
         visible={visible}
@@ -347,7 +349,7 @@ function Transfer({ navigation, route }) {
         <QRCodeScanner onRead={onSuccess} cameraStyle={{ height: '100%' }} />
       )}
 
-      <View style={styles.mainContainer}>
+      <View style={[styles.mainContainer,{backgroundColor: theme?.BACKGROUND_COLOR,}]}>
         <ScrollView style={styles.scrollView}>
           <LoadingModal task={'Sending US₿...'} modalVisible={isLoading} />
 
@@ -359,7 +361,7 @@ function Transfer({ navigation, route }) {
 
             }}>
             <View style={[styles.container]}>
-              <Text style={styles.lableText}>Sender</Text>
+              <Text style={[styles.lableText,{ color: theme?.WHITE,}]}>Sender</Text>
               <TextInput
                 value={sender}
                 multiline={true}
@@ -367,7 +369,7 @@ function Transfer({ navigation, route }) {
                 style={{
                   flexWrap: 'nowrap',
                   marginTop: 4,
-                  color: COLORS.SMALL_HEADING_TEXT,
+                  color: theme?.SMALL_HEADING_TEXT,
                 }}
               />
               <View
@@ -380,7 +382,7 @@ function Transfer({ navigation, route }) {
             </View>
 
             <View style={[styles.container, { marginTop: 20 }]}>
-              <Text style={styles.lableText}>Recipient</Text>
+              <Text style={[styles.lableText,{ color: theme?.WHITE,}]}>Recipient</Text>
               <View style={{ flexDirection: 'row' }}>
                 <TextInput
                   value={receiver}
@@ -421,11 +423,11 @@ function Transfer({ navigation, route }) {
                   }}
                   multiline={true}
                   placeholder={"Enter receiver's address"}
-                  placeholderTextColor={COLORS.SMALL_HEADING_TEXT}
+                  placeholderTextColor={theme?.SMALL_HEADING_TEXT}
                   style={{
                     flexWrap: 'nowrap',
                     marginTop: 4,
-                    color: COLORS.SMALL_HEADING_TEXT,
+                    color: theme?.SMALL_HEADING_TEXT,
                     flex: 1,
                   }}
                 />
@@ -435,7 +437,7 @@ function Transfer({ navigation, route }) {
                     style={{ marginLeft: 8 }}
                     name="qrcode-scan"
                     size={25}
-                    color={COLORS.WHITE}></MaterialCommunityIcons>
+                    color={theme?.WHITE}></MaterialCommunityIcons>
                 </TouchableOpacity>
               </View>
 
@@ -463,7 +465,7 @@ function Transfer({ navigation, route }) {
             </View>
 
             <View style={[styles.container, { marginTop: 20 }]}>
-              <Text style={styles.lableText}>Amount</Text>
+              <Text style={[styles.lableText,{ color: theme?.WHITE}]}>Amount</Text>
               <TextInput
                 keyboardType="numeric"
                 value={amount}
@@ -473,11 +475,11 @@ function Transfer({ navigation, route }) {
                 }}
                 multiline={true}
                 placeholder={'Enter amount to send'}
-                placeholderTextColor={COLORS.SMALL_HEADING_TEXT}
+                placeholderTextColor={theme?.SMALL_HEADING_TEXT}
                 style={{
                   flexWrap: 'nowrap',
                   marginTop: 4,
-                  color: COLORS.SMALL_HEADING_TEXT,
+                  color: theme?.SMALL_HEADING_TEXT,
                 }}
               />
 
@@ -500,20 +502,20 @@ function Transfer({ navigation, route }) {
 
                 <CheckBox
                   value={isSelected}
-                  tintColors={{ true: COLORS.WHITE, false: COLORS.WHITE }}
+                  tintColors={{ true: theme?.WHITE, false: theme?.WHITE }}
                   onValueChange={newValue => {
                     // let check = checkValidation()
                     // if (check) {
                     setSelection(newValue)
                     // }
                   }} />
-                <Text style={{ marginTop: Platform.OS === 'ios' ? 9 : 6, marginLeft: Platform.OS === 'ios' ? 8 : 0, color: COLORS.WHITE }}>Add Notes</Text>
+                <Text style={{ marginTop: Platform.OS === 'ios' ? 9 : 6, marginLeft: Platform.OS === 'ios' ? 8 : 0, color: theme?.WHITE }}>Add Notes</Text>
                 <View style={{
                   flex: 1, justifyContent: "flex-end",
                   alignContent: "flex-end"
                 }}>
                   <Text
-                    style={[{ marginTop: 5, alignSelf: "flex-end" }, styles.lableText]}>
+                    style={[{ marginTop: 5, alignSelf: "flex-end",color: theme?.WHITE }, styles.lableText]}>
                     Fee: {Str.fees / 1e2} US₿
                   </Text>
                 </View>
@@ -524,16 +526,16 @@ function Transfer({ navigation, route }) {
               transactionNotes && <View style={{
                 borderRadius: 10, shadowOpacity: 0.25,
                 marginTop: 12,
-                shadowRadius: 4, backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
+                shadowRadius: 4, backgroundColor: theme?.BALANCE_CARD_BACKGROUND,
                 padding: 16
               }}>
-                <View style={{ flexDirection: "row" }}><Text style={{ flex: 1, fontWeight: "bold", color: COLORS.WHITE }}>Notes</Text>
+                <View style={{ flexDirection: "row" }}><Text style={{ flex: 1, fontWeight: "bold", color: theme?.WHITE }}>Notes</Text>
                   <TouchableOpacity onPress={() => {
                     setSelection(true)
                     setVisibleNotes(true)
-                  }}><Text style={{ color: COLORS.WHITE }}>Edit</Text></TouchableOpacity>
+                  }}><Text style={{ color: theme?.WHITE }}>Edit</Text></TouchableOpacity>
                 </View>
-                <Text style={{ marginTop: 12, color: COLORS.SMALL_HEADING_TEXT }}>{transactionNotes}</Text>
+                <Text style={{ marginTop: 12, color: theme?.SMALL_HEADING_TEXT }}>{transactionNotes}</Text>
 
 
 
@@ -555,7 +557,7 @@ function Transfer({ navigation, route }) {
           </View>
         </ScrollView>
       </View>
-      <Notes transactionNotes={transactionNotes} visible={visibleNotes} onClose={() => {
+      <Notes theme={theme} transactionNotes={transactionNotes} visible={visibleNotes} onClose={() => {
         setVisibleNotes(false)
         setSelection(false)
 
@@ -579,12 +581,11 @@ function Transfer({ navigation, route }) {
 
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+    flex: 1
   },
 
   lableText: {
-    color: COLORS.WHITE,
+   
     fontSize: 16,
     fontFamily: 'Poppins'
 

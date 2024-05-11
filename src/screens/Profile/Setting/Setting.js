@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import MnemonicsShowModal from '../../../components/Modal/MnemonicsShowModal';
 import Header from '../../../components/Header/Header';
-import { COLORS, ENUMS, Str } from '../../../common';
+import { COLORS, ENUMS, Str, THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ToggleSwitch from 'toggle-switch-react-native'
@@ -14,15 +16,16 @@ import DropDownHolder from '../../../components/dropDownHolder';
 import Entypo from 'react-native-vector-icons/Entypo';
 // import PushNotification from 'react-native-push-notification'
 import TouchID from 'react-native-touch-id';
-import messaging from '@react-native-firebase/messaging'
-import { request, PERMISSIONS } from 'react-native-permissions';
 import SetUsernameModal from '../../../components/Modal/SetUsernameModal';
 import AsyncStorage from '@react-native-community/async-storage';
+import { useSelector } from 'react-redux';
 import LoadingModal from '../../../components/LoadingModal/modal';
-import TransactionLoader from '../../Dashboard/TransactionLoader';
-import { errorMessageHandler } from '../../../utils/utils';
-
+import { errorMessageHandler, get, saveString } from '../../../utils/utils';
 import axios from 'axios';
+import { store } from '../../../store';
+import { setTheme } from '../../../redux/action/auth';
+
+
 function Setting({ navigation }) {
     const [toggle, setToggle] = useState(false)
     const [toggleBioMetrics, setToggleBiometrics] = useState(false)
@@ -34,23 +37,16 @@ function Setting({ navigation }) {
     const [username, setUserName] = useState('');
     const [visible, setVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const selectedTheme = useSelector((state) => state.authReducer.theme)
+    const theme = THEME[selectedTheme];
 
-    useEffect(() => {
-        getLocalData();
 
-    }, []);
     let getLocalData = async () => {
-
-
         let address = await AsyncStorage.getItem('address');
         let privateKey = await AsyncStorage.getItem('mnemonics');
         setUserAddress(address);
         setPrivateKey(privateKey);
-
-
-
     };
-
 
     let getUsername = async () => {
         try {
@@ -58,74 +54,89 @@ function Setting({ navigation }) {
                 userID: userAddress
             });
             setUserName(data?.data?.username)
-
-
         }
         catch (e) {
             console.log("api error", errorMessageHandler(e))
-
         }
     }
+
+    let getAllowContacts = async () => {
+        let allowContacts = await AsyncStorage.getItem("allowContact")
+        if (allowContacts === "true") setAllowContact(true)
+    }
+    let getBiometrics = async () => {
+        try {
+            let bioMetrics = await AsyncStorage.getItem("fingerPrint")
+            if (bioMetrics === "true") setToggleBiometrics(true)
+        }
+        catch (e) {
+            console.log("Error", e)
+        }
+    }
+    let getDarkModeToggle = async () => {
+        try {
+            if (selectedTheme === ENUMS.THEME.DARK) setToggle(true)
+            else setToggle(false)
+        }
+        catch (e) {
+            console.log("Error", e)
+        }
+    }
+
+    let checkBioMetrics = async () => {
+        const optionalConfigObject = {
+            unifiedErrors: false, // use unified error messages (default false)
+            passcodeFallback: false,
+        }
+        try {
+            let biometryType = await TouchID.isSupported(optionalConfigObject)
+            if (biometryType) {
+
+                setBiometricSupport(true)
+            }
+
+        }
+        catch (e) {
+
+        }
+
+    }
+  
 
     // if user address get from localStorage then we get the balance of address
     useEffect(() => {
         if (userAddress) {
-           
             getUsername()
         }
     }, [userAddress]);
 
+    useEffect(() => {
+
+        if (toggle === true) {
+            store.dispatch(setTheme(ENUMS.THEME.DARK))
+            saveString("theme", ENUMS.THEME.DARK)
+
+
+        }
+        else {
+            store.dispatch(setTheme(ENUMS.THEME.LIGHT))
+            saveString("theme", ENUMS.THEME.LIGHT)
+        }
+    }, [toggle]);
 
 
     useEffect(() => {
-        let getAllowContacts = async () => {
-            let allowContacts = await AsyncStorage.getItem("allowContact")
-            if (allowContacts === "true") setAllowContact(true)
-        }
+        getDarkModeToggle()
+        getLocalData();
         getAllowContacts()
-
-
-    }, [])
-
-
-
-
-    useEffect(() => {
-        let getBiometrics = async () => {
-            let bioMetrics = await AsyncStorage.getItem("fingerPrint")
-            if (bioMetrics === "true") setToggleBiometrics(true)
-        }
         getBiometrics()
-
-
-    }, [])
-
-
-    useEffect(() => {
-
-        checkBioMetrics = async () => {
-            const optionalConfigObject = {
-                unifiedErrors: false, // use unified error messages (default false)
-                passcodeFallback: false,
-            }
-            try {
-                let biometryType = await TouchID.isSupported(optionalConfigObject)
-                if (biometryType) {
-
-                    setBiometricSupport(true)
-                }
-
-            }
-            catch (e) {
-
-            }
-
-        }
         checkBioMetrics()
 
-    }, [])
 
-    const clearRealmDB = async () => {
+    }, []);
+
+
+ const clearRealmDB = async () => {
         // Define your Realm schema
         const TransactionsHistorySchema = {
             name: 'TransactionsHistorySchema',
@@ -193,16 +204,20 @@ function Setting({ navigation }) {
         );
     };
 
+   
+
+
 
     return (
         <React.Fragment>
 
             <StatusBarNU
-                backgroundColor={COLORS.BACKGROUND_COLOR}
-                barStyle="light-content" />
+                backgroundColor={theme?.BACKGROUND_COLOR}
+                />
             <Header
                 backButton={true}
                 headerText="settings"
+                theme={theme}
                 navigation={navigation}></Header>
 
 
@@ -210,14 +225,14 @@ function Setting({ navigation }) {
 
 
 
-            <View style={styles.mainContainer}>
+            <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
 
 
 
                 <ScrollView>
                     <TouchableOpacity onPress={() => {
                         navigation.navigate(ENUMS.SCREENS.ABOUT)
-                    }} style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row" }}>
+                    }} style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row" }}>
 
                         <View style={{ width: 30, height: 30, backgroundColor: "#fe55a7", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
                             <FontAwesome
@@ -230,17 +245,17 @@ function Setting({ navigation }) {
 
 
                         </View>
-                        <Text style={{ marginLeft: 30, fontSize: 15, alignSelf: "center", color: COLORS.WHITE, fontFamily: "Poppins" }}>About</Text>
+                        <Text style={{ marginLeft: 30, fontSize: 15, alignSelf: "center", color: theme?.WHITE, fontFamily: "Poppins" }}>About</Text>
 
 
                     </TouchableOpacity>
 
 
-                    {/* <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
+                    <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
 
                         <View style={{ width: 30, height: 30, backgroundColor: COLORS.BLACK, borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
-                            <MaterialCommunityIcons
-                                name="theme-light-dark"
+                            <MaterialIcons
+                                name="nightlight-round"
                                 style={{ fontWeight: '900' }}
                                 size={18}
                                 color={COLORS.WHITE}
@@ -248,7 +263,7 @@ function Setting({ navigation }) {
 
 
                         </View>
-                        <Text style={{ marginLeft: 12, fontSize: 15, color: COLORS.WHITE, flex: 1, alignSelf: "center" }}>Dark Mode</Text>
+                        <Text style={{ marginLeft: 30, fontSize: 15, color: theme?.WHITE, flex: 1, alignSelf: "center" }}>Dark Mode</Text>
 
                         <ToggleSwitch
                             style={{ alignSelf: "center" }}
@@ -260,9 +275,9 @@ function Setting({ navigation }) {
                         />
 
 
-                    </View> */}
+                    </View>
 
-                    <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
+                    <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
 
 
@@ -285,7 +300,7 @@ function Setting({ navigation }) {
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
                                 >Delete Account</Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
@@ -326,7 +341,7 @@ function Setting({ navigation }) {
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
                                 >Change Pin</Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
@@ -358,7 +373,7 @@ function Setting({ navigation }) {
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
                                 >Show Key</Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
@@ -387,7 +402,7 @@ function Setting({ navigation }) {
 
 
 
-                    <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
+                    <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
 
                         <TouchableOpacity onPress={() => {
@@ -416,7 +431,7 @@ function Setting({ navigation }) {
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
                                 >Twitter</Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
@@ -451,7 +466,7 @@ function Setting({ navigation }) {
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
                                 >Telegram</Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
@@ -508,7 +523,7 @@ function Setting({ navigation }) {
                     </View>
                     {
                         bioMetricSupport === true &&
-                        <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
+                        <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
 
                             <View style={{ width: 30, height: 30, backgroundColor: "gray", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
                                 <MaterialCommunityIcons
@@ -520,7 +535,7 @@ function Setting({ navigation }) {
 
 
                             </View>
-                            <Text style={{ marginLeft: 12, fontSize: 15, color: COLORS.WHITE, flex: 1, alignSelf: "center", fontFamily: "Poppins" }}>BioMetrics</Text>
+                            <Text style={{ marginLeft: 30, fontSize: 15, color: theme?.WHITE, flex: 1, alignSelf: "center", fontFamily: "Poppins" }}>BioMetrics</Text>
 
                             <ToggleSwitch
                                 style={{ alignSelf: "center" }}
@@ -546,10 +561,10 @@ function Setting({ navigation }) {
 
 
 
-                    <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
+                    <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
                         <TouchableOpacity onPress={async () => {
-                            
+
                             setShowUsernameModal(true)
                         }} style={{ flexDirection: "row" }}>
 
@@ -568,7 +583,7 @@ function Setting({ navigation }) {
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
                                 >Set Username</Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
@@ -595,7 +610,7 @@ function Setting({ navigation }) {
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
                                 >Add Contacts</Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
@@ -609,7 +624,7 @@ function Setting({ navigation }) {
 
                     </View>
 
-                    <View style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 12 }}>
+                    <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 12 }}>
 
                         <View style={{ width: 30, height: 30, backgroundColor: "#808080", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
                             <FontAwesome5
@@ -621,7 +636,7 @@ function Setting({ navigation }) {
 
 
                         </View>
-                        <Text style={{ marginLeft: 30, fontSize: 15, color: COLORS.WHITE, flex: 1, alignSelf: "center", fontFamily: "Poppins" }}>Contacts Only</Text>
+                        <Text style={{ marginLeft: 30, fontSize: 15, color: theme?.WHITE, flex: 1, alignSelf: "center", fontFamily: "Poppins" }}>Contacts Only</Text>
 
                         <ToggleSwitch
                             style={{ alignSelf: "center" }}
@@ -648,8 +663,8 @@ function Setting({ navigation }) {
 
 
 
-            <SetUsernameModal initialUsername={username} visible={showUsernameModal} onSet={(username) => {
-               
+            <SetUsernameModal selectedTheme={selectedTheme} initialUsername={username} visible={showUsernameModal} onSet={(username) => {
+
                 setUserName(username)
 
             }} onClose={() => {
@@ -668,6 +683,8 @@ function Setting({ navigation }) {
             <MnemonicsShowModal
                 privateKey={privateKey}
                 visible={visible}
+                selectedTheme={selectedTheme}
+
                 onClose={() => {
                     setVisible(false);
                 }}></MnemonicsShowModal>
@@ -683,8 +700,7 @@ function Setting({ navigation }) {
 
 const styles = StyleSheet.create({
     mainContainer: {
-        flex: 1,
-        backgroundColor: COLORS.BACKGROUND_COLOR
+        flex: 1
     },
     image: {
         width: 300,

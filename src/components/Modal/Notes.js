@@ -3,36 +3,24 @@ import Toast from 'react-native-easy-toast'
 import { View, Modal, StyleSheet, Text, TouchableOpacity, TextInput, Pressable } from 'react-native';
 import { COLORS, CS } from '../../common';
 
-export default function Notes({navigation,onClose,onContinue,visible,transactionNotes}) {
+export default function Notes({ navigation, onClose, onContinue, visible, transactionNotes,theme }) {
     const toastRef = useRef(null);
     const [notes, setNotes] = useState("")
     const [isError, setIsError] = useState(false);
     const [message, setMessage] = useState("");
 
     submitNotes = () => {
-        // if (notes === '' || notes === null || notes === undefined) {
-        //     setIsError(true);
-        //     setMessage('This notes  field is required!');
-        //     return;
-        // }
 
-        // else {
-            setIsError(false);
-            setMessage("");
-            setNotes("")
-            onContinue(notes)
-       // }
+        setIsError(false);
+        setMessage("");
+        setNotes("")
+        onContinue(notes)
+
 
     }
-
-
     useEffect(() => {
 
-setNotes(transactionNotes)
-
-       
-
-       
+        setNotes(transactionNotes)
     }, [visible])
 
     return (
@@ -44,13 +32,13 @@ setNotes(transactionNotes)
             <View style={styles.centeredView}>
                 <Toast ref={toastRef} position="bottom" />
 
-                <View style={styles.modalView}>
+                <View style={[styles.modalView,{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND,}]}>
 
                     <View style={{ flexDirection: 'column', width: "100%", marginBottom: 24 }}>
 
 
                         <View style={{ flexDirection: "row" }}>
-                            <Text style={{ flex: 1, fontWeight: "bold", color: COLORS.WHITE, fontSize: 16 }}>ADD NOTES</Text>
+                            <Text style={{ flex: 1, fontWeight: "bold", color: theme?.WHITE, fontSize: 16 }}>ADD NOTES</Text>
                             <TouchableOpacity onPress={() => {
                                 setIsError(false)
                                 setMessage("")
@@ -61,7 +49,7 @@ setNotes(transactionNotes)
                                 fontWeight: 'bold',
                                 textDecorationLine: "none",
                                 fontSize: 16,
-                                color: COLORS.SMALL_HEADING_TEXT,
+                                color: theme?.SMALL_HEADING_TEXT,
 
                                 letterSpacing: 0.1,
                             }}>CLOSE</Text></TouchableOpacity>
@@ -71,11 +59,11 @@ setNotes(transactionNotes)
 
 
 
-                        <View style={styles.container}>
+                        <View style={[styles.container,{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND,}]}>
                             <TextInput
                                 value={notes}
-                                placeholderTextColor={COLORS.WHITE}
-                                style={{color:COLORS.WHITE}}
+                                placeholderTextColor={theme?.SMALL_HEADING_TEXT}
+                                style={{ color: theme?.WHITE }}
                                 onChangeText={(value) => {
                                     setNotes(value)
 
@@ -127,14 +115,14 @@ const styles = StyleSheet.create({
 
     },
     modalView: {
-       
+
         width: "90%",
         paddingLeft: 24,
         paddingRight: 24,
-        paddingTop:24,
+        paddingTop: 24,
 
 
-        backgroundColor:COLORS.BALANCE_CARD_BACKGROUND,
+       
         borderRadius: 20,
         flexDirection: 'column',
         justifyContent: 'center',
@@ -186,12 +174,12 @@ const styles = StyleSheet.create({
         letterSpacing: 0.1,
     },
     container: {
-        backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
+       
         width: '100%',
         height: 150,
         marginTop: 16,
 
-        borderColor:COLORS.SLIDER_BORDER_COLOR,
+        borderColor: COLORS.SLIDER_BORDER_COLOR,
         borderWidth: 1,
         borderRadius: 5,
         padding: 8,

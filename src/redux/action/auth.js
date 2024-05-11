@@ -1,4 +1,4 @@
-import { WALLET_CREATED,PIN_VALUE } from "../types/auth";
+import { WALLET_CREATED,PIN_VALUE ,SET_THEME} from "../types/auth";
 
 export const storeWalletInfo = (data) => {
  
@@ -12,6 +12,14 @@ export const setPin = (data) => {
 
   return {
     type: PIN_VALUE,
+    payload: data,
+  };
+};
+
+export const setTheme = (data) => {
+
+  return {
+    type: SET_THEME,
     payload: data,
   };
 };
