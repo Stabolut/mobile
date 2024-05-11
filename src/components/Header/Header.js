@@ -6,23 +6,25 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
 class HeaderComponent extends React.Component {
+  
   render() {
+    console.log("theme color",this?.props?.theme?.BACKGROUND_COLOR)
     return (
-      <View style={styles.mainContainer} animated={true}>
+      <View style={[styles.mainContainer,{backgroundColor: this?.props?.theme?.BACKGROUND_COLOR,}]} animated={true}>
 
 
         {
           this.props.backButton === false ? <View style={{ flex: 1 }}>
             <Text
               style={{
-                color: COLORS.WHITE,
+                color: this?.props?.theme?.WHITE,
                 fontSize: 20,
                 marginLeft: 24,
 
                 fontFamily: 'Poppins',
                 marginTop: 4,
               }}>
-              {this.props.headerText}
+              {this?.props?.headerText}
             </Text>
           </View> : <View style={{ flex: 1, flexDirection: "row" }}>
 
@@ -34,15 +36,15 @@ class HeaderComponent extends React.Component {
               }}>
               <Icon
                 name="arrowleft"
-                style={styles.arrowBack}
+                style={[styles.arrowBack,{ color: this?.props?.theme?.WHITE}]}
                 size={20}
-                color={COLORS.WHITE}
+                color={this?.props?.theme?.WHITE}
               />
             </TouchableOpacity>
 
             <Text
               style={{
-                color: COLORS.WHITE,
+                color: this?.props?.theme?.WHITE,
                 fontSize: 20,
 
 
@@ -71,9 +73,9 @@ class HeaderComponent extends React.Component {
           this.props.refreshButton === true ? <TouchableOpacity onPress={this.props.onRefreshClick} style={{ alignItems: "flex-end", justifyContent: "center" }}>
             <Ionicons
               name="refresh"
-              style={styles.arrowRefresh}
+              style={[styles.arrowRefresh,{color:this?.props?.theme?.WHITE}]}
               size={25}
-              color={COLORS.WHITE}
+              color={theme.WHITE}
             />
           </TouchableOpacity> : null
         }
@@ -85,9 +87,9 @@ class HeaderComponent extends React.Component {
           }} style={{ marginRight: 8, marginLeft: 8, alignItems: "flex-end", justifyContent: "center" }}>
             <Ionicons
               name="ios-settings-sharp"
-              style={styles.arrowRefresh}
+              style={[styles.arrowRefresh,{color:this?.props?.theme?.WHITE}]}
               size={25}
-              color={COLORS.WHITE}
+              color={theme.WHITE}
             />
           </TouchableOpacity> : null
         }
@@ -103,18 +105,18 @@ const APPBAR_HEIGHT = Platform.OS === 'ios' ? 44 : 70;
 const styles = StyleSheet.create({
   mainContainer: {
     height: APPBAR_HEIGHT,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+    
     alignItems: 'center',
     flexDirection: 'row',
+   
   },
   arrowBack: {
-    marginLeft: 20,
+    marginLeft: 15,
     marginRight: 20,
     height: 20,
     width: 20,
     marginTop: 4,
 
-    color: COLORS.WHITE,
   },
   arrowRefresh: {
     color: COLORS.WHITE,

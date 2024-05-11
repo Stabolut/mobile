@@ -1,19 +1,19 @@
 import React, { useRef } from 'react';
 import Toast from 'react-native-easy-toast'
 import { View, Modal, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { COLORS } from '../../common';
+import { COLORS, THEME } from '../../common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Clipboard from '@react-native-clipboard/clipboard';
 export default function LoadingModal(props) {
     const toastRef = useRef(null);
-
+    const theme = THEME[props.selectedTheme];
     const copyToClipBoard = () => {
-        try{
-       Clipboard.setString(props.privateKey);
-        toastRef.current.show('The private key has been successfully copied to the clipboard!', 3000);
+        try {
+            Clipboard.setString(props.privateKey);
+            toastRef.current.show('The private key has been successfully copied to the clipboard!', 3000);
         }
-        catch(e){
-            
+        catch (e) {
+
         }
     }
 
@@ -23,11 +23,12 @@ export default function LoadingModal(props) {
             visible={props.visible}
             statusBarTranslucent={true}>
 
+
             <View style={styles.centeredView}>
                 <Toast ref={toastRef} position="bottom" />
 
-                <View style={styles.modalView}>
-                    <Text style={[styles._Modal_inner_text1, { color: COLORS.WHITE }]}> {props.privateKey} <Ionicons style={{ marginTop: 800 }} onPress={copyToClipBoard} size={25} name="copy"></Ionicons></Text>
+                <View style={[styles.modalView,{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND,}]}>
+                    <Text style={[styles._Modal_inner_text1, { color: theme?.WHITE }]}> {props.privateKey} <Ionicons  onPress={copyToClipBoard} size={25} name="copy"></Ionicons></Text>
                     <View style={{ flexDirection: 'row', width: "100%", justifyContent: 'center', alignItems: 'center', marginBottom: 24 }}>
 
 
@@ -62,10 +63,6 @@ const styles = StyleSheet.create({
 
         width: "90%",
         padding: 24,
-
-
-
-        backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
         borderRadius: 20,
         flexDirection: 'column',
         justifyContent: 'center',

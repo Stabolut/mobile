@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
-import { COLORS, Images } from '../../common';
+import { COLORS, THEME } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -39,24 +39,25 @@ class Pin extends React.Component {
 
 
   render() {
-   
+    let selectedTheme = store.getState().authReducer?.theme
+    let theme = THEME[selectedTheme]
 
     return (
       <React.Fragment>
 
-        <StatusBarNU backgroundColor={COLORS.BACKGROUND_COLOR} />
+        <StatusBarNU backgroundColor={theme?.BACKGROUND_COLOR} />
 
-        <View style={styles.mainContainer}>
+        <View style={[styles.mainContainer,{backgroundColor:theme?.BACKGROUND_COLOR}]}>
 
           <PINCode
             stylePinCodeCircle={styles.selectedDot}
-            numbersButtonOverlayColor={COLORS.BACKGROUND_COLOR}
-            stylePinCodeColorTitle={COLORS.WHITE}
-            stylePinCodeColorSubtitle={COLORS.SMALL_HEADING_TEXT}
+            numbersButtonOverlayColor={theme?.BACKGROUND_COLOR}
+            stylePinCodeColorTitle={theme?.WHITE}
+            stylePinCodeColorSubtitle={theme?.SMALL_HEADING_TEXT}
             stylePinCodeDeleteButtonSize={40}
-            colorCircleButtons={COLORS.BALANCE_CARD_BACKGROUND}
-            stylePinCodeDeleteButtonColorHideUnderlay={COLORS.WHITE}
-            stylePinCodeButtonNumber={COLORS.WHITE}
+            colorCircleButtons={theme?.BALANCE_CARD_BACKGROUND}
+            stylePinCodeDeleteButtonColorHideUnderlay={theme?.WHITE}
+            stylePinCodeButtonNumber={theme?.WHITE}
             finishProcess={async () => {
               await AsyncStorage.setItem('PinSet', 'true');
               this.props.navigation.replace(this.props.goToScreen !== undefined ? this.props.goToScreen : this.props.route.params.goToScreen);
@@ -70,10 +71,12 @@ class Pin extends React.Component {
     );
   }
 }
+
+
+
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR
+    flex: 1
   },
   selectedDot: {
     height: 15,

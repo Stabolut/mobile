@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { COLORS, ENUMS } from '../../common';
+import { COLORS, ENUMS,THEME } from '../../common';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -15,9 +15,11 @@ class Transaction extends React.Component {
     showDetailModal: false,
     detailData: {}
   };
-
+ 
   render() {
-    const { item } = this.props;
+    const { item,selectedTheme } = this.props;
+    const theme = THEME[selectedTheme];
+
     
 
     return (
@@ -37,23 +39,23 @@ class Transaction extends React.Component {
           <View style={{ flexDirection: "row" }}>
 
             <View style={styles.sendReceiveBtnView}>
-              <Text style={styles.sendReceiveBtnText}>{item.receiverAddress !== this.props.userAddress ? "Sent" : "Received"}</Text>
+              <Text style={[styles.sendReceiveBtnText,{color: COLORS.WHITE}]}>{item.receiverAddress !== this.props.userAddress ? "Sent" : "Received"}</Text>
             </View>
             {/* Circle With Center Icon */}
             {
               item.transactionStatus === 'Success' ?
                 <View style={[styles.statusCircleView, { backgroundColor: "#3ada77", }]}>
-                  <Ionicons name="checkmark" size={25} color={COLORS.WHITE} />
+                  <Ionicons name="checkmark" size={25} color={THEME?.commonColor.commonWhite} />
                 </View>
                 :
                 item.transactionStatus === 'Fail' ?
                   <View style={[styles.statusCircleView, { backgroundColor: "red" }]}>
-                    <Entypo name="cross" size={25} color={COLORS.WHITE}></Entypo>
+                    <Entypo name="cross" size={25} color={THEME?.commonColor.commonWhite}></Entypo>
                   </View> :
 
                   item.transactionStatus === 'Pending' ?
                     <View style={[styles.statusCircleView, { backgroundColor: "gray" }]}>
-                      <Entypo name="dots-three-horizontal" size={15} color={COLORS.WHITE}></Entypo>
+                      <Entypo name="dots-three-horizontal" size={15} color={THEME?.commonColor.commonWhite}></Entypo>
                     </View> : null
 
 
@@ -69,7 +71,7 @@ class Transaction extends React.Component {
           {
 
           }
-          <Text style={styles.transactionStatusText}>
+          <Text style={[styles.transactionStatusText,{color:theme?.TRANSACTION_STATUS_TEXT}]}>
             {item.transactionStatus === 'Success' ? 'Confirmed' : item.transactionStatus === 'Fail' ? "Fail" : item.transactionStatus === 'Pending' ? "Pending" : null}
           </Text>
 
@@ -78,7 +80,7 @@ class Transaction extends React.Component {
 
 
 
-          <Text style={styles.fromToText}>
+          <Text style={[styles.fromToText,{color:theme?.ADDRESS_TEXT}]}>
 
             {item.receiverAddress === this.props.userAddress
               ? `From:${item.senderAddress}`
@@ -96,7 +98,7 @@ class Transaction extends React.Component {
         <View>
 
           <View style={styles.sendAmountAndTimeMainView}>
-            <Text style={styles.amountText}>${item.amountToSend.toLocaleString()}     US₿</Text>
+            <Text style={[styles.amountText,{color:theme?.AMOUNT_COLOR}]}>${item.amountToSend.toLocaleString()} US₿</Text>
 
 
             {item.receiverAddress === this.props.userAddress ?
@@ -126,7 +128,7 @@ class Transaction extends React.Component {
             }
           </View>
           <Text style={{
-            color: "#4f4e6e", alignSelf: "flex-end", marginTop: 16, fontSize: 14, fontFamily: "Poppins"
+            color:theme?.TIMESTAMP_COLOR, alignSelf: "flex-end", marginTop: 16, fontSize: 14, fontFamily: "Poppins"
 
           }}>{moment(item.sendDate).fromNow()}</Text>
         </View>
@@ -147,7 +149,7 @@ class Transaction extends React.Component {
             });
           }}
 
-
+          theme={theme}
 
           userAddress={this.props.userAddress}
           showDetailModal={this.state.showDetailModal}
@@ -173,7 +175,8 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 16,
     marginTop: 24,
-    marginBottom: 24
+    marginBottom: 24,
+   
   },
   sendReceiveBtnView: {
     backgroundColor: "#4d6ce0",
@@ -186,7 +189,7 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE
   },
   sendReceiveBtnText: {
-    color: COLORS.WHITE,
+   
     fontSize: 14,
     fontFamily: "Poppins"
 
@@ -202,13 +205,13 @@ const styles = StyleSheet.create({
   },
   transactionStatusText: {
     marginTop: 16,
-    color: "#cdced9",
+   
     marginBottom: 16,
     fontSize: 14,
     fontFamily: "Poppins"
   },
   fromToText: {
-    color: "#c9c9e6",
+  
     fontSize: 12,
     fontWeight: "500",
     fontFamily: "Poppins",
@@ -220,7 +223,7 @@ const styles = StyleSheet.create({
     height: 30
   },
   amountText: {
-    color: COLORS.WHITE,
+   
     fontSize: 16,
     fontFamily: "Poppins",
     fontWeight: "bold",

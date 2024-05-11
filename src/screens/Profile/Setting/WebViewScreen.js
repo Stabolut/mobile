@@ -4,24 +4,28 @@ import { WebView } from 'react-native-webview';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 // import { COLORS } from '../../common';
-import {COLORS} from "../../../common"
-import { Text,StyleSheet,View } from 'react-native';
+import {COLORS,THEME} from "../../../common"
+import { StyleSheet,View } from 'react-native';
+import { useSelector } from 'react-redux';
 // import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 
 function WebViewScreen(props) {
+    const selectedTheme = useSelector((state) => state.authReducer.theme)
+    const theme = THEME[selectedTheme];
 
     return (
         <React.Fragment>
 
 
             <StatusBarNU
-                backgroundColor={COLORS.BACKGROUND_COLOR}
-                barStyle="light-content"
+                backgroundColor={theme?.BACKGROUND_COLOR}
+               
 
             />
 
             <Header
                 backButton={true}
+                theme={theme}
                 headerText={props.route.params.headerText}
 
 

@@ -20,7 +20,7 @@ function Bio(props) {
 
             <StatusBarNU
                 backgroundColor={COLORS.BACKGROUND_COLOR}
-                barStyle="light-content"
+               
 
             />
 

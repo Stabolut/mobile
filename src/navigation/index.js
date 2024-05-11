@@ -1,4 +1,7 @@
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer, DarkTheme,
+  DefaultTheme,
+} from '@react-navigation/native';
 import CreateWallet from '../screens/Wallet/CreateWallet';
 import Warning from '../screens/Wallet/CreateWalletWarningScreen';
 import Receive from '../screens/Wallet/Receive';
@@ -16,8 +19,7 @@ import PinCode from '../screens/PinCode';
 import UpdatePin from '../screens/PinCode/UpdatePin';
 import AllTransaction from '../screens/Dashboard/ViewAllTransaction';
 import Bio from '../screens/Profile/Bio/Bio';
-import { AddContact,ShowContact } from '../screens/ContactList';
-
+import { AddContact, ShowContact } from '../screens/ContactList';
 // import ImportWithPrivateKey from '../screens/Wallet/ImportWalletScreens/ImportWithPrivateKey';
 import ImportWithPrivateKey from '../screens/Wallet/ImportWalletScreens/ImportWithPrivateKey/ImportWithPrivateKey';
 import ImportWallet from '../screens/Wallet/ImportWalletScreens/ImportWalletWithMnemonics/ImportWallet';
@@ -25,30 +27,20 @@ import ChooseImportOption from '../screens/Wallet/ImportWalletScreens/ChooseImpo
 import Purchase from '../screens/Purchase/Purchase';
 import Stake from '../screens/Stake';
 import AddStake from '../screens/Stake/AddStake';
-
-import
-MaterialCommunityIcons
-  from 'react-native-vector-icons/MaterialCommunityIcons';
-
-
-import
-Ionicons
-  from 'react-native-vector-icons/Ionicons';
-import
-Entypo
-  from 'react-native-vector-icons/Entypo';
-
-
+import { useState,useEffect,useContext } from 'react';
 import WebViewScreen from '../screens/Profile/Setting/WebViewScreen';
 import { ENUMS } from '../common';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import { get } from '../utils/utils';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-
+export const ThemeContext = React.createContext()
 function TabNav() {
+  const theme = useContext(ThemeContext);
+  console.log("my theme value",theme)
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
@@ -69,9 +61,9 @@ function TabNav() {
         options={{ gestureEnabled: false }}
       />
       {/* <Stack.Screen name={ENUMS.SCREENS.DASHBOARD} component={BottomNav} /> */}
-      <Stack.Screen name={ENUMS.SCREENS.DASHBOARD} component={Dashboard} />
+      <Stack.Screen  name={ENUMS.SCREENS.DASHBOARD} component={Dashboard} />
       <Stack.Screen name={ENUMS.SCREENS.SETTING} component={Setting} />
-       <Stack.Screen name={ENUMS.SCREENS.STAKE} component={Stake} /> 
+      <Stack.Screen name={ENUMS.SCREENS.STAKE} component={Stake} />
 
       <Stack.Screen name={ENUMS.SCREENS.BIO} component={Bio} />
 
@@ -139,151 +131,34 @@ function TabNav() {
 
 }
 
-function BottomNav() {
-  return (
-    <Tab.Navigator
-      initialRouteName={ENUMS.SCREENS.DASHBOARD}
-      screenOptions={({ route }) => ({
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          height: 75,
-          paddingHorizontal: 5,
-          paddingTop: 0,
-          backgroundColor: '#000',
-          labeled: false,
-          borderTopWidth: 0,
 
-        },
-
-        labeled: false,
-        sceneAnimationEnabled: false,
-        headerShown: false,
-
-
-
-        tabBarIcon: ({ focused, color, size }) => {
-
-
-          let iconName;
-          let iconColor;
-
-
-
-          if (route.name === ENUMS.SCREENS.DASHBOARD_MAIN) {
-
-
-
-            iconColor = focused ? "white" : "#4d4e6a"
-
-            return (
-              <MaterialCommunityIcons
-                name="home"
-                size={size}
-                color={iconColor}
-              />
-            );
-
-          }
-
-          else if (route.name === ENUMS.SCREENS.SETTING) {
-            iconName = 'settings'
-            iconColor = focused ? "white" : "#4d4e6a"
-
-            return (
-              <Ionicons
-                name={iconName}
-                size={size}
-                color={iconColor}
-              />
-            );
-          }
-
-          else if (route.name === ENUMS.SCREENS.ABOUT) {
-            iconName = 'info'
-            iconColor = focused ? "white" : "#4d4e6a"
-
-            return (
-              <Entypo
-                name={iconName}
-                size={size}
-                color={iconColor}
-              />
-            );
-          }
-
-          else if (route.name === ENUMS.SCREENS.BIO) {
-            iconName = 'newspaper'
-            iconColor = focused ? "white" : "#4d4e6a"
-
-            return (
-              <Ionicons
-                name={iconName}
-                size={size}
-                color={iconColor}
-              />
-            );
-          }
-
-
-        }
-      })}>
-
-      <Tab.Screen
-        name={ENUMS.SCREENS.DASHBOARD_MAIN}
-        component={Dashboard}
-      />
-      <Tab.Screen
-        name={ENUMS.SCREENS.BIO}
-        component={Bio}
-      />
-      <Tab.Screen
-        name={ENUMS.SCREENS.ABOUT}
-        component={About}
-      />
-
-      <Tab.Screen
-        name={ENUMS.SCREENS.SETTING}
-        component={Setting}
-      />
-
-
-
-    </Tab.Navigator>
-
-
-
-
-  )
-}
 
 
 
 const Navigation = () => {
 
+  const [theme, setTheme] = useState();
+  useEffect(() => {
+    get("theme").then(theme => {
+      console.log("theme",theme)
+      setTheme(theme)
+
+    })
+
+
+    // Load theme from AsyncStorage (or set a default theme)
+
+  }, []);
 
   return (
+
     <NavigationContainer>
-      <TabNav></TabNav>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      <ThemeContext.Provider value={theme}>
+        <TabNav></TabNav>
+      </ThemeContext.Provider>
 
     </NavigationContainer>
+
   );
 };
 

@@ -7,7 +7,7 @@ import {
     TextInput,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { ENUMS, COLORS, Str } from '../../../../common';
+import { ENUMS, COLORS, Str,THEME } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../../components/Header/Header';
 //import Clipboard from '@react-native-community/clipboard';
@@ -156,15 +156,19 @@ class ImportWithPrivateKey extends React.Component {
     };
 
     render() {
+        let selectedTheme = store.getState().authReducer?.theme
+        let theme = THEME[selectedTheme]
+    
         return (
             <React.Fragment>
                 <StatusBarNU
-                    backgroundColor={COLORS.BACKGROUND_COLOR}
-                    barStyle="light-content"
+                    backgroundColor={theme?.BACKGROUND_COLOR}
+                 
                 />
 
                 <Header
                     headerText="Import Multi-Coin Wallet"
+                    theme={theme}
                     navigation={this.props.navigation}></Header>
 
                 <LoadingModal
@@ -172,7 +176,7 @@ class ImportWithPrivateKey extends React.Component {
                     modalVisible={this.state.isLoading}
                 />
 
-                <View style={styles.mainContainer}>
+                <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
                     <View style={styles.container}>
                         <TouchableOpacity
                             onPress={this.handleButtonPress}
@@ -184,7 +188,7 @@ class ImportWithPrivateKey extends React.Component {
                             }}>
                             <Text
                                 style={{
-                                    color: COLORS.WHITE,
+                                    color: theme?.WHITE,
                                     fontSize: 14,
                                     fontFamily: 'Poppins',
                                 }}>
@@ -202,7 +206,7 @@ class ImportWithPrivateKey extends React.Component {
                             style={{
                                 flexWrap: 'nowrap',
                                 padding: 8,
-                                color: COLORS.WHITE,
+                                color: theme?.WHITE,
                             }}
                         />
                     </View>
@@ -213,7 +217,7 @@ class ImportWithPrivateKey extends React.Component {
 
                     <Text
                         style={{
-                            color: COLORS.SMALL_HEADING_TEXT,
+                            color: theme?.SMALL_HEADING_TEXT,
                             marginTop: 12,
                             fontSize: 14,
                             fontFamily: 'Poppins',
@@ -241,7 +245,7 @@ const styles = StyleSheet.create({
         paddingTop: 32,
         flexDirection: 'column',
         flex: 1,
-        backgroundColor: COLORS.BACKGROUND_COLOR,
+       
     },
 
     container: {

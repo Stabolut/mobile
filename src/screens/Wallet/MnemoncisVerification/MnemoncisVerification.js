@@ -7,7 +7,8 @@ import {
   ScrollView,
   Dimensions
 } from 'react-native';
-import { COLORS, ENUMS, Str } from '../../../common';
+import { COLORS, ENUMS, Str,THEME } from '../../../common';
+
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import { ethers } from 'ethers';
 import _ from 'lodash';
@@ -114,13 +115,15 @@ class MnemoncisVerification extends React.Component {
   // above noble pyramid group sand dynamic eager mouse fatal bullet smile common
 
   render() {
+    let selectedTheme = store.getState().authReducer?.theme
+    let theme = THEME[selectedTheme]
     return (
       <React.Fragment>
         <StatusBarNU
-          backgroundColor={COLORS.BACKGROUND_COLOR}
-          barStyle="light-content"
+          backgroundColor={theme?.BACKGROUND_COLOR}
+         
         />
-        <View style={styles.mainContainer}>
+        <View style={[styles.mainContainer,{  backgroundColor: theme?.BACKGROUND_COLOR,}]}>
           <LoadingModal
             task={'Creating Wallet...'}
             modalVisible={this.state.isLoading}
@@ -129,16 +132,16 @@ class MnemoncisVerification extends React.Component {
           <ScrollView>
             <View style={styles.mainContainerChild1}>
               <View style={styles.topHeadingView}>
-                <Text style={styles.topHeadingViewText_1}>
+                <Text style={[styles.topHeadingViewText_1,{ color: theme?.WHITE,}]}>
                   Verify the Secret Phrase
                 </Text>
-                <Text style={styles.topHeadingViewText_2}>
+                <Text style={[styles.topHeadingViewText_2,{ color: theme?.SMALL_HEADING_TEXT,}]}>
                   Tap the words to put them next to each other in the correct
                   order
                 </Text>
               </View>
 
-              <View style={styles.selectMnemonicsViewMain}>
+              <View style={[styles.selectMnemonicsViewMain,{backgroundColor: theme?.BALANCE_CARD_BACKGROUND}]}>
                 {this.state.userSelection.map((item, index) => (
                   <TouchableOpacity
                     key={index}
@@ -148,14 +151,14 @@ class MnemoncisVerification extends React.Component {
                     style={styles.selectMnemonicsBox}>
                     <Text
                       style={{
-                        color: COLORS.SMALL_HEADING_TEXT,
+                        color: theme?.SMALL_HEADING_TEXT,
                         fontFamily: 'Poppins',
                       }}>
                       {index + 1}
                     </Text>
                     <Text
                       style={{
-                        color: COLORS.WHITE,
+                        color: theme?.WHITE,
                         marginLeft: 2,
                         fontFamily: 'Poppins',
                       }}>
@@ -169,7 +172,7 @@ class MnemoncisVerification extends React.Component {
                   style={[
                     {
                       alignItems: 'center',
-                      backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
+                      backgroundColor: theme?.BALANCE_CARD_BACKGROUND,
                       paddingBottom: 8,
                       fontFamily: 'Poppins',
                     },
@@ -183,7 +186,7 @@ class MnemoncisVerification extends React.Component {
                   style={[
                     {
                       alignItems: 'center',
-                      backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
+                      backgroundColor: theme?.BALANCE_CARD_BACKGROUND,
                       paddingBottom: 8,
                       fontFamily: 'Poppins',
                     },
@@ -202,7 +205,7 @@ class MnemoncisVerification extends React.Component {
                     style={styles.shuffleMnemonicsBox}>
                     <Text
                       style={{
-                        color: COLORS.WHITE,
+                        color: theme?.WHITE,
                         marginLeft: 2,
                         fontFamily: 'Poppins',
                       }}>
@@ -239,9 +242,7 @@ class MnemoncisVerification extends React.Component {
                         mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
                       }
                       catch (e) {
-                        // this.setState({ isLoading: false });
-                        // alert('We are currently experiencing issues with verifying the account. Please try again later.');
-                        // return
+                      
                       }
 
                   }
@@ -257,7 +258,7 @@ class MnemoncisVerification extends React.Component {
                         mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
                       }
                       catch (e) {
-                        console.log("Error", e)
+                       
                         this.setState({ isLoading: false, disabled: false });
                         alert('We are currently experiencing issues with verifying the account. Please try again later.');
                         return
@@ -326,8 +327,7 @@ class MnemoncisVerification extends React.Component {
 
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+    flex: 1
   },
   mainContainerChild1: {
     flex: 1,
@@ -350,13 +350,11 @@ const styles = StyleSheet.create({
 
   topHeadingViewText_1: {
     fontSize: 22,
-    color: COLORS.WHITE,
     fontFamily: 'Poppins',
   },
   topHeadingViewText_2: {
     textAlign: 'center',
     marginTop: 4,
-    color: COLORS.SMALL_HEADING_TEXT,
     fontFamily: 'Poppins',
   },
 
@@ -372,7 +370,6 @@ const styles = StyleSheet.create({
     paddingBottom: windowHeight >= 630 ? 64 : 32,
     paddingTop: 64,
 
-    backgroundColor: COLORS.BALANCE_CARD_BACKGROUND
   },
 
 

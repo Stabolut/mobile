@@ -7,12 +7,13 @@ import {
 import { COLORS } from '../../common';
 
 
-function NoTransactionFound({ transfer, showKey, receive, purchase }) {
+function NoTransactionFound({theme }) {
+    console.log("My theree",theme)
 
     return (
         <View style={styles.mainView}>
 
-            <Text style={styles.transactionNotFoundTextStyle}>
+            <Text style={[styles.transactionNotFoundTextStyle,{color:theme?.WHITE}]}>
                 No transactions found!
             </Text>
 
@@ -32,9 +33,8 @@ const styles = StyleSheet.create({
     },
 
     transactionNotFoundTextStyle: {
-        color: COLORS.WHITE,
-        fontFamily:
-            'Poppins',
+        
+        fontFamily:'Poppins',
         fontSize: 14,
        
 

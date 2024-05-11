@@ -1,21 +1,24 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
 import Header from '../../components/Header/Header';
-import { COLORS, ENUMS } from '../../common';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { COLORS, ENUMS,THEME } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
+import { useSelector } from 'react-redux';
 
 function TransactionDetail(props) {
+  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  const theme = THEME[selectedTheme];
 
   return (
     <React.Fragment>
       <StatusBarNU
-        backgroundColor={COLORS.APP_BLUE_COLOR}
-        barStyle="light-content"
+        backgroundColor={theme?.BACKGROUND_COLOR}
+       
       />
       <Header
         backButton={true}
         headerText="Transaction Detail"
+        theme={theme}
         navigation={props.navigation}></Header>
       
 

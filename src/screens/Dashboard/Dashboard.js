@@ -12,9 +12,12 @@ import {
   Dimensions
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import theme from '../../common/theme';
+import { ThemeContext } from '../../navigation';
+import { useSelector } from 'react-redux';
 
 
-import { COLORS, ENUMS, Images, Str } from '../../common';
+import { COLORS, ENUMS, Images, Str, THEME } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import AsyncStorage from '@react-native-community/async-storage';
 import { ethers } from 'ethers';
@@ -54,11 +57,14 @@ function Dashboard({ navigation }) {
   const [isTransactionLoading, setTransactionLoading] = useState(false);
   const [transactionRecord, setTransactionRecord] = useState([]);
   const [visible, setVisible] = useState(false);
-  const [transactionHash, setTransactionHash] = useState("")
+  // const [selectedTheme, setSelectedTheme] = useState("")
   socketDisconnectMessage(socketConnection.connectionStatus);
+  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  const theme = THEME[selectedTheme];
 
 
   useEffect(() => {
+
     getLocalData();
     getFromDB();
   }, []);
@@ -74,22 +80,22 @@ function Dashboard({ navigation }) {
   };
 
 
-// Method to retrieve data from the local database
-const getFromDB = async () => {
-  try {
+  // Method to retrieve data from the local database
+  const getFromDB = async () => {
+    try {
       // Define the schema for the transaction history database
       const transactionHistoryDBSchema = {
-          name: 'TransactionsHistorySchema',
-          properties: {
-              uniqueKey: 'string',
-              senderAddress: 'string',
-              receiverAddress: 'string',
-              amountToSend: 'double',
-              transactionStatus: 'string',
-              sendDate: 'date',
-              transactionHash: 'string', // Unique identifier for transactions
-              transactionNotes: 'string'
-          },
+        name: 'TransactionsHistorySchema',
+        properties: {
+          uniqueKey: 'string',
+          senderAddress: 'string',
+          receiverAddress: 'string',
+          amountToSend: 'double',
+          transactionStatus: 'string',
+          sendDate: 'date',
+          transactionHash: 'string', // Unique identifier for transactions
+          transactionNotes: 'string'
+        },
       };
 
       // Open a connection to the Realm database
@@ -97,94 +103,94 @@ const getFromDB = async () => {
 
       // Retrieve pending transactions from the database
       const pendingEntries = realm
-          .objects('TransactionsHistorySchema')
-          .filtered('transactionStatus = "Pending"');
+        .objects('TransactionsHistorySchema')
+        .filtered('transactionStatus = "Pending"');
 
       // If there are pending transactions, check their status
       if (pendingEntries.length > 0) {
-          pendingEntries.forEach(async entry => {
-              let status;
-              try {
-                  // Verify the status of the transaction from an external provider
-                  status = await verifyTransactionSuccess(provider, entry.transactionHash);
+        pendingEntries.forEach(async entry => {
+          let status;
+          try {
+            // Verify the status of the transaction from an external provider
+            status = await verifyTransactionSuccess(provider, entry.transactionHash);
 
-                  // Update transaction status based on verification result
-                  if (status === 1) {
-                      // If transaction is successful, update status to 'Success'
-                      updateTransactionStatus(entry.transactionHash, status);
-                      realm.write(() => {
-                          entry.transactionStatus = 'Success';
-                          // Update user transaction list from local database
-                          getUserTransactionListFromLocalDb();
-                      });
-                  } else if (status === 0) {
-                      // If transaction failed, update status to 'Fail'
-                      updateTransactionStatus(entry.transactionHash);
-                      realm.write(() => {
-                          entry.transactionStatus = 'Fail';
-                          // Update user transaction list from local database
-                          getUserTransactionListFromLocalDb();
-                      });
-                  }
-              } catch (e) {
-                  // Handle any errors that occur during transaction verification
-              }
-          });
+            // Update transaction status based on verification result
+            if (status === 1) {
+              // If transaction is successful, update status to 'Success'
+              updateTransactionStatus(entry.transactionHash, status);
+              realm.write(() => {
+                entry.transactionStatus = 'Success';
+                // Update user transaction list from local database
+                getUserTransactionListFromLocalDb();
+              });
+            } else if (status === 0) {
+              // If transaction failed, update status to 'Fail'
+              updateTransactionStatus(entry.transactionHash);
+              realm.write(() => {
+                entry.transactionStatus = 'Fail';
+                // Update user transaction list from local database
+                getUserTransactionListFromLocalDb();
+              });
+            }
+          } catch (e) {
+            // Handle any errors that occur during transaction verification
+          }
+        });
       }
-  } catch (e) {
+    } catch (e) {
       // Handle any errors that occur during database access
+    }
+  };
+
+
+  let verifyTransactionSuccess = async (provider, transactionHash) => {
+
+    try {
+
+      const transaction = await provider.getTransactionReceipt(transactionHash);
+      return transaction.status;
+    } catch (error) {
+
+      throw error;
+    }
+  };
+
+  updateTransactionStatus = async (transactionHash, status) => {
+    let isConnected = await checkInternetConnectivity()
+    if (!isConnected) {
+      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+      return
+
+    }
+    try {
+      await axios.post(`${Str.apiUrl}/wallet/update-transaction-status`, {
+        walletAddress: userAddress,
+        transactionHash: transactionHash,
+        status: status
+      });
+    }
+    catch (e) {
+    }
+
   }
-};
 
 
-let verifyTransactionSuccess = async (provider, transactionHash) => {
-
-  try {
-
-    const transaction = await provider.getTransactionReceipt(transactionHash);
-    return transaction.status;
-  } catch (error) {
-
-    throw error;
-  }
-};
-
-updateTransactionStatus = async (transactionHash, status) => {
-  let isConnected = await checkInternetConnectivity()
-  if (!isConnected) {
-    alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-    return
-
-  }
-  try {
-    await axios.post(`${Str.apiUrl}/wallet/update-transaction-status`, {
-      walletAddress: userAddress,
-      transactionHash: transactionHash,
-      status: status
-    });
-  }
-  catch (e) {
-  }
-
-}
-
-
-// Method to retrieve the transaction list of the user from the local database
-getUserTransactionListFromLocalDb = async () => {
-  try {
+  // Method to retrieve the transaction list of the user from the local database
+  getUserTransactionListFromLocalDb = async () => {
+    try {
       // Define the schema for the transaction history database
       const transactionHistoryDBSchema = {
-          name: 'TransactionsHistorySchema',
-          properties: {
-              uniqueKey: 'string',
-              senderAddress: 'string',
-              receiverAddress: 'string',
-              amountToSend: 'double',
-              transactionStatus: 'string',
-              sendDate: 'date',
-              transactionHash: 'string', // Unique identifier for transactions
-              transactionNotes: 'string'
-          },
+        name: 'TransactionsHistorySchema',
+        properties: {
+          uniqueKey: 'string',
+          senderAddress: 'string',
+          receiverAddress: 'string',
+          amountToSend: 'double',
+          transactionStatus: 'string',
+          sendDate: 'date',
+          transactionHash: 'string', // Unique identifier for transactions
+          transactionNotes: 'string'
+        },
       };
 
       // Open a connection to the Realm database
@@ -192,8 +198,8 @@ getUserTransactionListFromLocalDb = async () => {
 
       // Retrieve transaction data from the database and sort it by date in descending order
       let transaction = realm
-          .objects('TransactionsHistorySchema')
-          .sorted('sendDate', true);
+        .objects('TransactionsHistorySchema')
+        .sorted('sendDate', true);
 
       // Remove duplicate transactions based on transactionHash
       const uniqueArr = [];
@@ -201,19 +207,19 @@ getUserTransactionListFromLocalDb = async () => {
 
       // Iterate through transactions to filter out duplicates
       transaction.forEach((elem) => {
-          if (!uniqueObj[elem.transactionHash]) {
-              uniqueObj[elem.transactionHash] = true;
-              uniqueArr.push(elem);
-          }
+        if (!uniqueObj[elem.transactionHash]) {
+          uniqueObj[elem.transactionHash] = true;
+          uniqueArr.push(elem);
+        }
       });
 
       // Set the unique transaction records in the state for further processing
       setTransactionRecord(uniqueArr);
 
-  } catch (e) {
+    } catch (e) {
       // Handle any errors that occur during database access
+    }
   }
-}
 
 
 
@@ -268,7 +274,7 @@ getUserTransactionListFromLocalDb = async () => {
       setTransactionLoading(true);
 
       // Make API request to fetch transaction data
-      let {data} = await axios.post(`${Str.apiUrl}/wallet/transacions-list-with-limit`, { walletAddress: userAddress });
+      let { data } = await axios.post(`${Str.apiUrl}/wallet/transacions-list-with-limit`, { walletAddress: userAddress });
 
 
       // Filter out records that are already present in the local database
@@ -346,7 +352,7 @@ getUserTransactionListFromLocalDb = async () => {
 
 
 
- 
+
 
   useEffect(() => {
     let interval = null;
@@ -420,23 +426,17 @@ getUserTransactionListFromLocalDb = async () => {
 
 
       <StatusBarNU
-        backgroundColor={COLORS.BACKGROUND_COLOR}
-        barStyle="light-content"
+        backgroundColor={theme?.BACKGROUND_COLOR}
+       
 
       />
 
-      {/* <Header
-        backButton={false}
-        headerText="Stabolut Chain (US₿)"
-        // refreshButton={true}
-        // settingButton={true}
-        onRefreshClick={this.onRefresh}
-        navigation={navigation}></Header> */}
 
 
-      <View style={styles.mainContainer}>
 
-        <BalanceCard isLoading={isLoading} balance={balance} userAddress={userAddress} copy={() => {
+      <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
+
+        <BalanceCard selectedTheme={selectedTheme} isLoading={isLoading} balance={balance} userAddress={userAddress} copy={() => {
 
           Clipboard.setString(userAddress);
           DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
@@ -448,6 +448,7 @@ getUserTransactionListFromLocalDb = async () => {
 
         <SliderOption
           balance={balance}
+          selectedTheme={selectedTheme}
           transfer={async () => {
             let contactOnly = await AsyncStorage.getItem("allowContact")
             if (contactOnly === "true") {
@@ -467,7 +468,7 @@ getUserTransactionListFromLocalDb = async () => {
         >
 
         </SliderOption>
-        <TransactionRefreshAndView viewAll={() => navigation.navigate(`${ENUMS.SCREENS.ALL_TRANSACTION}`)}
+        <TransactionRefreshAndView selectedTheme={selectedTheme} viewAll={() => navigation.navigate(`${ENUMS.SCREENS.ALL_TRANSACTION}`)}
           refresh={() => this.onRefresh()}
 
 
@@ -491,10 +492,11 @@ getUserTransactionListFromLocalDb = async () => {
                   <Transaction
                     userAddress={userAddress}
                     navigation={navigation}
+                    selectedTheme={selectedTheme}
                     item={item}></Transaction>
                 )}
               />
-              : <NoTransactionFound></NoTransactionFound>
+              : <NoTransactionFound theme={theme}></NoTransactionFound>
         }
 
 
@@ -527,7 +529,7 @@ getUserTransactionListFromLocalDb = async () => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR
+
   },
 
   iconViewStyle: {
@@ -543,12 +545,7 @@ const styles = StyleSheet.create({
   iconDesign: {
     fontWeight: "800"
   },
-  textStyle: {
-    color: COLORS.WHITE,
-    fontSize: 12,
-    marginTop: 6,
-    fontFamily: "Poppins"
-  },
+
 
 
 

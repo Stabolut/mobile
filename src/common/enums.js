@@ -35,7 +35,14 @@ const ENUMS = {
     TELEGRAM: "https://t.me/stabolut",
     EXPLORER_URL: "https://sepolia.arbiscan.io/tx/"
 
-  }
+  },
+  THEME: {
+    DARK: "dark",
+    LIGHT: "light",
+    DEFAULT:"dark"
+  },
+  
+
 }
 
 export default ENUMS;

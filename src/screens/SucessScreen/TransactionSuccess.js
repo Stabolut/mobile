@@ -10,10 +10,11 @@ import {
 } from 'react-native';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Header from '../../components/Header/Header';
-import { COLORS, ENUMS, Images } from '../../common';
+import { COLORS, ENUMS, THEME } from '../../common';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import { SocketContext } from '../../App';
 import { useState, useContext } from 'react';
+import { useSelector } from 'react-redux';
 import socketDisconnectMessage from '../../components/CustomHook/socketDisconnectMessage';
 const windowHeight = Dimensions.get('window').height;
 
@@ -22,18 +23,24 @@ function TransactionSuccess(props) {
 
   const socketConnection = useContext(SocketContext);
   socketDisconnectMessage(socketConnection.connectionStatus);
+  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  const theme = THEME[selectedTheme];
 
   return (
     <React.Fragment>
       <StatusBarNU
-        backgroundColor={COLORS.BACKGROUND_COLOR}
-        barStyle="light-content"
+        backgroundColor={theme?.BACKGROUND_COLOR}
+       
       />
       <Header
         backButton={true}
         headerText="Transaction Confirmation"
+        theme={theme}
         navigation={props.navigation}></Header>
-      <View style={styles.mainContainer}>
+
+
+
+      <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR}]}>
         <ScrollView>
           <View
 
@@ -72,7 +79,7 @@ function TransactionSuccess(props) {
           </Text>
           <Text
             style={{
-              color: COLORS.SMALL_HEADING_TEXT,
+              color: theme?.SMALL_HEADING_TEXT,
               fontSize: 12,
               textAlign: 'center',
               alignSelf: 'center',
@@ -85,7 +92,7 @@ function TransactionSuccess(props) {
           <Text
             style={{
               alignSelf: 'center',
-              color: COLORS.SMALL_HEADING_TEXT,
+              color: theme?.SMALL_HEADING_TEXT,
               fontSize: 12,
               textAlign: 'center',
               fontFamily: 'Poppins',
@@ -117,7 +124,7 @@ function TransactionSuccess(props) {
             <Text
               style={{
                 flex: 1,
-                color: COLORS.WHITE,
+                color: theme?.WHITE,
                 fontWeight: '700',
                 fontSize: 12,
                 fontFamily: 'Poppins',
@@ -129,7 +136,7 @@ function TransactionSuccess(props) {
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
               <Text
                 style={{
-                  color: COLORS.SMALL_HEADING_TEXT,
+                  color: theme?.SMALL_HEADING_TEXT,
                   fontWeight: '700',
                   fontSize: 12,
                   fontFamily: 'Poppins',
@@ -155,7 +162,7 @@ function TransactionSuccess(props) {
             <Text
               style={{
                 flex: 1,
-                color: COLORS.WHITE,
+                color: theme?.WHITE,
                 fontWeight: '700',
                 fontSize: 12,
                 fontFamily: 'Poppins',
@@ -165,7 +172,7 @@ function TransactionSuccess(props) {
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
               <Text
                 style={{
-                  color: COLORS.SMALL_HEADING_TEXT,
+                  color: theme?.SMALL_HEADING_TEXT,
                   fontWeight: '700',
                   fontSize: 12,
                   fontFamily: 'Poppins',
@@ -193,7 +200,7 @@ function TransactionSuccess(props) {
             <Text
               style={{
                 flex: 1,
-                color: COLORS.WHITE,
+                color: theme?.WHITE,
                 fontWeight: '700',
                 fontSize: 12,
                 fontFamily: 'Poppins',
@@ -213,7 +220,7 @@ function TransactionSuccess(props) {
               style={{ flex: 1, alignItems: 'flex-end' }}>
               <Text
                 style={{
-                  color: COLORS.SMALL_HEADING_TEXT,
+                  color: theme?.SMALL_HEADING_TEXT,
                   fontWeight: '700',
                   fontSize: 12,
                   fontFamily: 'Poppins',
@@ -232,7 +239,7 @@ function TransactionSuccess(props) {
             }}></View>
         </ScrollView>
       </View>
-      <View style={{ backgroundColor: COLORS.BACKGROUND_COLOR }}>
+      <View style={{ backgroundColor: theme?.BACKGROUND_COLOR }}>
         <TouchableOpacity
           onPress={() => {
             props.navigation.replace(`${ENUMS.SCREENS.DASHBOARD}`);
@@ -247,20 +254,8 @@ function TransactionSuccess(props) {
 }
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+    flex: 1
   },
-  send: {
-    marginRight: 10,
-    backgroundColor: COLORS.WHITE,
-    width: 50,
-    height: 50,
-    marginLeft: 10,
-    borderRadius: 50 / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
 
   coin1: {
     // backgroundColor: "#f7a03d",

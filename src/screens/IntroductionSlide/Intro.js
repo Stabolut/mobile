@@ -1,19 +1,20 @@
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity,Platform } from 'react-native';
-import { COLORS, ENUMS, Images } from '../../common';
+import { COLORS, ENUMS, Images,THEME } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import CarouselCardItem, { SLIDER_WIDTH, ITEM_WIDTH } from './CarouselCardItem';
 import { useNavigation } from '@react-navigation/core';
 import AsyncStorage from '@react-native-community/async-storage';
-import { connect } from 'react-redux';
-import { store } from '../../store';
-import { setPin } from '../../redux/action/auth';
+import { connect,useSelector } from 'react-redux';
+
 // import PushNotification, { Importance } from 'react-native-push-notification'
 let Intro = props => {
   const isCarousel = React.useRef(null);
   const [index, setIndex] = React.useState(0);
   const navigation = useNavigation();
+  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  const theme = THEME[selectedTheme];
   let data = [
     {
       title: 'Truly Gasless Transactions',
@@ -37,23 +38,35 @@ let Intro = props => {
     <React.Fragment>
 
       <StatusBarNU
-        backgroundColor={COLORS.BACKGROUND_COLOR}
-        barStyle="light-content"
+        backgroundColor={theme?.BACKGROUND_COLOR}
+       
       />
 
-      <View style={styles.mainContainer}>
+      <View style={[styles.mainContainer,{backgroundColor: theme?.BACKGROUND_COLOR,}]}>
         {/* {
           Platform.OS !== 'ios'? */}
         
-        <View style={styles.mainContainerChild1}>
+        <View style={[styles.mainContainerChild1,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
           <Carousel
             layout="tinder"
             ref={isCarousel}
             data={data}
-            renderItem={CarouselCardItem}
+           // renderItem={CarouselCardItem theme={theme}}
+
+           renderItem={({ item, index }) => (
+            <CarouselCardItem
+              item={item}
+              index={index}
+              theme={theme}
+              extraProp="value" // Add your extra prop here
+            />
+          )}
+
+
             sliderWidth={SLIDER_WIDTH}
             itemWidth={ITEM_WIDTH}
             layoutCardOffset={9}
+            theme={theme}
             onSnapToItem={index => setIndex(index)}
             useScrollView={true}
           />
@@ -66,7 +79,7 @@ let Intro = props => {
               height: 8,
               borderRadius: 5,
               marginHorizontal: 0,
-              backgroundColor: COLORS.BTN_BACKGROUND_COLOR,
+              backgroundColor: COLORS?.BTN_BACKGROUND_COLOR,
             }}
             inactiveDotOpacity={0.4}
             inactiveDotScale={0.6}
@@ -113,7 +126,7 @@ let Intro = props => {
               alignItems: 'center',
               marginTop: 16,
             }}>
-            <Text style={styles.textAlreadyAccount}>
+            <Text style={[styles.textAlreadyAccount,{ color: theme?.WHITE,}]}>
               I already have a wallet
             </Text>
           </TouchableOpacity>
@@ -126,14 +139,13 @@ let Intro = props => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+   
     justifyContent:"flex-end"
   },
   mainContainerChild1: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.BACKGROUND_COLOR,
+    alignItems: 'center'
   },
 
   mainContainerChild1View1: {
@@ -194,7 +206,7 @@ const styles = StyleSheet.create({
     elevation: 7,
   },
   textAlreadyAccount: {
-    color: COLORS.WHITE,
+  
     fontSize: 14,
     fontFamily: 'Poppins',
   },

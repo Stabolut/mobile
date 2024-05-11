@@ -1,5 +1,6 @@
 import NetInfo from '@react-native-community/netinfo';
 import { ErrorMessages } from '../messages/errorMessage';
+import AsyncStorage from '@react-native-community/async-storage';
 
 export const checkInternetConnectivity = () => {
     return new Promise((resolve) => {
@@ -39,8 +40,28 @@ export function errorMessageHandler(err) {
     }
 }
 
+export const saveString = async (key, value) => {
+    try {
+      await AsyncStorage.setItem(key, JSON.stringify(value));
+     let val =  await get("theme")
+     console.log("ca",val)
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
 
-
-
+export const get = async key => {
+  try {
+    const itemString = await AsyncStorage.getItem(key);
+    if (itemString) {
+      return JSON.parse(itemString);
+    } else {
+      return null;
+    }
+  } catch (error) {
+    return null;
+  }
+};
 
 

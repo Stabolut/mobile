@@ -5,20 +5,21 @@ import {
     Text,
     TouchableOpacity,
 } from 'react-native';
-import { COLORS } from '../../common';
+import { COLORS,THEME } from '../../common';
 import Feather from 'react-native-vector-icons/Feather';
 
-function TransactionRefreshAndView({ viewAll, refresh }) {
-
+function TransactionRefreshAndView({ viewAll, refresh,selectedTheme }) {
+    const theme = THEME[selectedTheme];
     return (
         <View style={styles.mainView}>
             <View style={styles.transactionView}>
-                <Text style={styles.transactionTextStyle}>Transactions</Text>
+                <Text style={[styles.transactionTextStyle,{color: theme?.WHITE}]}>Transactions</Text>
                 <TouchableOpacity onPress={refresh}>
                     <Feather
                         name="refresh-ccw"
                         style={styles.arrowRefresh}
                         size={20}
+                        color={theme?.WHITE}
                     />
                 </TouchableOpacity>
 
@@ -27,7 +28,7 @@ function TransactionRefreshAndView({ viewAll, refresh }) {
             </View>
 
             <TouchableOpacity onPress={viewAll} style={{ flex: 1, justifyContent: "center" }}>
-                <Text style={styles.viewAllTextStyle}>View All</Text>
+                <Text style={[styles.viewAllTextStyle,{color: theme?.WHITE}]}>View All</Text>
             </TouchableOpacity>
 
         </View>
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     },
     transactionTextStyle: {
         fontSize: 18,
-        color: COLORS.WHITE,
+        
         fontWeight: "500",
         fontFamily: "Poppins",
 
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
         fontFamily: "Poppins",
     },
     arrowRefresh: {
-        color: COLORS.WHITE,
+      
         marginLeft: 12
     },
 
