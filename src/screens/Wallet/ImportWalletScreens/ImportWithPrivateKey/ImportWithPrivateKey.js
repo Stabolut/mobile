@@ -7,7 +7,7 @@ import {
     TextInput,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { ENUMS, COLORS, Str,THEME } from '../../../../common';
+import { ENUMS, COLORS, Str, THEME } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../../components/Header/Header';
 //import Clipboard from '@react-native-community/clipboard';
@@ -16,7 +16,7 @@ import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
 import firebase from '@react-native-firebase/app'
 import messaging from '@react-native-firebase/messaging'
-import { storeWalletInfo } from '../../../../redux/action/auth';
+import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/auth';
 import axios from "axios"
 import { store } from '../../../../store';
 import { ErrorMessages } from '../../../../messages/errorMessage';
@@ -36,6 +36,7 @@ class ImportWithPrivateKey extends React.Component {
             message: '',
             isLoading: false,
             disable: false,
+            referenceCode: ""
         };
     }
 
@@ -120,18 +121,20 @@ class ImportWithPrivateKey extends React.Component {
 
                 let mnemonics = this.state.privateKey.trim();
                 const wallet = new ethers.Wallet(mnemonics);
-                console.log("mnemonics", mnemonics, "wallet", wallet)
 
-                await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+
+                let { data } = await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
                     account: wallet.address,
-                    token: mobileFcmToken
+                    token: mobileFcmToken,
+                    referenceCode: this.state.referenceCode
                 })
 
+                console.log("my data", data)
                 await AsyncStorage.setItem('address', wallet.address);
                 await AsyncStorage.setItem('mnemonics', mnemonics);//we are stroing private key actually
                 await AsyncStorage.setItem('privateKey', mnemonics);
                 store.dispatch(storeWalletInfo(true))
-
+                store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }))
                 this.setState({
                     isLoading: false,
                     disable: false,
@@ -142,6 +145,7 @@ class ImportWithPrivateKey extends React.Component {
             }
 
             catch (error) {
+                console.log("errrr", error)
 
                 let msg = errorMessageHandler(error)
                 this.setState({
@@ -158,12 +162,12 @@ class ImportWithPrivateKey extends React.Component {
     render() {
         let selectedTheme = store.getState().authReducer?.theme
         let theme = THEME[selectedTheme]
-    
+
         return (
             <React.Fragment>
                 <StatusBarNU
                     backgroundColor={theme?.BACKGROUND_COLOR}
-                 
+
                 />
 
                 <Header
@@ -176,7 +180,7 @@ class ImportWithPrivateKey extends React.Component {
                     modalVisible={this.state.isLoading}
                 />
 
-                <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+                <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
                     <View style={styles.container}>
                         <TouchableOpacity
                             onPress={this.handleButtonPress}
@@ -211,9 +215,8 @@ class ImportWithPrivateKey extends React.Component {
                         />
                     </View>
 
-                    {this.state.isError && (
-                        <ErrorMessage message={this.state.message}></ErrorMessage>
-                    )}
+
+
 
                     <Text
                         style={{
@@ -225,6 +228,31 @@ class ImportWithPrivateKey extends React.Component {
                         Write a private key here is hex format like (0x8028a56736671e83bd76ad9e143dbdc1d1a85b643b17dfd3e1a6be312080c13d
                         )
                     </Text>
+
+                    <View style={{
+                        marginTop: 24, padding: 12,
+                        borderColor: 'gray',
+                        borderWidth: 1,
+                        borderRadius: 10,
+                        flexDirection: "row",
+                        justifyContent:"center",
+                        alignItems:"center"
+                    }}>
+                        <TextInput
+                            value={this.state.referenceCode}
+                            onChangeText={newValue => {
+                                this.setState({ referenceCode: newValue });
+                            }}
+
+                            placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80 }}></TextInput>
+                        <Text style={{ color: theme?.WHITE, justifyContent: "flex-end", alignItems: "flex-end", flex: 20 }}>Optional</Text>
+
+
+                    </View>
+
+                    {this.state.isError && (
+                        <ErrorMessage message={this.state.message}></ErrorMessage>
+                    )}
 
                     <View>
                         <TouchableOpacity
@@ -245,7 +273,7 @@ const styles = StyleSheet.create({
         paddingTop: 32,
         flexDirection: 'column',
         flex: 1,
-       
+
     },
 
     container: {

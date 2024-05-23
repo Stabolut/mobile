@@ -5,9 +5,10 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Dimensions
+  Dimensions,
+  TextInput
 } from 'react-native';
-import { COLORS, ENUMS, Str,THEME } from '../../../common';
+import { COLORS, ENUMS, Str, THEME } from '../../../common';
 
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import { ethers } from 'ethers';
@@ -17,7 +18,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import firebase from '@react-native-firebase/app'
 import messaging from '@react-native-firebase/messaging'
 
-import { storeWalletInfo } from '../../../redux/action/auth';
+import { storeReferralInfo, storeWalletInfo } from '../../../redux/action/auth';
 import axios from "axios"
 import { store } from '../../../store';
 import { checkInternetConnectivity, errorMessageHandler } from '../../../utils/utils';
@@ -35,6 +36,7 @@ class MnemoncisVerification extends React.Component {
     disabled: true,
     isLoading: false,
     isDone: false,
+    referenceCode: ""
   };
 
   componentDidMount() {
@@ -121,9 +123,9 @@ class MnemoncisVerification extends React.Component {
       <React.Fragment>
         <StatusBarNU
           backgroundColor={theme?.BACKGROUND_COLOR}
-         
+
         />
-        <View style={[styles.mainContainer,{  backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+        <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
           <LoadingModal
             task={'Creating Wallet...'}
             modalVisible={this.state.isLoading}
@@ -132,16 +134,16 @@ class MnemoncisVerification extends React.Component {
           <ScrollView>
             <View style={styles.mainContainerChild1}>
               <View style={styles.topHeadingView}>
-                <Text style={[styles.topHeadingViewText_1,{ color: theme?.WHITE,}]}>
+                <Text style={[styles.topHeadingViewText_1, { color: theme?.WHITE, }]}>
                   Verify the Secret Phrase
                 </Text>
-                <Text style={[styles.topHeadingViewText_2,{ color: theme?.SMALL_HEADING_TEXT,}]}>
+                <Text style={[styles.topHeadingViewText_2, { color: theme?.SMALL_HEADING_TEXT, }]}>
                   Tap the words to put them next to each other in the correct
                   order
                 </Text>
               </View>
 
-              <View style={[styles.selectMnemonicsViewMain,{backgroundColor: theme?.BALANCE_CARD_BACKGROUND}]}>
+              <View style={[styles.selectMnemonicsViewMain, { backgroundColor: theme?.BALANCE_CARD_BACKGROUND }]}>
                 {this.state.userSelection.map((item, index) => (
                   <TouchableOpacity
                     key={index}
@@ -215,9 +217,40 @@ class MnemoncisVerification extends React.Component {
                 ))}
               </View>
             </View>
+
+
+
+
+
           </ScrollView>
 
           <View style={styles.mainContainerChild2}>
+            {this.state.disabled === false &&
+
+              <View style={{
+                padding: 12,
+                borderColor: 'gray',
+                marginBottom: 12,
+                borderWidth: 1,
+                borderRadius: 10,
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center"
+              }}>
+                <TextInput
+                  value={this.state.referenceCode}
+                  onChangeText={newValue => {
+                    this.setState({ referenceCode: newValue });
+                  }}
+
+                  placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80 }}></TextInput>
+                <Text style={{ color: theme?.WHITE, flex: 20 }}>Optional</Text>
+
+
+              </View>
+            }
+
+
             <TouchableOpacity
               onPress={async () => {
 
@@ -242,7 +275,7 @@ class MnemoncisVerification extends React.Component {
                         mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
                       }
                       catch (e) {
-                      
+
                       }
 
                   }
@@ -258,7 +291,7 @@ class MnemoncisVerification extends React.Component {
                         mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
                       }
                       catch (e) {
-                       
+
                         this.setState({ isLoading: false, disabled: false });
                         alert('We are currently experiencing issues with verifying the account. Please try again later.');
                         return
@@ -266,7 +299,7 @@ class MnemoncisVerification extends React.Component {
                       }
 
                   }
-                  console.log("Fcm Token", mobileFcmToken)
+
 
 
                   try {
@@ -276,13 +309,12 @@ class MnemoncisVerification extends React.Component {
                       this.props.route.params.actualMnemonics,
                     );
 
-
-                    console.log("My url", `${Str.apiUrl}/wallet/add-wallet`, "wallet.address", wallet.address)
-
-                    await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+                    let { data } = await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
                       account: wallet.address,
-                      token: mobileFcmToken
+                      token: mobileFcmToken,
+                      referenceCode: this.state.referenceCode
                     })
+
 
 
 
@@ -290,6 +322,7 @@ class MnemoncisVerification extends React.Component {
                     await AsyncStorage.setItem('mnemonics', this.props.route.params.actualMnemonics);
                     await AsyncStorage.setItem('privateKey', wallet.privateKey);
                     store.dispatch(storeWalletInfo(true))
+                    store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }))
 
                     this.setState({ isLoading: false, disabled: false });
                     this.props.navigation.popToTop();
@@ -301,10 +334,11 @@ class MnemoncisVerification extends React.Component {
                     let msg = errorMessageHandler(error)
                     this.setState({
                       isLoading: false,
-                      disable: false,
-                      isError: true,
-                      message: msg
+                      disabled: false,
+                      // isError: true,
+                      // message: msg
                     });
+                    alert(msg)
                   }
                 }, 500);
               }

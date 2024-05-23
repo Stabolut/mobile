@@ -1291,10 +1291,19 @@ PODS:
     - RNFBApp
   - RNFS (2.20.0):
     - React-Core
+  - RNGestureHandler (2.16.2):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - RNKeychain (5.0.1):
     - React
   - RNPermissions (3.0.4):
     - React-Core
+  - RNReanimated (3.11.0):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
+    - ReactCommon/turbomodule/core
   - RNScreens (3.30.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1410,8 +1419,10 @@ DEPENDENCIES:
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
   - RNFS (from `../node_modules/react-native-fs`)
+  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
+  - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -1586,10 +1597,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/messaging"
   RNFS:
     :path: "../node_modules/react-native-fs"
+  RNGestureHandler:
+    :path: "../node_modules/react-native-gesture-handler"
   RNKeychain:
     :path: "../node_modules/react-native-keychain"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
+  RNReanimated:
+    :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   RNShare:
@@ -1697,8 +1712,10 @@ SPEC CHECKSUMS:
   RNFBApp: 3fd1f8d5b50cfaf718255e1faef207827c561d47
   RNFBMessaging: e30e2b3af7de1283bd5c6525dfe17b650672fa0d
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
+  RNGestureHandler: 96439cf6543defdde87459e48cd1a3f0e45a008e
   RNKeychain: a5623de13ec5378bfb8035422e3dee4fa538660d
   RNPermissions: c46788f4cd402287425983e04a4c9bb4356036eb
+  RNReanimated: 6cfa556540186ce7ae7a0b048f369236b1d86ebb
   RNScreens: b6b64d956af3715adbfe84808694ae82d3fec74f
   RNShare: b674d9f1cb0dc11116983bebd8712908a226a3ee
   RNSVG: 50cf2c7018e57cf5d3522d98d0a3a4dd6bf9d093

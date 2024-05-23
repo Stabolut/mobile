@@ -7,8 +7,9 @@ import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-
+import ReferralModal from '../../../components/Modal/ReferralModal';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ToggleSwitch from 'toggle-switch-react-native'
@@ -37,6 +38,7 @@ function Setting({ navigation }) {
     const [username, setUserName] = useState('');
     const [visible, setVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
     const selectedTheme = useSelector((state) => state.authReducer.theme)
     const theme = THEME[selectedTheme];
 
@@ -101,7 +103,7 @@ function Setting({ navigation }) {
         }
 
     }
-  
+
 
     // if user address get from localStorage then we get the balance of address
     useEffect(() => {
@@ -136,7 +138,7 @@ function Setting({ navigation }) {
     }, []);
 
 
- const clearRealmDB = async () => {
+    const clearRealmDB = async () => {
         // Define your Realm schema
         const TransactionsHistorySchema = {
             name: 'TransactionsHistorySchema',
@@ -204,7 +206,7 @@ function Setting({ navigation }) {
         );
     };
 
-   
+
 
 
 
@@ -213,7 +215,7 @@ function Setting({ navigation }) {
 
             <StatusBarNU
                 backgroundColor={theme?.BACKGROUND_COLOR}
-                />
+            />
             <Header
                 backButton={true}
                 headerText="settings"
@@ -621,6 +623,36 @@ function Setting({ navigation }) {
                         </TouchableOpacity>
 
 
+                        <TouchableOpacity onPress={()=>setModalVisible(true)} style={{ flexDirection: "row", marginTop: 32 }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "#808080", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+
+                                <Feather
+                                    name="user-plus"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={theme?.WHITE}
+                                />
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Invites</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+
+
+                        </TouchableOpacity>
+
+
+
 
                     </View>
 
@@ -690,7 +722,14 @@ function Setting({ navigation }) {
                 }}></MnemonicsShowModal>
 
 
+            <ReferralModal
 
+                visible={modalVisible}
+                theme={theme}
+                selectedTheme={selectedTheme}
+                onClose={() => {
+                    setModalVisible(false);
+                }}></ReferralModal>
 
 
 

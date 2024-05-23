@@ -42,6 +42,7 @@ import NoTransactionFound from './NoTransactionFound';
 import TransactionLoader from './TransactionLoader';
 import { checkInternetConnectivity } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
+import ReferralModal from '../../components/Modal/ReferralModal';
 
 
 const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl, {
@@ -57,7 +58,8 @@ function Dashboard({ navigation }) {
   const [isTransactionLoading, setTransactionLoading] = useState(false);
   const [transactionRecord, setTransactionRecord] = useState([]);
   const [visible, setVisible] = useState(false);
-  // const [selectedTheme, setSelectedTheme] = useState("")
+  const [modalVisible, setModalVisible] = useState(false);
+
   socketDisconnectMessage(socketConnection.connectionStatus);
   let selectedTheme = useSelector((state) => state.authReducer.theme)
   const theme = THEME[selectedTheme];
@@ -465,6 +467,7 @@ function Dashboard({ navigation }) {
           showKey={() => navigation.navigate(`${ENUMS.SCREENS.STAKE}`, { userAddress: userAddress, balance: balance ? balance : 0 })}
           receive={() => navigation.navigate(`${ENUMS.SCREENS.RECEIVE}`)}
           purchase={() => navigation?.navigate(ENUMS.SCREENS.SETTING)}
+          invites = {()=>setModalVisible(true)}
         >
 
         </SliderOption>
@@ -519,6 +522,15 @@ function Dashboard({ navigation }) {
         onClose={() => {
           setVisible(false);
         }}></MnemonicsShowModal>
+
+<ReferralModal
+       
+        visible={modalVisible}
+        theme={theme}
+        selectedTheme={selectedTheme}
+        onClose={() => {
+          setModalVisible(false);
+        }}></ReferralModal>
 
 
 

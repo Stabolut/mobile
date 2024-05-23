@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
-import { ENUMS, COLORS, Str,THEME } from '../../../../common';
+import { ENUMS, COLORS, Str, THEME } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../../components/Header/Header';
 //import Clipboard from '@react-native-community/clipboard';
@@ -16,7 +16,7 @@ import { ethers } from 'ethers';
 import firebase from '@react-native-firebase/app'
 import messaging from '@react-native-firebase/messaging'
 import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
-import { storeWalletInfo } from '../../../../redux/action/auth';
+import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/auth';
 import axios from "axios"
 import Clipboard from '@react-native-clipboard/clipboard';
 import { store } from '../../../../store';
@@ -33,6 +33,7 @@ class ImportWallet extends React.Component {
       message: '',
       isLoading: false,
       disable: false,
+      referenceCode: ""
     };
   }
 
@@ -102,17 +103,20 @@ class ImportWallet extends React.Component {
         const wallet = ethers.Wallet.fromMnemonic(
           this.state.mnemonicText.trim(),
         );
-        console.log("My wallet", wallet)
-        await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+
+        let { data } = await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
           account: wallet.address,
-          token: mobileFcmToken
+          token: mobileFcmToken,
+          referenceCode: this.state.referenceCode
         })
+        console.log("data respo", data)
 
 
         await AsyncStorage.setItem('address', wallet.address);
         await AsyncStorage.setItem('mnemonics', mnemonics);
         await AsyncStorage.setItem('privateKey', wallet.privateKey);
         store.dispatch(storeWalletInfo(true))
+        store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }))
         this.setState({
           isLoading: false,
           disable: false,
@@ -122,6 +126,7 @@ class ImportWallet extends React.Component {
         this.props.navigation.replace(`${ENUMS.SCREENS.DASHBOARD}`);
       }
       catch (error) {
+        console.log("issue", error)
         let msg = errorMessageHandler(error)
         this.setState({
           isLoading: false,
@@ -143,7 +148,7 @@ class ImportWallet extends React.Component {
       <React.Fragment>
         <StatusBarNU
           backgroundColor={theme?.BACKGROUND_COLOR}
-          
+
         />
 
         <Header
@@ -156,7 +161,7 @@ class ImportWallet extends React.Component {
           modalVisible={this.state.isLoading}
         />
 
-        <View style={[styles.mainContainer,{backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+        <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
           <View style={styles.container}>
             <TouchableOpacity
               onPress={this.handleButtonPress}
@@ -191,12 +196,9 @@ class ImportWallet extends React.Component {
             />
           </View>
 
-          {this.state.isError && (
-            <>
 
-              <ErrorMessage message={this.state.message}></ErrorMessage></>
 
-          )}
+
 
           <Text
             style={{
@@ -207,6 +209,33 @@ class ImportWallet extends React.Component {
             }}>
             Typically 12 (sometimes 18,24) words separated by single spaces
           </Text>
+
+          <View style={{
+            marginTop: 24, padding: 12,
+            borderColor: 'gray',
+            borderWidth: 1,
+            borderRadius: 10,
+            flexDirection: "row",
+            justifyContent:"center",
+            alignItems:"center"
+          }}>
+            <TextInput
+              value={this.state.referenceCode}
+              onChangeText={newValue => {
+                this.setState({ referenceCode: newValue });
+              }}
+
+              placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80 }}></TextInput>
+            <Text style={{ color: theme?.WHITE, flex: 20 }}>Optional</Text>
+
+
+          </View>
+          {this.state.isError && (
+            <>
+
+              <ErrorMessage message={this.state.message}></ErrorMessage></>
+
+          )}
 
           <View>
             <TouchableOpacity
