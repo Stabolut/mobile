@@ -1,7 +1,11 @@
 export const ErrorMessages = {
     GENERIC: {
         NO_INTERNET_ERROR: "No internet connection. Please check your network settings.",
-        NETWORK_ERROR: "Sorry! We are facing some network issues. Make sure you have an internet connection.",
-        UNEXPECTED_ERROR: "An unexpected error occurred. Please try again later." 
+        NETWORK_ERROR: "Network error occurred. Please check your connection.",
+        UNEXPECTED_ERROR: "An unexpected error occurred. Please try again later.",
+        TRANSACTION_FAILED: "Transaction failed. Please try again.",
+        BALANCE_ERROR: "Error retrieving balance. Please try again.",
+        INVALID_ADDRESS: "Invalid wallet address provided.",
+        INSUFFICIENT_BALANCE: "Insufficient balance for this transaction."
     }
 }

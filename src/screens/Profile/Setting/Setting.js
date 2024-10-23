@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import MnemonicsShowModal from '../../../components/Modal/MnemonicsShowModal';
 import Header from '../../../components/Header/Header';
@@ -110,19 +110,15 @@ function Setting({ navigation }) {
         }
     }, [userAddress]);
 
+    const handleThemeChange = useCallback(async (isDark) => {
+        const newTheme = isDark ? ENUMS.THEME.DARK : ENUMS.THEME.LIGHT;
+        store.dispatch(setTheme(newTheme));
+        await saveString("theme", newTheme);
+    }, []);
+
     useEffect(() => {
-
-        if (toggle === true) {
-            store.dispatch(setTheme(ENUMS.THEME.DARK))
-            saveString("theme", ENUMS.THEME.DARK)
-
-
-        }
-        else {
-            store.dispatch(setTheme(ENUMS.THEME.LIGHT))
-            saveString("theme", ENUMS.THEME.LIGHT)
-        }
-    }, [toggle]);
+        handleThemeChange(toggle);
+    }, [toggle, handleThemeChange]);
 
 
     useEffect(() => {
