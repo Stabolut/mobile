@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, memo } from 'react';
 import {
   View,
   StyleSheet,
@@ -40,13 +40,17 @@ import SliderOption from './SliderOption';
 import TransactionRefreshAndView from './TransactionRefreshAndView';
 import NoTransactionFound from './NoTransactionFound';
 import TransactionLoader from './TransactionLoader';
-import { checkInternetConnectivity } from '../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
+
+import { useMemo, useCallback } from 'react';
 
 
 const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl, {
   chainId: 97,
 });
+
+const POLLING_INTERVAL = 5000; // 5 seconds instead of 1 second
 
 function Dashboard({ navigation }) {
   const [userAddress, setUserAddress] = useState('');
@@ -81,66 +85,37 @@ function Dashboard({ navigation }) {
 
 
   // Method to retrieve data from the local database
-  const getFromDB = async () => {
+  const getFromDB = useCallback(async () => {
     try {
-      // Define the schema for the transaction history database
-      const transactionHistoryDBSchema = {
-        name: 'TransactionsHistorySchema',
-        properties: {
-          uniqueKey: 'string',
-          senderAddress: 'string',
-          receiverAddress: 'string',
-          amountToSend: 'double',
-          transactionStatus: 'string',
-          sendDate: 'date',
-          transactionHash: 'string', // Unique identifier for transactions
-          transactionNotes: 'string'
-        },
-      };
-
-      // Open a connection to the Realm database
       const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
-
-      // Retrieve pending transactions from the database
+      
       const pendingEntries = realm
         .objects('TransactionsHistorySchema')
         .filtered('transactionStatus = "Pending"');
 
-      // If there are pending transactions, check their status
-      if (pendingEntries.length > 0) {
-        pendingEntries.forEach(async entry => {
-          let status;
-          try {
-            // Verify the status of the transaction from an external provider
-            status = await verifyTransactionSuccess(provider, entry.transactionHash);
-
-            // Update transaction status based on verification result
-            if (status === 1) {
-              // If transaction is successful, update status to 'Success'
-              updateTransactionStatus(entry.transactionHash, status);
-              realm.write(() => {
-                entry.transactionStatus = 'Success';
-                // Update user transaction list from local database
-                getUserTransactionListFromLocalDb();
-              });
-            } else if (status === 0) {
-              // If transaction failed, update status to 'Fail'
-              updateTransactionStatus(entry.transactionHash);
-              realm.write(() => {
-                entry.transactionStatus = 'Fail';
-                // Update user transaction list from local database
-                getUserTransactionListFromLocalDb();
-              });
-            }
-          } catch (e) {
-            // Handle any errors that occur during transaction verification
-          }
-        });
+      if (pendingEntries.length === 0) {
+        realm.close();
+        return;
       }
-    } catch (e) {
-      // Handle any errors that occur during database access
+
+      await Promise.all(pendingEntries.map(async entry => {
+        try {
+          const status = await verifyTransactionSuccess(provider, entry.transactionHash);
+          realm.write(() => {
+            entry.transactionStatus = status === 1 ? 'Success' : 'Fail';
+          });
+          await updateTransactionStatus(entry.transactionHash, status);
+        } catch (error) {
+          console.error('Transaction verification failed:', error);
+        }
+      }));
+
+      await getUserTransactionListFromLocalDb();
+      realm.close();
+    } catch (error) {
+      console.error('Database operation failed:', error);
     }
-  };
+  }, []);
 
 
   let verifyTransactionSuccess = async (provider, transactionHash) => {
@@ -156,23 +131,23 @@ function Dashboard({ navigation }) {
   };
 
   updateTransactionStatus = async (transactionHash, status) => {
-    let isConnected = await checkInternetConnectivity()
-    if (!isConnected) {
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-      return
-
-    }
     try {
-      await axios.post(`${Str.apiUrl}/wallet/update-transaction-status`, {
-        walletAddress: userAddress,
-        transactionHash: transactionHash,
-        status: status
-      });
-    }
-    catch (e) {
-    }
+        const isConnected = await checkInternetConnectivity();
+        if (!isConnected) {
+            throw new Error(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
+        }
 
-  }
+        await axios.post(`${Str.apiUrl}/wallet/update-transaction-status`, {
+            walletAddress: userAddress,
+            transactionHash: transactionHash,
+            status: status
+        });
+    } catch (error) {
+        const errorMsg = errorMessageHandler(error);
+        console.error('[Transaction Status Update]:', errorMsg);
+        // optionally show error to user if needed
+    }
+  };
 
 
   // Method to retrieve the transaction list of the user from the local database
@@ -239,21 +214,21 @@ function Dashboard({ navigation }) {
 
   // get user balance
   let getERC20Balance = async (address, contractAddress) => {
-    let isConnected = await checkInternetConnectivity()
-    if (!isConnected) {
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-      return
-
-    }
     try {
-      setIsLoading(true);
-      const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
-      const balance = await contract.balanceOf(address);
-      setBalance(balance / 1e2);
-      setIsLoading(false);
-    } catch (e) {
-      setIsLoading(false);
-      alert('We are experiencing difficulties retrieving the balance at the moment.');
+        const isConnected = await checkInternetConnectivity();
+        if (!isConnected) {
+            throw new Error(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
+        }
+
+        setIsLoading(true);
+        const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
+        const balance = await contract.balanceOf(address);
+        setBalance(balance / 1e2);
+    } catch (error) {
+        const errorMsg = errorMessageHandler(error);
+        alert(errorMsg);
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -313,10 +288,7 @@ function Dashboard({ navigation }) {
   // connecte socket and receive incoming transaction and store in DB
   useEffect(() => {
     if (socketConnection.isSocketConnected && userAddress) {
-      socketConnection.socket.emit('addUser', { address: userAddress });
-      socketConnection.socket.on('getTransaction', data => {
-
-
+      const handleTransaction = (data) => {
         saveDB(
           data.data.date,
           data.data.transactionHash,
@@ -327,20 +299,22 @@ function Dashboard({ navigation }) {
           data.data.transactionNotes
         );
 
-        let formatDate = moment(data.data.date).format(
-          'dddd, MMMM Do YYYY, h:mm:ss a',
-        );
-
-        // return () => {
-        socketConnection.socket.off('getTransaction');
+        const formatDate = moment(data.data.date).format('dddd, MMMM Do YYYY, h:mm:ss a');
         navigation.navigate(`${ENUMS.SCREENS.SUCCESS}`, {
           amount: parseFloat(data.data.amount),
           date: formatDate,
           transactionHash: data.data.transactionHash,
         });
-        // };
+        
         getERC20Balance(userAddress, Str.contractAddress);
-      });
+      };
+
+      socketConnection.socket.emit('addUser', { address: userAddress });
+      socketConnection.socket.on('getTransaction', handleTransaction);
+
+      return () => {
+        socketConnection.socket.off('getTransaction', handleTransaction);
+      };
     }
   }, [userAddress, socketConnection.isSocketConnected]);
 
@@ -355,15 +329,27 @@ function Dashboard({ navigation }) {
 
 
   useEffect(() => {
-    let interval = null;
-    navigation.addListener('focus', () => {
-      interval = setInterval(() => {
-        getFromDB();
-      }, 1000);
-    });
-    navigation.addListener('blur', () => {
-      clearInterval(interval);
-    });
+    let interval;
+    
+    const startPolling = () => {
+      getFromDB(); // initial call
+      interval = setInterval(getFromDB, POLLING_INTERVAL);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+
+    const unsubscribeFocus = navigation.addListener('focus', startPolling);
+    const unsubscribeBlur = navigation.addListener('blur', stopPolling);
+
+    return () => {
+      unsubscribeFocus();
+      unsubscribeBlur();
+      stopPolling();
+    };
   }, [navigation]);
 
   const saveDB = (date, transactionHash, sender, receiver, amount, status, notes = "") => {
@@ -414,11 +400,32 @@ function Dashboard({ navigation }) {
     }
   };
 
-  onRefresh = () => {
+  const filteredTransactions = useMemo(() => {
+    const uniqueObj = {};
+    return transactionRecord.reduce((acc, elem) => {
+      if (!uniqueObj[elem.transactionHash]) {
+        uniqueObj[elem.transactionHash] = true;
+        acc.push(elem);
+      }
+      return acc;
+    }, []);
+  }, [transactionRecord]);
 
-    getERC20Balance(userAddress, Str.contractAddress);
-    getUserTransactionListFromApi()
-  };
+  const onRefresh = useCallback(() => {
+    if (userAddress) {
+      getERC20Balance(userAddress, Str.contractAddress);
+      getUserTransactionListFromApi();
+    }
+  }, [userAddress]);
+
+  const TransactionItem = memo(({ item, userAddress, navigation, selectedTheme }) => (
+    <Transaction
+      userAddress={userAddress}
+      navigation={navigation}
+      selectedTheme={selectedTheme}
+      item={item}
+    />
+  ));
 
   return (
     <React.Fragment>
@@ -481,20 +488,24 @@ function Dashboard({ navigation }) {
         {
           isTransactionLoading === true ? <TransactionLoader></TransactionLoader>
             :
-            transactionRecord.length > 0 ?
+            filteredTransactions.length > 0 ?
 
               <FlatList
 
-                data={transactionRecord}
-                keyExtractor={(item, index) => index.toString()}
-                inverted={false}
-                renderItem={({ item }) => (
-                  <Transaction
+                data={filteredTransactions}
+                keyExtractor={useCallback((item) => item.transactionHash, [])}
+                renderItem={useCallback(({ item }) => (
+                  <TransactionItem
+                    item={item}
                     userAddress={userAddress}
                     navigation={navigation}
                     selectedTheme={selectedTheme}
-                    item={item}></Transaction>
-                )}
+                  />
+                ), [userAddress, navigation, selectedTheme])}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={true}
+                initialNumToRender={5}
               />
               : <NoTransactionFound theme={theme}></NoTransactionFound>
         }
@@ -552,3 +563,4 @@ const styles = StyleSheet.create({
 });
 
 export default Dashboard;
+

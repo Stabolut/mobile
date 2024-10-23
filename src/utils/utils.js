@@ -11,32 +11,33 @@ export const checkInternetConnectivity = () => {
 };
 
 
-// Function to handle error messages
+// function to handle error messages
 export function errorMessageHandler(err) {
     let errorMessage;
     try {
-     console.log("Error in caught",err)
-        // Default error message
+        // default error message
         errorMessage = ErrorMessages.GENERIC.UNEXPECTED_ERROR;
 
-        // Check for specific error conditions and update error message accordingly
-        if (err.message === "Network Error") {
-           
+        // enhanced error type checking
+        if (!navigator.onLine || err.message === "Network Error") {
             errorMessage = ErrorMessages.GENERIC.NETWORK_ERROR;
-        } else if (err?.response?.data) {
-           
-            errorMessage = err?.response?.data?.errors[0]?.message;
+        } else if (err?.response?.data?.errors?.[0]?.message) {
+            errorMessage = err.response.data.errors[0].message;
+        } else if (err?.message) {
+            errorMessage = err.message;
         }
-        else if (err.message) {
-           
-            errorMessage = err.message
-        }
-       
 
-        return errorMessage; // Return the error message
+        // log error for debugging
+        console.error('[Error Handler]:', {
+            message: err.message,
+            stack: err.stack,
+            response: err?.response?.data
+        });
+
+        return errorMessage;
     } catch (e) {
-        errorMessage = ErrorMessages.GENERIC.UNEXPECTED_ERROR; // Handle any unexpected errors
-        return errorMessage; // Return the default error message
+        console.error('[Error Handler] Failed to handle error:', e);
+        return ErrorMessages.GENERIC.UNEXPECTED_ERROR;
     }
 }
 
