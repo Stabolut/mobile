@@ -60,14 +60,10 @@ function AllTransaction({ navigation }) {
         if (!isConnected) {
             alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
             return
-
         }
-
-
         try {
             setTransactionLoading(true)
             let { data } = await axios.post(`${Str.apiUrl}/wallet/transacions-list`, { walletAddress: userAddress })
-
             setTransactionRecord(data.data.wallet)
             setTransactionLoading(false)
 
@@ -93,12 +89,12 @@ function AllTransaction({ navigation }) {
 
             <StatusBarNU
                 backgroundColor={theme?.BACKGROUND_COLOR}
-                
+
             />
             <Header headerText="All Transactions" theme={theme} navigation={navigation}></Header>
 
 
-            <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR}]}>
+            <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
 
                 {
                     isTransactionLoading === true ? <TransactionLoader></TransactionLoader>

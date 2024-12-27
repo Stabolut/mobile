@@ -47,7 +47,7 @@ export const notificationListener = () => {
         messaging().onMessage(async remoteMessage => {
 
             console.log(
-                'Notification caused app to open from quit state:',
+                'Notification caused app to open from quit state like:',
                 remoteMessage,
             );
         })
@@ -58,7 +58,7 @@ export const notificationListener = () => {
                 console.log("hit there")
                 if (remoteMessage) {
                     console.log(
-                        'Notification caused app to open from quit state:',
+                        'Notification caused app to open from quit state dislike:',
                         remoteMessage.notification,
                     );
 
@@ -73,8 +73,9 @@ export const notificationListener = () => {
 }
 
 
-export const notificationChannel = (title,body) => {
-   
+export const notificationChannel = (title, body) => {
+    console.log("Notifcation body is this".body)
+
     let channelID = Math.random().toString(36).substring(7);
     PushNotification.createChannel(
         {

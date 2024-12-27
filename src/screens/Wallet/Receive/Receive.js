@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { COLORS,THEME } from '../../../common';
+import { COLORS, THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,15 +13,15 @@ import { useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import DropDownHolder from '../../../components/dropDownHolder';
 import socketDisconnectMessage from '../../../components/CustomHook/socketDisconnectMessage';
-let imageByteData
+
 
 export default Receive = props => {
   const navigation = useNavigation();
   const [address, setAddress] = useState("");
   const [qrCodeImageByte, setQrCodeImageByte] = useState("");
   const [showShare, setShowShare] = useState(false);
- 
-const socketConnection = useContext(SocketContext);
+
+  const socketConnection = useContext(SocketContext);
   socketDisconnectMessage(socketConnection.connectionStatus);
 
   let selectedTheme = useSelector((state) => state.authReducer.theme)
@@ -83,11 +83,11 @@ const socketConnection = useContext(SocketContext);
 
 
   let copyToClipBoard = () => {
-    try{
-    Clipboard.setString(address);
-    DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
+    try {
+      Clipboard.setString(address);
+      DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
     }
-    catch(e){}
+    catch (e) { }
 
   };
 
@@ -95,13 +95,13 @@ const socketConnection = useContext(SocketContext);
     <React.Fragment>
       <StatusBarNU
         backgroundColor={theme?.BACKGROUND_COLOR}
-       
+
       />
       <Header headerText="Receive USB" theme={theme} navigation={navigation}></Header>
 
-      <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+      <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
         {/* <View style={{ width: 300, height: 300 }}> */}
-        <View style={[styles.qrCodeScanCard,{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND}]}>
+        <View style={[styles.qrCodeScanCard, { backgroundColor: theme?.BALANCE_CARD_BACKGROUND }]}>
           <QRCode
             size={200}
             value={address ? address : 'null'}
@@ -203,15 +203,6 @@ const socketConnection = useContext(SocketContext);
               Share
             </Text>
           </View>
-
-
-
-
-
-
-
-
-
         </View>
       </View>
     </React.Fragment>
@@ -220,7 +211,7 @@ const socketConnection = useContext(SocketContext);
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-   
+
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -230,7 +221,7 @@ const styles = StyleSheet.create({
     width: 290,
     paddingLeft: 8,
     paddingRight: 8,
-   
+
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',

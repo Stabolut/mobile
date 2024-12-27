@@ -41,6 +41,7 @@ export const configurePushNotifications = () => {
                     // Handle reply action
                 }
                 if (notification?.userInteraction === false) {
+                    
                     notificationChannel(notification.title, notification.message)
                 }
             },

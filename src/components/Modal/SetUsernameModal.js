@@ -1,26 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 import { View, Modal, StyleSheet, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { COLORS, CS, Str,THEME } from '../../common';
+import { COLORS, Str, THEME } from '../../common';
 import ErrorMessage from '../ErrorComponent/ErrroMessage';
 import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
 import axios from 'axios';
-export default function SetUsernameModal({ onClose, visible, initialUsername, selectedTheme }) {
-    const toastRef = useRef(null);
-    const [username, setUsername] = useState(initialUsername)
+export default function SetUsernameModal({ onClose, visible, username, initialUsername, selectedTheme, onChangeValue, onUpdateUsername }) {
+
     const [isError, setIsError] = useState(false);
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [disable, setDisable] = useState(false);
     const theme = THEME[selectedTheme];
 
-    useEffect(() => {
-      
-        setUsername(initialUsername);
-    }, [initialUsername]);
 
-    submitUsername = async () => {
+
+    let submitUsername = async () => {
 
         let isConnected = await checkInternetConnectivity()
         if (!isConnected) {
@@ -40,8 +36,6 @@ export default function SetUsernameModal({ onClose, visible, initialUsername, se
             setMessage("Please ensure that the username is different from the current one.");
             return;
         }
-
-
         try {
 
             setIsLoading(true)
@@ -50,18 +44,15 @@ export default function SetUsernameModal({ onClose, visible, initialUsername, se
             let address = await AsyncStorage.getItem('address');
             await axios.post(`${Str.apiUrl}/user/assign-username-to-wallet`, {
                 accountID: address,
-                username: username
+                username
             });
             setIsLoading(false)
             setDisable(false)
-           
-
-            alert("The username has been successfully added.")
+            onUpdateUsername(username)
+            alert("You successfully setup the username.")
         }
         catch (e) {
-
             let msg = errorMessageHandler(e)
-           
             setIsLoading(false)
             setIsError(true)
             setDisable(false)
@@ -75,48 +66,32 @@ export default function SetUsernameModal({ onClose, visible, initialUsername, se
             transparent={true}
             visible={visible}
             statusBarTranslucent={true}>
-              
+
 
             <View style={[styles.centeredView]}>
 
 
-                <View style={[styles.modalView,{backgroundColor: theme?.BALANCE_CARD_BACKGROUND,}]}>
+                <View style={[styles.modalView, { backgroundColor: theme?.BALANCE_CARD_BACKGROUND, }]}>
 
                     <View style={{ flexDirection: 'column', width: "100%" }}>
-
-
-
-
-
-
-
 
                         <View style={styles.container}>
                             <TextInput
                                 style={{ color: theme?.WHITE }}
                                 value={username}
                                 onChangeText={(value) => {
-                                    setUsername(value)
+                                    onChangeValue(value)
 
                                 }}
                                 placeholderTextColor={theme?.WHITE}
                                 placeholder={"Enter username"}
-
-
-
-
                             />
                         </View>
 
-                        {isError && (
-                            <ErrorMessage message={message} />
-
-
-                        )}
+                        {isError && (<ErrorMessage message={message} />)}
 
 
                         <View style={{ flexDirection: "row" }}>
-
 
                             <TouchableOpacity
                                 disabled={disable}
@@ -124,36 +99,30 @@ export default function SetUsernameModal({ onClose, visible, initialUsername, se
                                 onPress={submitUsername}
                             >
 
-                                <Text style={styles.Text_style_ok}>
+                                <Text style={[styles.Text_style_ok, { opacity: disable === true ? 0.3 : 1 }]}>
                                     {
-                                        isLoading ? <ActivityIndicator size="large" color="#ffffff" /> : "Continue"
+                                        isLoading ? <ActivityIndicator size="small" color="#ffffff" /> : "Continue"
                                     }
-
-
-
                                 </Text>
+
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 disabled={disable}
-                                style={[styles.Button_Ok, { backgroundColor: 'gray' }]}
+
+                                style={[styles.Button_Ok, { backgroundColor: 'gray', opacity: disable === true ? 0.3 : 1 }]}
                                 onPress={() => {
                                     setIsError(false)
-                                    setUsername("")
                                     setDisable(false)
                                     setIsLoading(false)
                                     onClose()
                                 }}
                             >
-
                                 <Text style={styles.Text_style_ok}>Close</Text>
                             </TouchableOpacity>
                         </View>
 
                     </View>
-
-
-
                 </View>
 
             </View>
@@ -173,9 +142,6 @@ const styles = StyleSheet.create({
 
         width: "90%",
         padding: 32,
-
-
-        
         borderRadius: 20,
         flexDirection: 'column',
         justifyContent: 'center',
@@ -186,13 +152,10 @@ const styles = StyleSheet.create({
             height: 2
         },
         shadowOpacity: 0.25,
-
         shadowRadius: 4,
         elevation: 5,
 
     },
-
-
     Button_Ok: {
         flex: 1,
         height: 45,
@@ -209,7 +172,6 @@ const styles = StyleSheet.create({
         textDecorationLine: "none",
         fontSize: 16,
         color: COLORS.WHITE,
-
         letterSpacing: 0.1,
     },
     container: {

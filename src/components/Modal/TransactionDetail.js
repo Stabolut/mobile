@@ -28,13 +28,11 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
             visible={showDetailModal}
             statusBarTranslucent={true}>
 
-
             <View style={styles.centeredView}>
 
 
-
-
                 <View style={[styles.modalView, { backgroundColor: theme?.DETAIL_CARD_BACKGROUND, }]}>
+
                     <View style={{ width: 70, height: 70, backgroundColor: "green", borderRadius: 70 / 2, justifyContent: "center", alignItems: "center" }}>
                         <FontAwesomeIcon
                             name="check"
@@ -56,8 +54,8 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
 
 
                     {/* backgroundColor: "#252549" */}
-                    <View style={{ backgroundColor: theme?.TRANSACTION_DETAIL_ADDRESS_BACKGROUND, borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", marginHorizontal: 16 }}>
-                        <Text style={[styles.addressText,{color: theme?.SMALL_HEADING_TEXT,}]}>
+                    <View style={{ backgroundColor: theme?.TRANSACTION_DETAIL_ADDRESS_BACKGROUND, borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", marginHorizontal: 24 }}>
+                        <Text style={[styles.addressText, { color: theme?.SMALL_HEADING_TEXT, }]}>
                             {userAddress === item.senderAddress ? item.receiverAddress : item.senderAddress}
 
                         </Text>
@@ -93,11 +91,11 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
                         </TouchableOpacity>
                     </View>
                     {
-                        item.transactionNotes && <Text style={{ alignSelf: "flex-start", color: theme?.SMALL_HEADING_TEXT, marginBottom: 4, padding: 4, paddingLeft: 28 }}>Notes: <Text style={{ color: theme?.WHITE, fontWeight: "500" }}>{item.transactionNotes != "" ? item.transactionNotes : ""}</Text></Text>
+                        item.transactionNotes && <Text style={{ alignSelf: "flex-start", color: theme?.SMALL_HEADING_TEXT, marginBottom: 4, padding: 4, paddingLeft: 24 }}>Notes: <Text style={{ color: theme?.WHITE, fontWeight: "500" }}>{item.transactionNotes != "" ? item.transactionNotes : ""}</Text></Text>
                     }
 
 
-                    <Text style={{ alignSelf: "flex-start", marginBottom: 16, color: theme?.SMALL_HEADING_TEXT, paddingLeft: 28 }}>Date: <Text style={{ color: theme?.WHITE }}>{moment(item.sendDate).format('MMMM D, YYYY')}</Text></Text>
+                    <Text style={{ alignSelf: "flex-start", marginBottom: 16, color: theme?.SMALL_HEADING_TEXT, paddingLeft: 24 }}>Date: <Text style={{ color: theme?.WHITE }}>{moment(item.sendDate).format('MMMM D, YYYY')}</Text></Text>
 
                     {/* <Text style={{ alignSelf: "flex-start", color: "gray", marginBottom: 4 }}>Notes: <Text style={{ color: COLORS.APP_BLUE_COLOR, fontWeight: "500" }}>{props.item.transactionNotes}</Text></Text>
                     <Text style={{ alignSelf: "flex-start", marginBottom: 24, color: "gray" }}>Send Data: <Text style={{ color: COLORS.BLACK }}>{props.item.sendDate}</Text></Text> */}
@@ -163,7 +161,7 @@ const styles = StyleSheet.create({
     addressText: {
         fontSize: 14,
         fontWeight: '500',
-        
+
         paddingHorizontal: 6,
         fontFamily: 'Poppins',
     },

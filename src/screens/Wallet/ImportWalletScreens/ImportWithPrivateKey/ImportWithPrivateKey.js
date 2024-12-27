@@ -5,6 +5,7 @@ import {
     Text,
     TouchableOpacity,
     TextInput,
+    Alert
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ENUMS, COLORS, Str, THEME } from '../../../../common';
@@ -14,14 +15,12 @@ import Header from '../../../../components/Header/Header';
 import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
-import firebase from '@react-native-firebase/app'
-import messaging from '@react-native-firebase/messaging'
 import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/auth';
 import axios from "axios"
 import { store } from '../../../../store';
 import { ErrorMessages } from '../../../../messages/errorMessage';
 import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
-import { checkInternetConnectivity, errorMessageHandler } from '../../../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler, getFcmTokenFromLocalStorage } from '../../../../utils/utils';
 
 
 
@@ -40,7 +39,7 @@ class ImportWithPrivateKey extends React.Component {
         };
     }
 
-    handleButtonPress = async () => {
+    handlePasteButton = async () => {
         try {
             const key = await Clipboard.getString();
             this.setState({ privateKey: key });
@@ -52,23 +51,25 @@ class ImportWithPrivateKey extends React.Component {
 
     submitPrivateKey = async () => {
 
-        // Check it privateKey is right
+        const { privateKey, referenceCode } = this.state;
 
-        if (this.state.privateKey === '' || this.state.privateKey === null) {
-            return this.setState({
+        // Validate private key input
+        if (!privateKey || privateKey.trim() === '') {
+            this.setState({
                 isError: true,
-                message: 'Please make sure to provide a value for the private key field!',
+                message: 'Please provide a value for the private key field!',
             });
+            return;
         }
 
-        // Check if internet is connected
-        let isConnected = await checkInternetConnectivity()
+        // // Check internet connectivity
+        const isConnected = await checkInternetConnectivity();
         if (!isConnected) {
-            alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-            return
-
+            Alert.alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
+            return;
         }
-        //set initial state
+
+        // Update UI state to loading
         this.setState({
             isLoading: true,
             disable: true,
@@ -76,65 +77,34 @@ class ImportWithPrivateKey extends React.Component {
             message: '',
         });
 
-
         setTimeout(async () => {
 
 
-            let mobileFcmToken = null
-
-            // in case of ios mobile
-            if (Platform.OS === 'ios') {
-                let fcmToken = await AsyncStorage.getItem("fcmToken")
-                if (fcmToken) mobileFcmToken = fcmToken
-                else {
-                    try {
-                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
-                    }
-                    catch (e) {
-
-                    }
-                }
-
-            }
-            //in case of android device
-
-            if (Platform.OS === 'android') {
-
-                let fcmToken = await AsyncStorage.getItem("fcmToken")
-                if (fcmToken) mobileFcmToken = fcmToken
-                else
-                    try {
-                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
-
-                    }
-                    catch (e) {
-                        console.log("Firebase error", e)
-                        this.setState({ isLoading: false, disable: false });
-                        alert('We are currently experiencing issues with verifying the account. Please try again later.');
-                        return
-
-                    }
+            // Obtain FCM token
+            const mobileFcmToken = await getFcmTokenFromLocalStorage();
+            if (!mobileFcmToken) {
+                this.setState({ isLoading: false, disable: false })
+                Alert.alert('Failed to retrieve FCM token. Please try again later.');
+                return
             }
 
 
             try {
 
-                let mnemonics = this.state.privateKey.trim();
-                const wallet = new ethers.Wallet(mnemonics);
-
-
+                const wallet = new ethers.Wallet(this.state.privateKey.trim());
                 let { data } = await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
                     account: wallet.address,
                     token: mobileFcmToken,
-                    referenceCode: this.state.referenceCode
+                    referenceCode: referenceCode
                 })
-
-                console.log("my data", data)
+                // Store wallet and referral info locally
                 await AsyncStorage.setItem('address', wallet.address);
-                await AsyncStorage.setItem('mnemonics', mnemonics);//we are stroing private key actually
-                await AsyncStorage.setItem('privateKey', mnemonics);
-                store.dispatch(storeWalletInfo(true))
-                store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }))
+                await AsyncStorage.setItem('privateKey', this.state.privateKey.trim());
+                await AsyncStorage.setItem('mnemonics', this.state.privateKey.trim());//we are stroing private key actually
+
+                store.dispatch(storeWalletInfo(true));
+                store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }));
+
                 this.setState({
                     isLoading: false,
                     disable: false,
@@ -145,7 +115,6 @@ class ImportWithPrivateKey extends React.Component {
             }
 
             catch (error) {
-                console.log("errrr", error)
 
                 let msg = errorMessageHandler(error)
                 this.setState({
@@ -183,7 +152,7 @@ class ImportWithPrivateKey extends React.Component {
                 <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
                     <View style={styles.container}>
                         <TouchableOpacity
-                            onPress={this.handleButtonPress}
+                            onPress={this.handlePasteButton}
                             style={{
                                 justifyContent: 'center',
                                 alignItems: 'flex-end',
@@ -230,13 +199,15 @@ class ImportWithPrivateKey extends React.Component {
                     </Text>
 
                     <View style={{
-                        marginTop: 24, padding: 12,
+                        marginTop: 24,
                         borderColor: 'gray',
                         borderWidth: 1,
                         borderRadius: 10,
                         flexDirection: "row",
-                        justifyContent:"center",
-                        alignItems:"center"
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: 8,
+
                     }}>
                         <TextInput
                             value={this.state.referenceCode}
@@ -244,7 +215,7 @@ class ImportWithPrivateKey extends React.Component {
                                 this.setState({ referenceCode: newValue });
                             }}
 
-                            placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80 }}></TextInput>
+                            placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80, padding: 6 }}></TextInput>
                         <Text style={{ color: theme?.WHITE, justifyContent: "flex-end", alignItems: "flex-end", flex: 20 }}>Optional</Text>
 
 

@@ -1,6 +1,5 @@
 import React, { useState, useReducer } from 'react';
 import { View, StyleSheet, Text, TextInput, ScrollView, TouchableOpacity } from 'react-native';
-import ContactList from './ContactList';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Header from '../../components/Header/Header';
 import { COLORS, ENUMS, THEME, Str } from '../../common';
@@ -14,7 +13,6 @@ import { useSelector } from 'react-redux';
 import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 import { store } from '../../store';
 import axios from 'axios';
-
 
 let initialState = {
     isLoading: false,
@@ -43,7 +41,6 @@ const reducer = (currentState, action) => {
 
 
 const AddContact = ({ navigation }) => {
-    const [contact, setContact] = useState("")
     const [name, setName] = useState("")
     const [account, setAccount] = useState("")
     const [postObject, dispatch] = useReducer(reducer, initialState)
@@ -63,7 +60,7 @@ const AddContact = ({ navigation }) => {
         let address = await AsyncStorage.getItem('address');
 
         try {
-            console.log("Url", `${Str.apiUrl}/user/add-contact-list`)
+          
             dispatch({ type: "sendRequest" })
             let { data } = await axios.post(`${Str.apiUrl}/user/add-contact-list`, {
                 name,
@@ -94,7 +91,7 @@ const AddContact = ({ navigation }) => {
 
             <StatusBarNU
                 backgroundColor={theme?.BACKGROUND_COLOR}
-                 />
+            />
             {
                 postObject.isLoading === true ? <LoadingModal task={'Adding Contact...'} modalVisible={postObject.isLoading} /> : null
             }
@@ -114,7 +111,7 @@ const AddContact = ({ navigation }) => {
 
                     <View style={{ paddingHorizontal: 24, flexDirection: "column", marginTop: 24 }}>
                         <Text style={{ color: theme?.WHITE, fontFamily: "Poppins" }} >Enter Name</Text>
-                        <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor:  "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
+                        <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
                             <TextInput
                                 style={{ flex: 1, fontFamily: "Poppins", color: COLORS.BLACK }}
 
@@ -142,8 +139,8 @@ const AddContact = ({ navigation }) => {
                     </View>
 
                     <View style={{ paddingHorizontal: 24, flexDirection: "column", marginTop: 24 }}>
-                        <Text style={{ color: theme?.WHITE, fontFamily: "Poppins" }} >Enter Receiver Wallet</Text>
-                        <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor:  "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
+                        <Text style={{ color: theme?.WHITE, fontFamily: "Poppins" }} >Enter Wallet</Text>
+                        <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
                             <TextInput
                                 style={{ flex: 1, fontFamily: "Poppins", color: COLORS.BLACK }}
 
@@ -168,14 +165,6 @@ const AddContact = ({ navigation }) => {
 
 
                         </View>
-
-
-
-
-
-
-
-
                     </View>
 
                     <View style={{ paddingHorizontal: 24 }}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Alert } from 'react-native';
 import MnemonicsShowModal from '../../../components/Modal/MnemonicsShowModal';
 import Header from '../../../components/Header/Header';
 import { COLORS, ENUMS, Str, THEME } from '../../../common';
@@ -21,7 +21,7 @@ import SetUsernameModal from '../../../components/Modal/SetUsernameModal';
 import AsyncStorage from '@react-native-community/async-storage';
 import { useSelector } from 'react-redux';
 import LoadingModal from '../../../components/LoadingModal/modal';
-import { errorMessageHandler, get, saveString } from '../../../utils/utils';
+import { errorMessageHandler, saveString } from '../../../utils/utils';
 import axios from 'axios';
 import { store } from '../../../store';
 import { setTheme } from '../../../redux/action/auth';
@@ -36,11 +36,13 @@ function Setting({ navigation }) {
     const [privateKey, setPrivateKey] = useState('');
     const [userAddress, setUserAddress] = useState('');
     const [username, setUserName] = useState('');
+    const [initialUsername, setInitialUsername] = useState('');
     const [visible, setVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const selectedTheme = useSelector((state) => state.authReducer.theme)
     const theme = THEME[selectedTheme];
+
 
 
     let getLocalData = async () => {
@@ -49,6 +51,22 @@ function Setting({ navigation }) {
         setUserAddress(address);
         setPrivateKey(privateKey);
     };
+    // if user address get from localStorage then we get the balance of address
+    useEffect(() => {
+        if (userAddress) {
+            getUsername()
+        }
+    }, [userAddress]);
+
+    useEffect(() => {
+        getDarkModeToggle()
+        getLocalData();
+        getAllowContacts()
+        getBiometrics()
+        checkBioMetrics()
+
+
+    }, []);
 
     let getUsername = async () => {
         try {
@@ -56,6 +74,7 @@ function Setting({ navigation }) {
                 userID: userAddress
             });
             setUserName(data?.data?.username)
+            setInitialUsername(data?.data?.username)
         }
         catch (e) {
             console.log("api error", errorMessageHandler(e))
@@ -104,14 +123,6 @@ function Setting({ navigation }) {
 
     }
 
-
-    // if user address get from localStorage then we get the balance of address
-    useEffect(() => {
-        if (userAddress) {
-            getUsername()
-        }
-    }, [userAddress]);
-
     useEffect(() => {
 
         if (toggle === true) {
@@ -125,17 +136,6 @@ function Setting({ navigation }) {
             saveString("theme", ENUMS.THEME.LIGHT)
         }
     }, [toggle]);
-
-
-    useEffect(() => {
-        getDarkModeToggle()
-        getLocalData();
-        getAllowContacts()
-        getBiometrics()
-        checkBioMetrics()
-
-
-    }, []);
 
 
     const clearRealmDB = async () => {
@@ -222,14 +222,7 @@ function Setting({ navigation }) {
                 theme={theme}
                 navigation={navigation}></Header>
 
-
-
-
-
-
             <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
-
-
 
                 <ScrollView>
                     <TouchableOpacity onPress={() => {
@@ -243,9 +236,6 @@ function Setting({ navigation }) {
                                 size={18}
                                 color={COLORS.WHITE}
                             />
-
-
-
                         </View>
                         <Text style={{ marginLeft: 30, fontSize: 15, alignSelf: "center", color: theme?.WHITE, fontFamily: "Poppins" }}>About</Text>
 
@@ -262,8 +252,6 @@ function Setting({ navigation }) {
                                 size={18}
                                 color={COLORS.WHITE}
                             />
-
-
                         </View>
                         <Text style={{ marginLeft: 30, fontSize: 15, color: theme?.WHITE, flex: 1, alignSelf: "center" }}>Dark Mode</Text>
 
@@ -281,8 +269,6 @@ function Setting({ navigation }) {
 
                     <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
-
-
                         <TouchableOpacity onPress={showAlertDialog} style={{ flexDirection: "row" }}>
                             {/* // when contact us on  use marginTop: 32  */}
 
@@ -296,8 +282,6 @@ function Setting({ navigation }) {
 
 
                             </View>
-
-
 
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
@@ -318,10 +302,6 @@ function Setting({ navigation }) {
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => {
-
-
-
-
                             navigation?.navigate(ENUMS.SCREENS.UPDATE_PIN, {
                                 goToScreen: ENUMS.SCREENS.SETTING,
                                 pinState: 'choose',
@@ -384,25 +364,7 @@ function Setting({ navigation }) {
 
                         </TouchableOpacity>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     </View>
-
-
-
 
                     <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
@@ -411,7 +373,6 @@ function Setting({ navigation }) {
                             navigation?.navigate(ENUMS.SCREENS.WEB_VIEW, {
                                 url: ENUMS.EXTERNAL_URL.TWITTER,
                                 headerText: "Twitter"
-
                             });
 
 
@@ -425,8 +386,6 @@ function Setting({ navigation }) {
                                     size={18}
                                     color={COLORS.WHITE}
                                 />
-
-
                             </View>
 
 
@@ -446,11 +405,7 @@ function Setting({ navigation }) {
                             navigation?.navigate(ENUMS.SCREENS.WEB_VIEW, {
                                 url: ENUMS.EXTERNAL_URL.TELEGRAM,
                                 headerText: "Telegram"
-
                             });
-
-
-
                         }} style={{ flexDirection: "row", marginTop: 32 }}>
 
                             <View style={{ width: 30, height: 30, backgroundColor: COLORS.APP_BLUE_COLOR, borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
@@ -460,8 +415,6 @@ function Setting({ navigation }) {
                                     size={25}
                                     color={COLORS.WHITE}
                                 />
-
-
                             </View>
 
 
@@ -514,14 +467,6 @@ function Setting({ navigation }) {
 
                         </TouchableOpacity> */}
 
-
-
-
-
-
-
-
-
                     </View>
                     {
                         bioMetricSupport === true &&
@@ -566,7 +511,6 @@ function Setting({ navigation }) {
                     <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
                         <TouchableOpacity onPress={async () => {
-
                             setShowUsernameModal(true)
                         }} style={{ flexDirection: "row" }}>
 
@@ -623,7 +567,7 @@ function Setting({ navigation }) {
                         </TouchableOpacity>
 
 
-                        <TouchableOpacity onPress={()=>setModalVisible(true)} style={{ flexDirection: "row", marginTop: 32 }}>
+                        <TouchableOpacity onPress={() => setModalVisible(true)} style={{ flexDirection: "row", marginTop: 32 }}>
 
                             <View style={{ width: 30, height: 30, backgroundColor: "#808080", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
 
@@ -695,14 +639,8 @@ function Setting({ navigation }) {
 
 
 
-            <SetUsernameModal selectedTheme={selectedTheme} initialUsername={username} visible={showUsernameModal} onSet={(username) => {
-
-                setUserName(username)
-
-            }} onClose={() => {
-                setShowUsernameModal(false)
-
-            }}
+            <SetUsernameModal selectedTheme={selectedTheme} username={username} initialUsername={initialUsername} visible={showUsernameModal} onChangeValue={(username) => {setUserName(username)}} onClose={() => {setShowUsernameModal(false)}}
+            onUpdateUsername={(value) => {setInitialUsername(value)}}
 
 
 

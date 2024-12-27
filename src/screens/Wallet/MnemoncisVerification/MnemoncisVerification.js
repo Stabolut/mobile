@@ -6,22 +6,19 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  TextInput
+  TextInput,
+  Alert
 } from 'react-native';
 import { COLORS, ENUMS, Str, THEME } from '../../../common';
-
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import { ethers } from 'ethers';
 import _ from 'lodash';
 import LoadingModal from '../../../components/LoadingModal/modal';
 import AsyncStorage from '@react-native-community/async-storage';
-import firebase from '@react-native-firebase/app'
-import messaging from '@react-native-firebase/messaging'
-
 import { storeReferralInfo, storeWalletInfo } from '../../../redux/action/auth';
 import axios from "axios"
 import { store } from '../../../store';
-import { checkInternetConnectivity, errorMessageHandler } from '../../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler, getFcmTokenFromLocalStorage } from '../../../utils/utils';
 import { ErrorMessages } from '../../../messages/errorMessage';
 const windowHeight = Dimensions.get('window').height;
 
@@ -39,8 +36,13 @@ class MnemoncisVerification extends React.Component {
     referenceCode: ""
   };
 
+
+
   componentDidMount() {
+
+
     const shuffledArray = _.shuffle(this.props.route.params.mnemonics);
+
     this.setState({
       shuffledArray: shuffledArray,
       mnemonicsArray: this.props.route.params.mnemonics,
@@ -228,7 +230,7 @@ class MnemoncisVerification extends React.Component {
             {this.state.disabled === false &&
 
               <View style={{
-                padding: 12,
+                padding: 8,
                 borderColor: 'gray',
                 marginBottom: 12,
                 borderWidth: 1,
@@ -243,8 +245,7 @@ class MnemoncisVerification extends React.Component {
                     this.setState({ referenceCode: newValue });
                   }}
 
-                  placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80 }}></TextInput>
-                <Text style={{ color: theme?.WHITE, flex: 20 }}>Optional</Text>
+                  placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID  (Optional)' style={{ color: theme?.WHITE, flex: 80, padding: 6 }}></TextInput>
 
 
               </View>
@@ -256,52 +257,25 @@ class MnemoncisVerification extends React.Component {
 
 
                 let isConnected = await checkInternetConnectivity()
+                console.log("reached 1")
                 if (!isConnected) {
-                  alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+                  console.log("reached internet")
+                  Alert.alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
                   return
 
                 }
+                console.log("reached 2")
                 this.setState({ isLoading: true, disabled: true });
                 setTimeout(async () => {
 
-                  let mobileFcmToken = null
-                  let fcmToken
-                  if (Platform.OS === 'ios') {
-
-                    fcmToken = await AsyncStorage.getItem("fcmToken")
-                    if (fcmToken) mobileFcmToken = fcmToken
-                    else
-                      try {
-                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
-                      }
-                      catch (e) {
-
-                      }
-
+                  // Obtain FCM token
+                  const mobileFcmToken = await getFcmTokenFromLocalStorage();
+                  if (!mobileFcmToken) {
+                    console.log("reached 3")
+                    this.setState({ isLoading: false, disable: false })
+                    Alert.alert('Failed to retrieve FCM token. Please try again later.');
+                    return
                   }
-
-
-                  if (Platform.OS === 'android') {
-                    fcmToken = await AsyncStorage.getItem("fcmToken")
-                    if (fcmToken) mobileFcmToken = fcmToken
-
-                    else
-                      try {
-
-                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
-                      }
-                      catch (e) {
-
-                        this.setState({ isLoading: false, disabled: false });
-                        alert('We are currently experiencing issues with verifying the account. Please try again later.');
-                        return
-
-                      }
-
-                  }
-
-
-
                   try {
 
 
@@ -315,12 +289,10 @@ class MnemoncisVerification extends React.Component {
                       referenceCode: this.state.referenceCode
                     })
 
-
-
-
                     await AsyncStorage.setItem('address', wallet.address);
-                    await AsyncStorage.setItem('mnemonics', this.props.route.params.actualMnemonics);
                     await AsyncStorage.setItem('privateKey', wallet.privateKey);
+                    await AsyncStorage.setItem('mnemonics', this.props.route.params.actualMnemonics);
+
                     store.dispatch(storeWalletInfo(true))
                     store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }))
 
@@ -335,8 +307,7 @@ class MnemoncisVerification extends React.Component {
                     this.setState({
                       isLoading: false,
                       disabled: false,
-                      // isError: true,
-                      // message: msg
+
                     });
                     alert(msg)
                   }

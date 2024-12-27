@@ -81,7 +81,6 @@ export default props => {
           <SafeAreaView style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
             {/* Set the status bar color */}
             <StatusBar backgroundColor={COLORS.BACKGROUND_COLOR} />
-            {console.log("the",theme)}
 
             {/* Render the image with zoom-in animation */}
             <Animatable.View animation="zoomIn" duration={1500} style={{ flexDirection: "row" }}>

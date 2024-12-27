@@ -1,13 +1,9 @@
-import React, { useState, useReducer, useEffect } from 'react';
-import { View, StyleSheet, Text, TextInput, ScrollView, TouchableOpacity, FlatList, Alert } from 'react-native';
-import ContactList from './ContactList';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, FlatList, Alert } from 'react-native';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Header from '../../components/Header/Header';
 import { COLORS, ENUMS, THEME, Str } from '../../common';
-import LoadingModal from '../../components/LoadingModal/modal';
-import ErrorMessage from '../../components/ErrorComponent/ErrroMessage';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-community/async-storage';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import TransactionLoader from '../Dashboard/TransactionLoader';
@@ -18,20 +14,13 @@ import { store } from '../../store';
 import { ErrorMessages } from '../../messages/errorMessage';
 import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 
-
-
-
-
-
-
-
 const ShowContact = ({ navigation, contactList }) => {
     const [contact, setContact] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [searchText, setSearchText] = useState('');
 
     let selectedTheme = useSelector((state) => state.authReducer.theme)
-  const theme = THEME[selectedTheme];
+    const theme = THEME[selectedTheme];
 
 
     const handleSearch = () => {
@@ -110,7 +99,7 @@ const ShowContact = ({ navigation, contactList }) => {
 
         }
         catch (e) {
-            setIsLoading(false)
+             setIsLoading(false)
             let msg = errorMessageHandler(e)
 
             Alert.alert(msg)
@@ -136,7 +125,7 @@ const ShowContact = ({ navigation, contactList }) => {
             }} style={{ paddingHorizontal: 16, flexDirection: "column", marginTop: 18 }}>
 
 
-                <View style={{ backgroundColor:selectedTheme===ENUMS.THEME.DARK?COLORS.WHITE:theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 12, borderRadius: 8, alignItems: "center" }}>
+                <View style={{ backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 12, borderRadius: 8, alignItems: "center" }}>
 
 
                     <FontAwesome
@@ -172,12 +161,7 @@ const ShowContact = ({ navigation, contactList }) => {
 
             <StatusBarNU
                 backgroundColor={theme?.BACKGROUND_COLOR}
-               
-
             />
-
-
-
             <Header
                 backButton={true}
                 headerText="Contacts"
@@ -186,7 +170,7 @@ const ShowContact = ({ navigation, contactList }) => {
 
 
 
-            <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+            <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
 
 
 
@@ -216,7 +200,7 @@ const ShowContact = ({ navigation, contactList }) => {
 
                 <View style={{}}>
                     {
-                        isLoading && <TransactionLoader></TransactionLoader>
+                        isLoading && <View style={{ marginTop: 24 }}><TransactionLoader></TransactionLoader></View>
                     }
 
                     <FlatList

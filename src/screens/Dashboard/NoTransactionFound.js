@@ -8,7 +8,7 @@ import { COLORS } from '../../common';
 
 
 function NoTransactionFound({theme }) {
-    console.log("My theree",theme)
+    // console.log("My theree",theme)
 
     return (
         <View style={styles.mainView}>

@@ -12,7 +12,7 @@ import CheckBox from '@react-native-community/checkbox';
 import { isEmpty } from 'lodash';
 import Realm from 'realm';
 import { useState, useContext } from 'react';
-import { ENUMS, COLORS, commonStyle as CS, Str,THEME } from '../../../common';
+import { ENUMS, COLORS, commonStyle as CS, Str, THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -61,6 +61,7 @@ function Transfer({ navigation, route }) {
   const [transactionNotes, setTransactionNotes] = useState("")
   const [timeoutId, setTimeoutId] = useState(null);
   const [accountInfo, setAccountInfo] = useState(null);
+  const [wrongAccountMessage, setWrongAccountMessage] = useState(null);
   const [username, setUsername] = useState(false);
   const [account, setAccount] = useState("");
   const [isContactOnly, setIsContactOnly] = useState(false);
@@ -125,9 +126,6 @@ function Transfer({ navigation, route }) {
 
   checkValidation = () => {
 
-    let amountToSend = parseFloat(amount) * 1e2;
-
-
     // Check Validation
     if (receiver === '' || receiver === null || receiver === undefined) {
       setIsError(true);
@@ -154,12 +152,10 @@ function Transfer({ navigation, route }) {
     }
 
   }
-
-
-
   // now we send funds
   const sendFunds = async () => {
     try {
+
 
       let isConnected = await checkInternetConnectivity()
       if (!isConnected) {
@@ -182,22 +178,17 @@ function Transfer({ navigation, route }) {
         Str.ABI,
         provider,
       );
-      const balance = await contract.balanceOf(sender);
-      // convert amount to send to right decimel which is 2
-      let amountToSend = parseFloat(amount) * 1e2;
+      let balance = await contract.balanceOf(sender);
+      balance = parseFloat(balance) / Str.TOKEN_DECIMAL
+      let amountToSend = parseFloat(amount) * Str.TOKEN_DECIMAL;
 
 
-      if (parseInt(balance) === amountToSend) {
-        setIsError(true);
-        setMessage("To ensure a successful transaction, please make sure that the amount you are sending is less than your current balance.");
-        setIsLoading(false);
-        setDisable(false);
-        return;
-      }
 
       // if user balance less then sending amount
-      if (parseInt(balance) + Str.fees < amountToSend) {
+      // if (balance < (parseFloat(amount) + parseFloat(Str.fees))) {
+      if (balance < parseFloat(amount)) {
         setIsError(true);
+        // setMessage(`Insufficient balance to complete the transaction. The sending amount must include an additional ${Str.fees} USB tokens to cover the transaction fee.`);
         setMessage("Insufficient balance to complete the transaction.");
         setIsLoading(false);
         setDisable(false);
@@ -205,29 +196,27 @@ function Transfer({ navigation, route }) {
       }
 
 
+
       //  =======get signature=======//
       let privateKey = await AsyncStorage.getItem('privateKey');
 
       const wallet = new ethers.Wallet(privateKey);
       const nonce = await contract.countOf(sender);
+      console.log("privateKey", privateKey)
 
-      
 
       const transferHex = await contract.getTransferPreSignedHash(
         Str.contractAddress,
         username === true ? account : receiver,
         amountToSend,
-        Str.fees,
+        Str.fees * Str.TOKEN_DECIMAL,
         parseInt(nonce),
       );
-
 
       const signature = await wallet.signMessage(
         ethers.utils.arrayify(transferHex),
       );
       //  =======get signature=======//
-
-    
       // await axios.post(`${Str.apiUrl}/wallet/transfer-token`
       //hit api to transfer funds
       let { data } = await axios.post(`${Str.apiUrl}/wallet/transfer-token`, {
@@ -239,8 +228,6 @@ function Transfer({ navigation, route }) {
         originalAmount: amount,
         transNotes: transactionNotes
       });
-
-    
 
       // set transaction to the state and we have useEffect which is call and socket emit notificatio
       setTransferHash(data.data.txnHash.transactionHash);
@@ -260,7 +247,6 @@ function Transfer({ navigation, route }) {
     } catch (e) {
 
       let msg = errorMessageHandler(e)
-
       setIsError(true);
       setIsLoading(false);
       setDisable(false);
@@ -324,7 +310,7 @@ function Transfer({ navigation, route }) {
       realm.write(() => {
         realm.create('TransactionsHistorySchema', transactionObject);
       });
-     
+
     } catch (e) {
       console.log('Execption', e, e.data);
     }
@@ -335,7 +321,7 @@ function Transfer({ navigation, route }) {
 
       <StatusBarNU
         backgroundColor={theme?.BACKGROUND_COLOR}
-       
+
       />
       <Header theme={theme} headerText="Transfer USB" navigation={navigation}></Header>
 
@@ -349,7 +335,7 @@ function Transfer({ navigation, route }) {
         <QRCodeScanner onRead={onSuccess} cameraStyle={{ height: '100%' }} />
       )}
 
-      <View style={[styles.mainContainer,{backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+      <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
         <ScrollView style={styles.scrollView}>
           <LoadingModal task={'Sending US₿...'} modalVisible={isLoading} />
 
@@ -361,7 +347,7 @@ function Transfer({ navigation, route }) {
 
             }}>
             <View style={[styles.container]}>
-              <Text style={[styles.lableText,{ color: theme?.WHITE,}]}>Sender</Text>
+              <Text style={[styles.lableText, { color: theme?.WHITE, }]}>Sender</Text>
               <TextInput
                 value={sender}
                 multiline={true}
@@ -382,7 +368,7 @@ function Transfer({ navigation, route }) {
             </View>
 
             <View style={[styles.container, { marginTop: 20 }]}>
-              <Text style={[styles.lableText,{ color: theme?.WHITE,}]}>Recipient</Text>
+              <Text style={[styles.lableText, { color: theme?.WHITE, }]}>Receiver Address or ID</Text>
               <View style={{ flexDirection: 'row' }}>
                 <TextInput
                   value={receiver}
@@ -392,13 +378,17 @@ function Transfer({ navigation, route }) {
                     setReceiver(newValue);
                     clearTimeout(timeoutId); // Clear any existing timeout
                     const newTimeoutId = setTimeout(async () => {
+                     
                       try {
 
                         let { data } = await axios.post(`${Str.apiUrl}/user/retrieve-user-by-wallet-or-username`, {
                           userID: newValue
                         });
+                        console.log("ussss", data)
 
                         if (!isEmpty(data.data)) {
+                          console.log("ussss 1")
+                          setWrongAccountMessage
                           setAccountInfo(`Receiver address is: ${data.data.account.substring(0, 6)}... Username: ${data.data.username}`)
                           setUsername(true)
                           setAccount(data.data.account)
@@ -406,6 +396,7 @@ function Transfer({ navigation, route }) {
 
                         }
                         else {
+                          setWrongAccountMessage(data.message)
                           setAccountInfo(null)
                           setUsername(false)
                         }
@@ -414,7 +405,7 @@ function Transfer({ navigation, route }) {
 
                       }
                       catch (e) {
-                       
+
                         setAccountInfo(null)
                         setUsername(false)
                       }
@@ -450,22 +441,21 @@ function Transfer({ navigation, route }) {
                 }}></View>
 
               {accountInfo && (
-                // <Text
-                //   style={[
-                //     CS.er,
-                //     { color: COLORS.GREEN_SUCCESS, marginTop: 8 },
-                //   ]}>
-                //   {accountInfo}
-                // </Text>
+               
 
                 <SuccessMessage message={accountInfo}></SuccessMessage>
               )}
+               {wrongAccountMessage && (
+               
+
+               <ErrorMessage message={wrongAccountMessage}></ErrorMessage>
+             )}
 
 
             </View>
 
             <View style={[styles.container, { marginTop: 20 }]}>
-              <Text style={[styles.lableText,{ color: theme?.WHITE}]}>Amount</Text>
+              <Text style={[styles.lableText, { color: theme?.WHITE }]}>Amount</Text>
               <TextInput
                 keyboardType="numeric"
                 value={amount}
@@ -515,8 +505,8 @@ function Transfer({ navigation, route }) {
                   alignContent: "flex-end"
                 }}>
                   <Text
-                    style={[{ marginTop: 5, alignSelf: "flex-end",color: theme?.WHITE }, styles.lableText]}>
-                    Fee: {Str.fees / 1e2} US₿
+                    style={[{ marginTop: 5, alignSelf: "flex-end", color: theme?.WHITE }, styles.lableText]}>
+                    Fee: {Str.fees} US₿
                   </Text>
                 </View>
               </View>
@@ -585,7 +575,7 @@ const styles = StyleSheet.create({
   },
 
   lableText: {
-   
+
     fontSize: 16,
     fontFamily: 'Poppins'
 

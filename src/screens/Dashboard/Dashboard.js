@@ -2,28 +2,16 @@ import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   StyleSheet,
-  Text,
-  Image,
-  TouchableOpacity,
   FlatList,
-  SafeAreaView,
-  ActivityIndicator,
-  ScrollView,
   Dimensions
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import theme from '../../common/theme';
-import { ThemeContext } from '../../navigation';
 import { useSelector } from 'react-redux';
-
-
-import { COLORS, ENUMS, Images, Str, THEME } from '../../common';
+import { COLORS, ENUMS, Str, THEME } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import AsyncStorage from '@react-native-community/async-storage';
 import { ethers } from 'ethers';
-
 import Transaction from './Transaction';
-
 import MnemonicsShowModal from '../../components/Modal/MnemonicsShowModal';
 import uuid from 'react-native-uuid';
 import Realm from 'realm';
@@ -34,8 +22,6 @@ import axios from 'axios';
 import BalanceCard from './BalanceCard';
 // import Clipboard from '@react-native-community/clipboard';
 import DropDownHolder from '../../components/dropDownHolder';
-
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import SliderOption from './SliderOption';
 import TransactionRefreshAndView from './TransactionRefreshAndView';
 import NoTransactionFound from './NoTransactionFound';
@@ -45,9 +31,7 @@ import { ErrorMessages } from '../../messages/errorMessage';
 import ReferralModal from '../../components/Modal/ReferralModal';
 
 
-const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl, {
-  chainId: 97,
-});
+const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl)
 
 function Dashboard({ navigation }) {
   const [userAddress, setUserAddress] = useState('');
@@ -66,11 +50,9 @@ function Dashboard({ navigation }) {
 
 
   useEffect(() => {
-
     getLocalData();
     getFromDB();
   }, []);
-
 
   let getLocalData = async () => {
 
@@ -80,6 +62,135 @@ function Dashboard({ navigation }) {
     setUserAddress(address);
     setPrivateKey(privateKey);
   };
+
+  // if user address get from localStorage then we get the balance of address
+  useEffect(() => {
+    if (userAddress) {
+      getUserTransactionListFromApi()
+      getERC20Balance(userAddress, Str.contractAddress);
+    }
+  }, [userAddress]);
+
+
+  // get user balance
+  let getERC20Balance = async (address, contractAddress) => {
+    let isConnected = await checkInternetConnectivity()
+    if (!isConnected) {
+      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+      return
+
+    }
+    try {
+      setIsLoading(true);
+      const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
+      const balance = await contract.balanceOf(address);
+      setBalance(balance / 1e2);
+      setIsLoading(false);
+    } catch (e) {
+      setIsLoading(false);
+      alert('We are experiencing difficulties retrieving the balance at the moment.');
+    }
+  };
+
+  // Method to retrieve the transaction list of the user from the local database
+  getUserTransactionListFromLocalDb = async () => {
+    try {
+      // Define the schema for the transaction history database
+      const transactionHistoryDBSchema = {
+        name: 'TransactionsHistorySchema',
+        properties: {
+          uniqueKey: 'string',
+          senderAddress: 'string',
+          receiverAddress: 'string',
+          amountToSend: 'double',
+          transactionStatus: 'string',
+          sendDate: 'date',
+          transactionHash: 'string', // Unique identifier for transactions
+          transactionNotes: 'string'
+        },
+      };
+
+      // Open a connection to the Realm database
+      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
+
+      // Retrieve transaction data from the database and sort it by date in descending order
+      let transaction = realm
+        .objects('TransactionsHistorySchema')
+        .sorted('sendDate', true);
+
+      // Remove duplicate transactions based on transactionHash
+      const uniqueArr = [];
+      const uniqueObj = {};
+
+      // Iterate through transactions to filter out duplicates
+      transaction.forEach((elem) => {
+        if (!uniqueObj[elem.transactionHash]) {
+          uniqueObj[elem.transactionHash] = true;
+          uniqueArr.push(elem);
+        }
+      });
+
+      // Set the unique transaction records in the state for further processing
+      setTransactionRecord(uniqueArr);
+
+    } catch (e) {
+      // Handle any errors that occur during database access
+    }
+  }
+
+
+  getUserTransactionListFromApi = async () => {
+
+    // Check internet connectivity
+    let isConnected = await checkInternetConnectivity();
+    if (!isConnected) {
+      // If there's no internet, display an alert and return
+      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
+      return;
+    }
+
+    try {
+      // Set loading state to true before making the API request
+      setTransactionLoading(true);
+
+      // Make API request to fetch transaction data
+      let { data } = await axios.post(`${Str.apiUrl}/wallet/transacions-list-with-limit`, { walletAddress: userAddress });
+
+
+      // Filter out records that are already present in the local database
+      const filteredApiRecords = data.data.wallet.filter(apiRecord => {
+        return !transactionRecord.find(localDbRecord => localDbRecord.transactionHash === apiRecord.transactionHash);
+      });
+      console.log("filteredApiRecords", filteredApiRecords,"same wallet",data.data.wallet)
+
+      // Store filtered records in the local database
+      if (filteredApiRecords.length > 0) {
+        for (var i = 0; i < filteredApiRecords.length; i++) {
+          saveDB(
+            filteredApiRecords[i].sendDate,
+            filteredApiRecords[i].transactionHash,
+            filteredApiRecords[i].senderAddress,
+            filteredApiRecords[i].receiverAddress,
+            filteredApiRecords[i].amountToSend,
+            filteredApiRecords[i].transactionStatus,
+            filteredApiRecords[i].transactionNotes
+          );
+        }
+      }
+
+      // Reset loading state to false after API request is completed
+      setTransactionLoading(false);
+    }
+    catch (e) {
+      // Handle errors by resetting loading state to false
+      setTransactionLoading(false);
+    }
+  }
+
+
+
+
+
 
 
   // Method to retrieve data from the local database
@@ -145,6 +256,9 @@ function Dashboard({ navigation }) {
   };
 
 
+
+
+
   let verifyTransactionSuccess = async (provider, transactionHash) => {
 
     try {
@@ -176,147 +290,12 @@ function Dashboard({ navigation }) {
 
   }
 
-
-  // Method to retrieve the transaction list of the user from the local database
-  getUserTransactionListFromLocalDb = async () => {
-    try {
-      // Define the schema for the transaction history database
-      const transactionHistoryDBSchema = {
-        name: 'TransactionsHistorySchema',
-        properties: {
-          uniqueKey: 'string',
-          senderAddress: 'string',
-          receiverAddress: 'string',
-          amountToSend: 'double',
-          transactionStatus: 'string',
-          sendDate: 'date',
-          transactionHash: 'string', // Unique identifier for transactions
-          transactionNotes: 'string'
-        },
-      };
-
-      // Open a connection to the Realm database
-      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
-
-      // Retrieve transaction data from the database and sort it by date in descending order
-      let transaction = realm
-        .objects('TransactionsHistorySchema')
-        .sorted('sendDate', true);
-
-      // Remove duplicate transactions based on transactionHash
-      const uniqueArr = [];
-      const uniqueObj = {};
-
-      // Iterate through transactions to filter out duplicates
-      transaction.forEach((elem) => {
-        if (!uniqueObj[elem.transactionHash]) {
-          uniqueObj[elem.transactionHash] = true;
-          uniqueArr.push(elem);
-        }
-      });
-
-      // Set the unique transaction records in the state for further processing
-      setTransactionRecord(uniqueArr);
-
-    } catch (e) {
-      // Handle any errors that occur during database access
-    }
-  }
-
-
-
-
-
-
-
-
-  // if user address get from localStorage then we get the balance of address
-  useEffect(() => {
-    if (userAddress) {
-      getUserTransactionListFromApi()
-      getERC20Balance(userAddress, Str.contractAddress);
-    }
-  }, [userAddress]);
-
-
-  // get user balance
-  let getERC20Balance = async (address, contractAddress) => {
-    let isConnected = await checkInternetConnectivity()
-    if (!isConnected) {
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-      return
-
-    }
-    try {
-      setIsLoading(true);
-      const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
-      const balance = await contract.balanceOf(address);
-      setBalance(balance / 1e2);
-      setIsLoading(false);
-    } catch (e) {
-      setIsLoading(false);
-      alert('We are experiencing difficulties retrieving the balance at the moment.');
-    }
-  };
-
-
-
-  getUserTransactionListFromApi = async () => {
-
-    // Check internet connectivity
-    let isConnected = await checkInternetConnectivity();
-    if (!isConnected) {
-      // If there's no internet, display an alert and return
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
-      return;
-    }
-
-    try {
-      // Set loading state to true before making the API request
-      setTransactionLoading(true);
-
-      // Make API request to fetch transaction data
-      let { data } = await axios.post(`${Str.apiUrl}/wallet/transacions-list-with-limit`, { walletAddress: userAddress });
-
-
-      // Filter out records that are already present in the local database
-      const filteredApiRecords = data.data.wallet.filter(apiRecord => {
-        return !transactionRecord.find(localDbRecord => localDbRecord.transactionHash === apiRecord.transactionHash);
-      });
-
-      // Store filtered records in the local database
-      if (filteredApiRecords.length > 0) {
-        for (var i = 0; i < filteredApiRecords.length; i++) {
-          saveDB(
-            filteredApiRecords[i].sendDate,
-            filteredApiRecords[i].transactionHash,
-            filteredApiRecords[i].senderAddress,
-            filteredApiRecords[i].receiverAddress,
-            filteredApiRecords[i].amountToSend,
-            filteredApiRecords[i].transactionStatus,
-            filteredApiRecords[i].notes
-          );
-        }
-      }
-
-      // Reset loading state to false after API request is completed
-      setTransactionLoading(false);
-    }
-    catch (e) {
-      // Handle errors by resetting loading state to false
-      setTransactionLoading(false);
-    }
-  }
-
-
-
-
-
   // connecte socket and receive incoming transaction and store in DB
   useEffect(() => {
     if (socketConnection.isSocketConnected && userAddress) {
       socketConnection.socket.emit('addUser', { address: userAddress });
       socketConnection.socket.on('getTransaction', data => {
+        console.log("socket data", data)
 
 
         saveDB(
@@ -345,15 +324,6 @@ function Dashboard({ navigation }) {
       });
     }
   }, [userAddress, socketConnection.isSocketConnected]);
-
-
-
-
-
-
-
-
-
 
 
   useEffect(() => {
@@ -424,13 +394,8 @@ function Dashboard({ navigation }) {
 
   return (
     <React.Fragment>
-
-
-
       <StatusBarNU
         backgroundColor={theme?.BACKGROUND_COLOR}
-       
-
       />
 
 
@@ -459,15 +424,11 @@ function Dashboard({ navigation }) {
             else {
               navigation.navigate(`${ENUMS.SCREENS.TRANSFER}`)
             }
-
-
-
-
           }}
           showKey={() => navigation.navigate(`${ENUMS.SCREENS.STAKE}`, { userAddress: userAddress, balance: balance ? balance : 0 })}
           receive={() => navigation.navigate(`${ENUMS.SCREENS.RECEIVE}`)}
           purchase={() => navigation?.navigate(ENUMS.SCREENS.SETTING)}
-          invites = {()=>setModalVisible(true)}
+          invites={() => setModalVisible(true)}
         >
 
         </SliderOption>
@@ -523,8 +484,8 @@ function Dashboard({ navigation }) {
           setVisible(false);
         }}></MnemonicsShowModal>
 
-<ReferralModal
-       
+      <ReferralModal
+
         visible={modalVisible}
         theme={theme}
         selectedTheme={selectedTheme}

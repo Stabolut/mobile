@@ -28,8 +28,8 @@ export default function LoadingModal(props) {
                 <Toast ref={toastRef} position="bottom" />
 
                 <View style={[styles.modalView,{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND,}]}>
-                    <Text style={[styles._Modal_inner_text1, { color: theme?.WHITE }]}> {props.privateKey} <Ionicons  onPress={copyToClipBoard} size={25} name="copy"></Ionicons></Text>
-                    <View style={{ flexDirection: 'row', width: "100%", justifyContent: 'center', alignItems: 'center', marginBottom: 24 }}>
+                    <Text style={[styles._Modal_inner_text1, { color: theme?.WHITE }]}> {props.privateKey} <Ionicons onPress={copyToClipBoard} size={22} name="copy"></Ionicons></Text>
+                    <View style={{ flexDirection: 'row', width: "100%", marginBottom: 24 }}>
 
 
                         <TouchableOpacity
@@ -61,12 +61,12 @@ const styles = StyleSheet.create({
     },
     modalView: {
 
-        width: "90%",
-        padding: 24,
+         width: "90%",
+         padding: 24,
         borderRadius: 20,
         flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
+         justifyContent: 'center',
+         alignItems: 'center',
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
@@ -85,6 +85,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
         lineHeight: 30,
         letterSpacing: 0.1,
+        textAlign:"justify"
+       
     },
 
     modalText: {
