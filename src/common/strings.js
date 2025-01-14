@@ -7,11 +7,11 @@ const Str = {
   rpcUrl: "https://boldest-snowy-putty.arbitrum-sepolia.quiknode.pro/1f392d02eb2231054a585bf86a27a4bd0c27a8d5/",
   fees: 0.1,
 
-  apiUrl: "http://192.168.100.8:8003/api/v1/stabolut",
-  socketUrl: "http://192.168.100.8:8003",
+  apiUrl: "http://192.168.100.7:8003/api/v1/stabolut",
+  //socketUrl: "http://192.168.100.8:8003",
   //apiUrl: "https://ares.stabolut.com/api/v1/stabolut",
 
-  //socketUrl: "https://ares.stabolut.com",
+  socketUrl: "https://ares.stabolut.com",
 
   FUNDING_ADDRESS: "0x23F6b853d75f34F0A16dc97E4A2827cE8aA9A7C7",
   TOKEN_DECIMAL:1e2,

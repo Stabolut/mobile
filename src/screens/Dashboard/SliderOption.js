@@ -65,7 +65,7 @@ function SliderOption({ transfer, showKey, receive, purchase, selectedTheme,invi
 
                 </TouchableOpacity>
                 {
-                    Platform.OS === "ios" ? null :
+                    // Platform.OS === "ios" ? null :
                         <TouchableOpacity onPress={showKey} style={[styles.iconViewStyle, { marginLeft: 8, borderColor: theme?.SLIDER_BORDER_COLOR,backgroundColor:selectedTheme===ENUMS.THEME.LIGHT?theme?.BALANCE_CARD_BACKGROUND:null }]}>
                             <FontAwesome5
                                 name="coins"

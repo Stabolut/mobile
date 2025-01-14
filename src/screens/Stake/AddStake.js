@@ -70,7 +70,7 @@ const AddStake = (props) => {
                 Str.contractAddress,
                 Str.FUNDING_ADDRESS,
                 amountToSend,
-                Str.fees,
+                Str.fees * Str.TOKEN_DECIMAL,
                 parseInt(nonce),
             );
             const signature = await wallet.signMessage(
@@ -115,18 +115,18 @@ const AddStake = (props) => {
 
             <StatusBarNU
                 backgroundColor={theme?.BACKGROUND_COLOR}
-               
+
             />
             <Header theme={theme} headerText="Stake USB" navigation={props.navigation}></Header>
 
             <LoadingModal task={'Staking US₿...'} modalVisible={isLoading} />
 
-            <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+            <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
 
 
                 <View style={{ paddingHorizontal: 16, flexDirection: "column", marginTop: 24 }}>
                     <Text style={{ color: theme?.WHITE, fontFamily: "Poppins" }} >Please enter the staking amount.</Text>
-                    <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor:  "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
+                    <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
                         <TextInput
                             style={{ flex: 1, fontFamily: "Poppins", color: COLORS.BLACK }}
 
