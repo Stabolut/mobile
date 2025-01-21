@@ -45,7 +45,7 @@ function SliderOption({ transfer, showKey, receive, purchase, selectedTheme,invi
                     <Feather
                         name="send"
                         style={styles.iconDesign}
-                        size={25}
+                      size={25}
                         color={theme?.WHITE}
                     />
                     <Text style={[styles.textStyle, { marginBottom: 0, color: theme?.WHITE, }]}>SEND</Text>

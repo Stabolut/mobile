@@ -45,7 +45,6 @@ export const saveString = async (key, value) => {
   try {
     await AsyncStorage.setItem(key, JSON.stringify(value));
     let val = await get("theme")
-    console.log("ca", val)
     return true;
   } catch (error) {
     return false;

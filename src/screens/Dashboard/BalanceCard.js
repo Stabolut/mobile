@@ -63,7 +63,7 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
 
 
                 <View style={{ flexDirection: "row", marginTop: 12, paddingLeft: 24, paddingRight: 24, paddingBottom: 8 }}>
-                    <View style={{ flex: 80 }}><Text style={[styles.addressText,{color:theme?.WHITE}]}>{userAddress}</Text></View>
+                    <View style={{ flex: 80 }}><Text style={[styles.addressText,{color:theme?.WHITE}]}>{userAddress.replace(/^0x/i, "xdc")}</Text></View>
                     <TouchableOpacity onPress={copy} style={{ flex: 10 }}>
 
                         <Ionicons

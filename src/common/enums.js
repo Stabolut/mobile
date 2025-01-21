@@ -33,7 +33,7 @@ const ENUMS = {
     NEWS: "https://nitter.net/stabolut",
     TWITTER: "https://twitter.com/stabolut",
     TELEGRAM: "https://t.me/stabolut",
-    EXPLORER_URL: "https://sepolia.arbiscan.io/tx/"
+    EXPLORER_URL: "https://apothem.xdcscan.io/tx"
 
   },
   THEME: {

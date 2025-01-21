@@ -84,6 +84,7 @@ function Stake(props) {
       let data = await axios.post(`${Str.apiUrl}/staking/get-in-stake`, {
         account: address
       });
+      console.log("data.data.data",data.data.data.stake[0])
 
       if (data.data.data.stake[0].totalRewardOnStake === 0) {
         setDisable(true)

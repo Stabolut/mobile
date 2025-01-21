@@ -60,15 +60,19 @@ const AddContact = ({ navigation }) => {
         let address = await AsyncStorage.getItem('address');
 
         try {
-          
+
+            const validAccount = account?.replace(/^(xdc)/i, "0x");
+
+
             dispatch({ type: "sendRequest" })
             let { data } = await axios.post(`${Str.apiUrl}/user/add-contact-list`, {
                 name,
-                receiverAccount: account,
+                receiverAccount: validAccount,
                 senderAccount: address
             });
 
             dispatch({ type: "FetchSuccess" })
+            console.log("data.data ", data.data)
             store.dispatch({ type: "ADD_CONTACT", payload: data.data })
             alert("The contact has been successfully added")
             setName("")
@@ -86,7 +90,6 @@ const AddContact = ({ navigation }) => {
 
     return (
         <React.Fragment>
-            {console.log(" COLORS.BACKGROUND_COLOR", COLORS)}
 
 
             <StatusBarNU

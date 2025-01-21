@@ -55,7 +55,7 @@ export const notificationListener = () => {
         messaging()
             .getInitialNotification()
             .then(remoteMessage => {
-                console.log("hit there")
+              
                 if (remoteMessage) {
                     console.log(
                         'Notification caused app to open from quit state dislike:',
@@ -74,7 +74,7 @@ export const notificationListener = () => {
 
 
 export const notificationChannel = (title, body) => {
-    console.log("Notifcation body is this".body)
+   
 
     let channelID = Math.random().toString(36).substring(7);
     PushNotification.createChannel(

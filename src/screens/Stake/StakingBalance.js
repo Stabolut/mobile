@@ -51,7 +51,7 @@ function StakingBalance(props) {
 
 
 
-                        <Text style={[styles.addressText, { color: props?.theme?.WHITE }]}>{`${props.userAddress.substring(0, 10)} .... ${props.userAddress.substring(32, props.userAddress.length)}`}</Text>
+                        <Text style={[styles.addressText, { color: props?.theme?.WHITE }]}>{`${props.userAddress.substring(0, 10)?.replace(/^0x/i, "xdc")} .... ${props.userAddress.substring(32, props.userAddress.length)}`}</Text>
                     </View>
 
 

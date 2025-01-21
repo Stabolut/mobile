@@ -56,7 +56,7 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
                     {/* backgroundColor: "#252549" */}
                     <View style={{ backgroundColor: theme?.TRANSACTION_DETAIL_ADDRESS_BACKGROUND, borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", marginHorizontal: 24 }}>
                         <Text style={[styles.addressText, { color: theme?.SMALL_HEADING_TEXT, }]}>
-                            {userAddress === item.senderAddress ? item.receiverAddress : item.senderAddress}
+                            {userAddress === item.senderAddress ? item?.receiverAddress?.replace(/^0x/i, "xdc") : item?.senderAddress?.replace(/^0x/i, "xdc")}
 
                         </Text>
                         <TouchableOpacity

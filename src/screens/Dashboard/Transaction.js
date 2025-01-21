@@ -83,8 +83,8 @@ class Transaction extends React.Component {
           <Text style={[styles.fromToText,{color:theme?.ADDRESS_TEXT}]}>
 
             {item.receiverAddress === this.props.userAddress
-              ? `From:${item.senderAddress}`
-              : `To:${item.receiverAddress}`}
+              ? `From:${item.senderAddress.replace(/^0x/i, "xdc")}`
+              : `To:${item.receiverAddress.replace(/^0x/i, "xdc")}`}
 
           </Text>
 

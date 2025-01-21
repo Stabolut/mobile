@@ -99,7 +99,7 @@ const ShowContact = ({ navigation, contactList }) => {
 
         }
         catch (e) {
-             setIsLoading(false)
+            setIsLoading(false)
             let msg = errorMessageHandler(e)
 
             Alert.alert(msg)
@@ -121,7 +121,7 @@ const ShowContact = ({ navigation, contactList }) => {
         // Render each item of the FlatList
         return (
             <TouchableOpacity onPress={() => {
-                navigation.navigate(`${ENUMS.SCREENS.TRANSFER}`, { receipent: item.receiver_account })
+                navigation.navigate(`${ENUMS.SCREENS.TRANSFER}`, { receipent: item.receiver_account?.replace(/^0x/i, "xdc") })
             }} style={{ paddingHorizontal: 16, flexDirection: "column", marginTop: 18 }}>
 
 

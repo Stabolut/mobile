@@ -202,12 +202,11 @@ function Transfer({ navigation, route }) {
 
       const wallet = new ethers.Wallet(privateKey);
       const nonce = await contract.countOf(sender);
-      console.log("privateKey", privateKey)
-
+      const validReceiverAddress = receiver?.replace(/^(xdc)/i, "0x");
 
       const transferHex = await contract.getTransferPreSignedHash(
         Str.contractAddress,
-        username === true ? account : receiver,
+        username === true ? account : validReceiverAddress,
         amountToSend,
         Str.fees * Str.TOKEN_DECIMAL,
         parseInt(nonce),
@@ -221,7 +220,7 @@ function Transfer({ navigation, route }) {
       //hit api to transfer funds
       let { data } = await axios.post(`${Str.apiUrl}/wallet/transfer-token`, {
         signature: signature,
-        toAddress: username === true ? account : receiver,
+        toAddress: username === true ? account : validReceiverAddress,
         amount: amountToSend, //TODO:Minus the fess Str.fees
         nonce: parseInt(nonce),
         senderAddress: sender,
@@ -349,7 +348,7 @@ function Transfer({ navigation, route }) {
             <View style={[styles.container]}>
               <Text style={[styles.lableText, { color: theme?.WHITE, }]}>Sender</Text>
               <TextInput
-                value={sender}
+                value={sender?.replace(/^0x/i, "xdc")}
                 multiline={true}
                 editable={false}
                 style={{
@@ -378,25 +377,24 @@ function Transfer({ navigation, route }) {
                     setReceiver(newValue);
                     clearTimeout(timeoutId); // Clear any existing timeout
                     const newTimeoutId = setTimeout(async () => {
-                     
+
                       try {
 
                         let { data } = await axios.post(`${Str.apiUrl}/user/retrieve-user-by-wallet-or-username`, {
                           userID: newValue
                         });
-                        console.log("ussss", data)
 
                         if (!isEmpty(data.data)) {
                           console.log("ussss 1")
                           setWrongAccountMessage
-                          setAccountInfo(`Receiver address is: ${data.data.account.substring(0, 6)}... Username: ${data.data.username}`)
+                          setAccountInfo(`Receiver address is: ${data.data.account.substring(0, 6)?.replace(/^0x/i, "xdc")}... Username: ${data.data.username}`)
                           setUsername(true)
                           setAccount(data.data.account)
 
 
                         }
                         else {
-                          setWrongAccountMessage(data.message)
+                          // setWrongAccountMessage(data.message)
                           setAccountInfo(null)
                           setUsername(false)
                         }
@@ -441,15 +439,15 @@ function Transfer({ navigation, route }) {
                 }}></View>
 
               {accountInfo && (
-               
+
 
                 <SuccessMessage message={accountInfo}></SuccessMessage>
               )}
-               {wrongAccountMessage && (
-               
+              {wrongAccountMessage && (
 
-               <ErrorMessage message={wrongAccountMessage}></ErrorMessage>
-             )}
+
+                <ErrorMessage message={wrongAccountMessage}></ErrorMessage>
+              )}
 
 
             </View>

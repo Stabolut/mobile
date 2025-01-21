@@ -82,11 +82,15 @@ function Dashboard({ navigation }) {
     }
     try {
       setIsLoading(true);
+
       const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
+      console.log("contract",contract,address)
       const balance = await contract.balanceOf(address);
+      console.log("balance",balance.toString())
       setBalance(balance / 1e2);
       setIsLoading(false);
     } catch (e) {
+      console.log("balance issue", e)
       setIsLoading(false);
       alert('We are experiencing difficulties retrieving the balance at the moment.');
     }
@@ -161,7 +165,7 @@ function Dashboard({ navigation }) {
       const filteredApiRecords = data.data.wallet.filter(apiRecord => {
         return !transactionRecord.find(localDbRecord => localDbRecord.transactionHash === apiRecord.transactionHash);
       });
-      console.log("filteredApiRecords", filteredApiRecords,"same wallet",data.data.wallet)
+
 
       // Store filtered records in the local database
       if (filteredApiRecords.length > 0) {
@@ -295,8 +299,6 @@ function Dashboard({ navigation }) {
     if (socketConnection.isSocketConnected && userAddress) {
       socketConnection.socket.emit('addUser', { address: userAddress });
       socketConnection.socket.on('getTransaction', data => {
-        console.log("socket data", data)
-
 
         saveDB(
           data.data.date,

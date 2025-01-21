@@ -55,7 +55,7 @@ export default Receive = props => {
         const shareOptions = {
           type: 'image/svg+xml',
           title: 'Share QR Code',
-          message: `My Public Address for Receiving US₿ ${address}`,
+          message: `My Public Address for Receiving US₿ ${address?.replace(/^0x/i, "xdc")}`,
           url: `data:image/svg+xml;base64,${qrCodeImageByte}`, // Set the URL to the base64-encoded SVG image
         };
         await Share.open(shareOptions); // Share the QR code
@@ -121,7 +121,7 @@ export default Receive = props => {
               color: theme?.WHITE,
               fontFamily: 'Poppins',
             }}>
-            {address}
+            {address&&address.replace(/^0x/i, "xdc")}
           </Text>
           {/* <Text style={{ textAlign: "center", color: COLORS.HEADING_BLACK_COLOR, fontSize: 12, marginTop: 16, fontWeight: "700", fontFamily: "Poppins" }}>No memo required</Text> */}
         </View>

@@ -257,21 +257,21 @@ class MnemoncisVerification extends React.Component {
 
 
                 let isConnected = await checkInternetConnectivity()
-                console.log("reached 1")
+              
                 if (!isConnected) {
-                  console.log("reached internet")
+                
                   Alert.alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
                   return
 
                 }
-                console.log("reached 2")
+               
                 this.setState({ isLoading: true, disabled: true });
                 setTimeout(async () => {
 
                   // Obtain FCM token
                   const mobileFcmToken = await getFcmTokenFromLocalStorage();
                   if (!mobileFcmToken) {
-                    console.log("reached 3")
+                  
                     this.setState({ isLoading: false, disable: false })
                     Alert.alert('Failed to retrieve FCM token. Please try again later.');
                     return
