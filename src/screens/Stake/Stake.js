@@ -169,9 +169,7 @@ function Stake(props) {
   return (
     <React.Fragment>
 
-
-
-      <StatusBarNU
+ <StatusBarNU
         backgroundColor={theme?.BACKGROUND_COLOR}
 
       />
@@ -272,27 +270,8 @@ function Stake(props) {
                   }
                 </TouchableOpacity>
               </View>
-
-
-
-            </View>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        }
+ </View>
+ }
 
 
 
