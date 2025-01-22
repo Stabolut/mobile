@@ -28,7 +28,8 @@ import NoTransactionFound from './NoTransactionFound';
 import TransactionLoader from './TransactionLoader';
 import { checkInternetConnectivity } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
-import ReferralModal from '../../components/Modal/ReferralModal';
+import SwitchNetworkModal from '../../components/Modal/SwitchNetworkModal';
+
 
 
 const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl)
@@ -36,13 +37,12 @@ const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl)
 function Dashboard({ navigation }) {
   const [userAddress, setUserAddress] = useState('');
   const socketConnection = useContext(SocketContext);
-  const [privateKey, setPrivateKey] = useState('');
   const [balance, setBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isTransactionLoading, setTransactionLoading] = useState(false);
   const [transactionRecord, setTransactionRecord] = useState([]);
-  const [visible, setVisible] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [networkSwitchModal, setNetworkSwitchModal] = useState(true);
+
 
   socketDisconnectMessage(socketConnection.connectionStatus);
   let selectedTheme = useSelector((state) => state.authReducer.theme)
@@ -58,9 +58,8 @@ function Dashboard({ navigation }) {
 
     getUserTransactionListFromLocalDb()
     let address = await AsyncStorage.getItem('address');
-    let privateKey = await AsyncStorage.getItem('mnemonics');
     setUserAddress(address);
-    setPrivateKey(privateKey);
+
   };
 
   // if user address get from localStorage then we get the balance of address
@@ -84,9 +83,9 @@ function Dashboard({ navigation }) {
       setIsLoading(true);
 
       const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
-      console.log("contract",contract,address)
+      console.log("contract", contract, address)
       const balance = await contract.balanceOf(address);
-      console.log("balance",balance.toString())
+      console.log("balance", balance.toString())
       setBalance(balance / 1e2);
       setIsLoading(false);
     } catch (e) {
@@ -430,7 +429,6 @@ function Dashboard({ navigation }) {
           showKey={() => navigation.navigate(`${ENUMS.SCREENS.STAKE}`, { userAddress: userAddress, balance: balance ? balance : 0 })}
           receive={() => navigation.navigate(`${ENUMS.SCREENS.RECEIVE}`)}
           purchase={() => navigation?.navigate(ENUMS.SCREENS.SETTING)}
-          invites={() => setModalVisible(true)}
         >
 
         </SliderOption>
@@ -476,24 +474,20 @@ function Dashboard({ navigation }) {
         {/* </ScrollView> */}
       </View>
 
+      {/* // Modal to change the network */}
 
+      {/* <SwitchNetworkModal
 
+        visible={networkSwitchModal}
 
-      <MnemonicsShowModal
-        privateKey={privateKey}
-        visible={visible}
         onClose={() => {
-          setVisible(false);
-        }}></MnemonicsShowModal>
-
-      <ReferralModal
-
-        visible={modalVisible}
+          setNetworkSwitchModal(false);
+        }}
         theme={theme}
-        selectedTheme={selectedTheme}
-        onClose={() => {
-          setModalVisible(false);
-        }}></ReferralModal>
+        
+        ></SwitchNetworkModal> */}
+
+
 
 
 

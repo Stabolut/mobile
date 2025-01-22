@@ -8,7 +8,7 @@ import {
     Alert
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { ENUMS, COLORS, Str, THEME } from '../../../../common';
+import { ENUMS, COLORS, THEME } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../../components/Header/Header';
 //import Clipboard from '@react-native-community/clipboard';
@@ -16,11 +16,11 @@ import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
 import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/auth';
-import axios from "axios"
 import { store } from '../../../../store';
 import { ErrorMessages } from '../../../../messages/errorMessage';
 import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
 import { checkInternetConnectivity, errorMessageHandler, getFcmTokenFromLocalStorage } from '../../../../utils/utils';
+import { addWalletWithFcm } from '../../../../api/wallet';
 
 
 
@@ -59,10 +59,11 @@ class ImportWithPrivateKey extends React.Component {
                 isError: true,
                 message: 'Please provide a value for the private key field!',
             });
+
             return;
         }
 
-        // // Check internet connectivity
+        // Check internet connectivity
         const isConnected = await checkInternetConnectivity();
         if (!isConnected) {
             Alert.alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
@@ -79,24 +80,23 @@ class ImportWithPrivateKey extends React.Component {
 
         setTimeout(async () => {
 
-
-            // Obtain FCM token
-            const mobileFcmToken = await getFcmTokenFromLocalStorage();
-            if (!mobileFcmToken) {
-                this.setState({ isLoading: false, disable: false })
-                Alert.alert('Failed to retrieve FCM token. Please try again later.');
-                return
-            }
-
-
             try {
+                // Get FCM token
+                const mobileFcmToken = await getFcmTokenFromLocalStorage();
+                if (!mobileFcmToken) {
+                    throw new Error('Failed to retrieve FCM token. Please try again later.');
+                }
 
+
+                // Initialize wallet
                 const wallet = new ethers.Wallet(this.state.privateKey.trim());
-                let { data } = await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+
+                let { data } = await addWalletWithFcm({
                     account: wallet.address,
                     token: mobileFcmToken,
                     referenceCode: referenceCode
                 })
+
                 // Store wallet and referral info locally
                 await AsyncStorage.setItem('address', wallet.address);
                 await AsyncStorage.setItem('privateKey', this.state.privateKey.trim());
@@ -183,9 +183,6 @@ class ImportWithPrivateKey extends React.Component {
                             }}
                         />
                     </View>
-
-
-
 
                     <Text
                         style={{
