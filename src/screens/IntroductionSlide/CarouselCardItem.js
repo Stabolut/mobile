@@ -5,7 +5,7 @@ export const SLIDER_WIDTH = Dimensions.get('window').width + 80;
 export const ITEM_WIDTH = Math.round(SLIDER_WIDTH * 0.7);
 
 const CarouselCardItem = ({item, index,theme}) => {
-  console.log("theme?.",theme)
+ 
   return (
     <View style={[styles.container,{ backgroundColor: theme?.BACKGROUND_COLOR}]} key={index}>
       <View style={styles.innerContainer}>

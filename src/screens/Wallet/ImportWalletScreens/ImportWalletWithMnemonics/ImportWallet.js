@@ -78,11 +78,11 @@ class ImportWallet extends React.Component {
 
       // Obtain FCM token
       const mobileFcmToken = await getFcmTokenFromLocalStorage();
-      if (!mobileFcmToken) {
-        this.setState({ isLoading: false, disable: false })
-        Alert.alert('Failed to retrieve FCM token. Please try again later.');
-        return
-      }
+      // if (!mobileFcmToken) {
+      //   this.setState({ isLoading: false, disable: false })
+      //   Alert.alert('Failed to retrieve FCM token. Please try again later.');
+      //   return
+      // }
 
       try {
 

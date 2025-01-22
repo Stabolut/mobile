@@ -80,3 +80,8 @@ export const getFcmTokenFromLocalStorage = async () => {
   }
 }
 
+
+export const saveToAsyncStorage = async (key,value) => {
+  await AsyncStorage.setItem(key, value);
+  console.log("New FCM token saved in AsyncStorage.",key,value);
+};
