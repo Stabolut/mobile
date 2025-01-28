@@ -12,7 +12,7 @@ import CheckBox from '@react-native-community/checkbox';
 import { isEmpty } from 'lodash';
 import Realm from 'realm';
 import { useState, useContext } from 'react';
-import { ENUMS, COLORS, commonStyle as CS, Str, THEME } from '../../../common';
+import { ENUMS, COLORS, Str, THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -26,7 +26,6 @@ import moment from 'moment';
 import uuid from 'react-native-uuid';
 import { connect } from 'react-redux';
 import { SocketContext } from '../../../App';
-
 import socketDisconnectMessage from '../../../components/CustomHook/socketDisconnectMessage';
 import Notes from '../../../components/Modal/Notes';
 import ErrorMessage from '../../../components/ErrorComponent/ErrroMessage';
@@ -34,6 +33,8 @@ import SuccessMessage from '../../../components/SuccessComponent/SuccessMessage'
 import { checkInternetConnectivity, errorMessageHandler } from '../../../utils/utils';
 import { ErrorMessages } from '../../../messages/errorMessage';
 import { useSelector } from 'react-redux';
+import { transfer } from '../../../api/wallet';
+import { getRealmInstance } from '../../../utils/realmDbCreation';
 
 const getDecimalSeparator = () => {
   if (Platform.OS === 'ios') {
@@ -65,7 +66,10 @@ function Transfer({ navigation, route }) {
   const [username, setUsername] = useState(false);
   const [account, setAccount] = useState("");
   const [isContactOnly, setIsContactOnly] = useState(false);
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
+  let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
+  // let provider = new ethers.providers.JsonRpcProvider(currentNetwork.rpcUrl)
+
   const theme = THEME[selectedTheme];
 
   const decimalSeparator = getDecimalSeparator();
@@ -84,7 +88,9 @@ function Transfer({ navigation, route }) {
           amount: parseFloat(amount),
           date: date,
           transactionHash: transferHash,
-          transactionNotes: transactionNotes
+          transactionNotes: transactionNotes,
+          transactionType: "Transfer",
+          network: currentNetwork.name
         });
       }
       return () => {
@@ -172,17 +178,15 @@ function Transfer({ navigation, route }) {
       setMessage('');
 
       // Check balance
-      const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl);
+      const provider = new ethers.providers.JsonRpcProvider(currentNetwork.rpcUrl);
       const contract = new ethers.Contract(
-        Str.contractAddress,
+        currentNetwork.contractAddress,
         Str.ABI,
         provider,
       );
       let balance = await contract.balanceOf(sender);
       balance = parseFloat(balance) / Str.TOKEN_DECIMAL
       let amountToSend = parseFloat(amount) * Str.TOKEN_DECIMAL;
-
-
 
       // if user balance less then sending amount
       // if (balance < (parseFloat(amount) + parseFloat(Str.fees))) {
@@ -205,7 +209,7 @@ function Transfer({ navigation, route }) {
       const validReceiverAddress = receiver?.replace(/^(xdc)/i, "0x");
 
       const transferHex = await contract.getTransferPreSignedHash(
-        Str.contractAddress,
+        currentNetwork.contractAddress,
         username === true ? account : validReceiverAddress,
         amountToSend,
         Str.fees * Str.TOKEN_DECIMAL,
@@ -218,16 +222,16 @@ function Transfer({ navigation, route }) {
       //  =======get signature=======//
       // await axios.post(`${Str.apiUrl}/wallet/transfer-token`
       //hit api to transfer funds
-      let { data } = await axios.post(`${Str.apiUrl}/wallet/transfer-token`, {
+      let { data } = await transfer({
         signature: signature,
         toAddress: username === true ? account : validReceiverAddress,
         amount: amountToSend, //TODO:Minus the fess Str.fees
         nonce: parseInt(nonce),
         senderAddress: sender,
         originalAmount: amount,
-        transNotes: transactionNotes
-      });
-
+        transNotes: transactionNotes,
+        network: currentNetwork.name
+      })
       // set transaction to the state and we have useEffect which is call and socket emit notificatio
       setTransferHash(data.data.txnHash.transactionHash);
 
@@ -271,26 +275,9 @@ function Transfer({ navigation, route }) {
 
     try {
       const uniqueID = uuid.v4();
-      const transactionHistoryDBSchemaWithNotes = {
-        name: 'TransactionsHistorySchema',
-        properties: {
-          uniqueKey: 'string',
-          senderAddress: 'string',
-          receiverAddress: 'string',
-          amountToSend: 'double',
-          transactionStatus: 'string',
-          sendDate: 'date',
-          transactionHash: 'string', // Add the date property
-          transactionNotes: 'string'
-        },
-      };
+
       // Create a new Realm with the transaction schema
-      let realm;
-      try {
-        realm = new Realm({ schema: [transactionHistoryDBSchemaWithNotes] });
-      } catch (e) {
-        console.log('Actuall eroroor', e);
-      }
+      let realm = getRealmInstance()
 
       // Create a w transaction object with the current date
       const transactionObject = {
@@ -301,10 +288,11 @@ function Transfer({ navigation, route }) {
         transactionStatus: 'Pending',
         sendDate: date,// date, // Set the date property to the current date
         transactionHash: transactionHash,
-        transactionNotes: transactionNotes
+        transactionNotes: transactionNotes,
+        network: currentNetwork.name,
+        transactionType: 'Transfer'
 
       };
-
       // Save the transaction object to the Realm
       realm.write(() => {
         realm.create('TransactionsHistorySchema', transactionObject);
@@ -348,7 +336,7 @@ function Transfer({ navigation, route }) {
             <View style={[styles.container]}>
               <Text style={[styles.lableText, { color: theme?.WHITE, }]}>Sender</Text>
               <TextInput
-                value={sender?.replace(/^0x/i, "xdc")}
+                value={sender}
                 multiline={true}
                 editable={false}
                 style={{

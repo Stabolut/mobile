@@ -19,7 +19,7 @@ const ShowContact = ({ navigation, contactList }) => {
     const [isLoading, setIsLoading] = useState(false)
     const [searchText, setSearchText] = useState('');
 
-    let selectedTheme = useSelector((state) => state.authReducer.theme)
+    let selectedTheme = useSelector((state) => state.walletReducer.theme)
     const theme = THEME[selectedTheme];
 
 

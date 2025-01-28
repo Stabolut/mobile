@@ -1,4 +1,4 @@
-import { WALLET_CREATED,PIN_VALUE ,SET_THEME,REFERRAL_VALUE} from "../types/auth";
+import { WALLET_CREATED,PIN_VALUE ,SET_THEME,REFERRAL_VALUE,SELECTED_NETWORK} from "../types/wallet";
 
 export const storeWalletInfo = (data) => {
  
@@ -28,6 +28,14 @@ export const storeReferralInfo = (data) => {
 
   return {
     type: REFERRAL_VALUE,
+    payload: data,
+  };
+};
+
+export const storeNetworkInfo = (data) => {
+ 
+  return {
+    type: SELECTED_NETWORK,
     payload: data,
   };
 };

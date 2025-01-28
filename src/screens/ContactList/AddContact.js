@@ -44,7 +44,7 @@ const AddContact = ({ navigation }) => {
     const [name, setName] = useState("")
     const [account, setAccount] = useState("")
     const [postObject, dispatch] = useReducer(reducer, initialState)
-    const selectedTheme = useSelector((state) => state.authReducer.theme)
+    const selectedTheme = useSelector((state) => state.walletReducer.theme)
     const theme = THEME[selectedTheme];
 
 
@@ -72,7 +72,7 @@ const AddContact = ({ navigation }) => {
             });
 
             dispatch({ type: "FetchSuccess" })
-            console.log("data.data ", data.data)
+           
             store.dispatch({ type: "ADD_CONTACT", payload: data.data })
             alert("The contact has been successfully added")
             setName("")

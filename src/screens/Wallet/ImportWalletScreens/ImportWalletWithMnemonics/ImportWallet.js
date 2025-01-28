@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
 import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
-import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/auth';
+import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/wallet';
 import axios from "axios"
 import Clipboard from '@react-native-clipboard/clipboard';
 import { store } from '../../../../store';
@@ -126,7 +126,7 @@ class ImportWallet extends React.Component {
   };
 
   render() {
-    let selectedTheme = store.getState().authReducer?.theme
+    let selectedTheme = store.getState().walletReducer?.theme
     let theme = THEME[selectedTheme]
 
     return (

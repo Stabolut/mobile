@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 export default function ReferralModal({ visible, onClose, theme, selectedTheme }) {
 
-    let referralCode = useSelector((state) => state.authReducer.referral)
+    let referralCode = useSelector((state) => state.walletReducer.referral)
 
 
     let copyToClipBoard = (text) => {

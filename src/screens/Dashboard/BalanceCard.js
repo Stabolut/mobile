@@ -12,7 +12,7 @@ import { COLORS, Images, THEME } from '../../common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
-function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
+function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme, currentNetwork, switchNetwork, balanceError }) {
     const theme = THEME[selectedTheme];
 
     return (
@@ -22,7 +22,7 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
                 backgroundColor: theme?.BALANCE_CARD_BACKGROUND,// COLORS.BALANCE_CARD_BACKGROUND,
                 borderTopColor: theme?.BALANCE_CARD_UPPER_BORDER,
                 shadowColor: theme?.WHITE,
-                opacity:1
+                opacity: 1
 
             }]}>
 
@@ -37,13 +37,13 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
 
                                     <Text style={[styles.balanceTextValue, { color: theme?.WHITE }]}> {balance.toLocaleString() + ' US₿'}</Text>
 
-                                </View>
-                        }
+
+                                </View>}
 
                     </View>
 
                     <View>
-                        <View style={{ backgroundColor: "red", padding: 3 }}>
+                        <View style={{ backgroundColor: "red", padding: 4, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
 
                             <Text style={{
                                 padding: 0, fontSize: 12,
@@ -52,7 +52,20 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
                                 color: THEME?.commonColor.commonWhite,
 
                                 fontFamily: "Poppins"
-                            }}>Testnet</Text>
+                            }}>{currentNetwork.name} Testnet</Text>
+
+                            <TouchableOpacity style={{ paddingHorizontal: 6, paddingVertical: 6, marginLeft: 2, backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,borderRadius:6, }} onPress={() => switchNetwork()}>
+
+                                <Text style={{
+                                    padding: 0, fontSize: 12,
+                                    fontWeight: 'bold',
+                                    color: THEME?.commonColor.commonWhite,
+                                    fontFamily: "Poppins"
+                                }}>Switch Network</Text>
+
+                            </TouchableOpacity>
+
+
                         </View>
 
 
@@ -63,7 +76,7 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
 
 
                 <View style={{ flexDirection: "row", marginTop: 12, paddingLeft: 24, paddingRight: 24, paddingBottom: 8 }}>
-                    <View style={{ flex: 80 }}><Text style={[styles.addressText,{color:theme?.WHITE}]}>{userAddress.replace(/^0x/i, "xdc")}</Text></View>
+                    <View style={{ flex: 80 }}><Text style={[styles.addressText, { color: theme?.WHITE }]}>{userAddress}</Text></View>
                     <TouchableOpacity onPress={copy} style={{ flex: 10 }}>
 
                         <Ionicons
@@ -115,6 +128,7 @@ const styles = StyleSheet.create({
 
     balanceTextHeading: {
 
+        marginTop: 12,
         fontSize: 12,
         fontWeight: "400",
         fontFamily: "Poppins",

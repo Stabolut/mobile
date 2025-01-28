@@ -15,7 +15,7 @@ import { ethers } from 'ethers';
 import _ from 'lodash';
 import LoadingModal from '../../../components/LoadingModal/modal';
 import AsyncStorage from '@react-native-community/async-storage';
-import { storeReferralInfo, storeWalletInfo } from '../../../redux/action/auth';
+import { storeReferralInfo, storeWalletInfo } from '../../../redux/action/wallet';
 import axios from "axios"
 import { store } from '../../../store';
 import { checkInternetConnectivity, errorMessageHandler, getFcmTokenFromLocalStorage } from '../../../utils/utils';
@@ -119,7 +119,7 @@ class MnemoncisVerification extends React.Component {
   // above noble pyramid group sand dynamic eager mouse fatal bullet smile common
 
   render() {
-    let selectedTheme = store.getState().authReducer?.theme
+    let selectedTheme = store.getState().walletReducer?.theme
     let theme = THEME[selectedTheme]
     return (
       <React.Fragment>
@@ -270,12 +270,12 @@ class MnemoncisVerification extends React.Component {
 
                   // Obtain FCM token
                   const mobileFcmToken = await getFcmTokenFromLocalStorage();
-                  if (!mobileFcmToken) {
+                  // if (!mobileFcmToken) {
                   
-                    this.setState({ isLoading: false, disable: false })
-                    Alert.alert('Failed to retrieve FCM token. Please try again later.');
-                    return
-                  }
+                  //   this.setState({ isLoading: false, disable: false })
+                  //   Alert.alert('Failed to retrieve FCM token. Please try again later.');
+                  //   return
+                  // }
                   try {
 
 

@@ -4,13 +4,9 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  TextInput,
-  ScrollView,
-  FlatList,
-  Image,
   ActivityIndicator,
-  Alert
-
+  Alert,
+  FlatList
 } from 'react-native';
 import { COLORS, ENUMS, THEME, Str } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
@@ -18,13 +14,16 @@ import Header from '../../components/Header/Header';
 import TransactionLoader from '../Dashboard/TransactionLoader';
 import AsyncStorage from '@react-native-community/async-storage';
 import axios from 'axios';
-import Feather from 'react-native-vector-icons/Feather';
-import moment from 'moment';
 import ErrorMessage from '../../components/ErrorComponent/ErrroMessage';
 import StakingBalance from './StakingBalance';
 import { ErrorMessages } from '../../messages/errorMessage';
 import { checkInternetConnectivity, errorMessageHandler } from '../../utils/utils';
 import { useSelector } from 'react-redux';
+import { getInStake, withdrawalToken } from '../../api/wallet';
+import moment from 'moment';
+import Realm from 'realm';
+import uuid from 'react-native-uuid';
+import { getRealmInstance } from '../../utils/realmDbCreation';
 
 
 
@@ -37,7 +36,7 @@ let initialState = {
   amount: 0,
   message: "",
   stakeReward: 0,
-  stakePercent: 0
+  apr: 0
 }
 
 
@@ -46,7 +45,7 @@ let reducer = (currentState, action) => {
     case "fetch":
       return { ...initialState, isLoading: true, isError: false }
     case "fetchSuccess":
-      return { ...currentState, isLoading: false, isError: false, data: action.payload.stakeList, amount: action.payload.stakeAmount, stakeReward: action.payload.stakeReward, stakePercent: action.payload.stakePercent }
+      return { ...currentState, isLoading: false, isError: false, data: action.payload.stakeList, amount: action.payload.stakeAmount, stakeReward: action.payload.stakeReward, apr: action.payload.apr }
     case "fetchFail":
       return { ...currentState, isLoading: false, isError: true, message: action.payload }
   }
@@ -59,8 +58,10 @@ function Stake(props) {
   const [disable, setDisable] = useState(false);
   const [isError, setIsError] = useState(false);
 
+
   const [getObject, dispatch] = useReducer(reducer, initialState)
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
+  let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
   const theme = THEME[selectedTheme];
   useEffect(() => {
     fetchStake()
@@ -74,17 +75,14 @@ function Stake(props) {
 
     }
 
-
     dispatch({ type: "fetch", payload: {} })
+
     let address = await AsyncStorage.getItem('address');
 
     try {
 
-
-      let data = await axios.post(`${Str.apiUrl}/staking/get-in-stake`, {
-        account: address
-      });
-      console.log("data.data.data",data.data.data.stake[0])
+      let data = await getInStake({ account: address, network: currentNetwork.name })
+      console.log("data.data.data.stake[0].stakeBucketsList", data.data.data.stake[0].stakeBucketsList)
 
       if (data.data.data.stake[0].totalRewardOnStake === 0) {
         setDisable(true)
@@ -92,7 +90,7 @@ function Stake(props) {
       else {
         setDisable(false)
       }
-      dispatch({ type: "fetchSuccess", payload: { stakeList: data.data.data.stake[0].stakeBucketsList, stakeAmount: data.data.data.stake[0].totalAmountInStake, stakeReward: data.data.data.stake[0].totalRewardOnStake, stakePercent: data.data.data.stakePercent } })
+      dispatch({ type: "fetchSuccess", payload: { stakeList: data.data.data.stake[0].stakeBucketsList, stakeAmount: data.data.data.stake[0].totalAmountInStake, stakeReward: data.data.data.stake[0].totalRewardOnStake, apr: data.data.data.apr } })
     }
     catch (e) {
       let msg = errorMessageHandler(e)
@@ -103,17 +101,10 @@ function Stake(props) {
 
   })
 
-  let refresh = () => {
-    fetchStake()
-  }
-
-
-
   let withdrawToken = async () => {
     // now we send funds
 
     try {
-
 
       let isConnected = await checkInternetConnectivity()
       if (!isConnected) {
@@ -124,11 +115,8 @@ function Stake(props) {
       setIsLoading(true);
       setDisable(true);
 
-      await axios.post(`${Str.apiUrl}/wallet/withdrawToken`, {
-        walletAddress: props.route.params.userAddress,
-        amount: getObject.stakeReward,
-
-      });
+      let { data } = await withdrawalToken({ walletAddress: props.route.params.userAddress, amount: getObject.stakeReward, network: currentNetwork.name })
+      saveDB(data.data)
       fetchStake()
       setIsLoading(false);
       setDisable(false);
@@ -161,16 +149,43 @@ function Stake(props) {
       );
 
     }
-
-
-
   }
+
+  const saveDB = (data) => {
+
+    try {
+      const uniqueID = uuid.v4();
+      // Create a new Realm with the transaction schema
+      let realm = getRealmInstance()
+      // Create a w transaction object with the current date
+      const transactionObject = {
+        uniqueKey: uniqueID,
+        senderAddress: currentNetwork.fundindAddress,
+        receiverAddress: props.route.params.userAddress,
+        amountToSend: parseFloat(data.amountToSend),
+        transactionStatus: 'Pending',
+        sendDate: data.sendDate,// date, // Set the date property to the current date
+        transactionHash: data.transactionHash,
+        transactionNotes: data.transactionNotes,
+        network: data.network,
+        transactionType: data.transactionType
+
+      };
+      // Save the transaction object to the Realm
+      realm.write(() => {
+        realm.create('TransactionsHistorySchema', transactionObject);
+      });
+
+    } catch (e) {
+      console.log('Execption', e, e.data);
+    }
+  };
 
 
   return (
     <React.Fragment>
 
- <StatusBarNU
+      <StatusBarNU
         backgroundColor={theme?.BACKGROUND_COLOR}
 
       />
@@ -180,7 +195,7 @@ function Stake(props) {
 
         <StakingBalance theme={theme} stakeAmount={getObject.amount} balance={props.route.params.balance} userAddress={props.route.params.userAddress}></StakingBalance>
 
-        <View style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 16, paddingBottom: 8 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
           <TouchableOpacity onPress={() => {
             props.navigation.navigate(ENUMS.SCREENS.ADD_STAKE, { balance: props.route.params.balance })
           }}
@@ -197,13 +212,11 @@ function Stake(props) {
 
 
 
-        <View style={{ padding: 16, marginLeft: 2 }}>
+        <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
 
-
-
-          <Text style={[styles.eurbMainAccountText, { marginBottom: 6, color: theme?.WHITE }]}>Claim</Text>
+          <Text style={[styles.eurbMainAccountText, { color: theme?.WHITE }]}>Claim</Text>
           {/* <Text style={{ color: COLORS.WHITE, textAlign: 'justify',fontSize:12,fontFamily: "Poppins" }}>Users who stake their USB coins in our staking pool have the opportunity to earn lucrative rewards. With a 0.03% return every 8 hours, you can accumulate substantial rewards by participating in our staking program. After the 8-hour period, users can claim their earned rewards.</Text> */}
-          <Text style={{ color: theme?.WHITE, textAlign: 'justify', fontSize: 12, fontFamily: "Poppins", marginRight: 8 }}>Earn lucrative rewards by staking USB coins for a period of 1 month and claiming earnings thereafter. </Text>
+          <Text style={{ color: theme?.WHITE, textAlign: 'justify', fontSize: 12, fontFamily: "Poppins", marginRight: 8 }}>Earn lucrative rewards by staking USB coins for a period of 1 day and claiming earnings thereafter. </Text>
         </View>
 
 
@@ -215,9 +228,8 @@ function Stake(props) {
           </View>
             :
 
-            <View style={{ paddingTop: 12 }} >
+            <View >
               <View style={[styles.stakingCardMainViewStyle, {
-                marginBottom: 12,
                 justifyContent: "space-between", // Align items at start and end
                 flexDirection: "row",
                 alignItems: "center", // Align items vertically in the center
@@ -236,7 +248,7 @@ function Stake(props) {
                   backgroundColor: theme?.BALANCE_CARD_BACKGROUND
                 }}>
                   <Text style={[styles.totalRewardHeading, { color: theme?.WHITE, fontWeight: 500, marginBottom: 6 }]} >Stakig Reward</Text>
-                  <Text style={[styles.totalRewardHeading, { color: theme?.WHITE }]} >{getObject?.stakeReward} USB</Text>
+                  <Text style={[styles.totalRewardHeading, { color: theme?.WHITE }]} >{parseFloat(getObject?.stakeReward).toFixed(4)} USB</Text>
 
                 </View>
                 {/* <View style={{ height: 70,width:3, backgroundColor: COLORS.BTN_BACKGROUND_COLOR,marginHorizontal:4 }}></View> */}
@@ -254,8 +266,8 @@ function Stake(props) {
                   marginLeft: 8,
                   backgroundColor: theme?.BALANCE_CARD_BACKGROUND,
                 }}>
-                  <Text style={[styles.totalRewardHeading, { color: theme?.WHITE, fontWeight: 500, marginBottom: 6 }]} >APY</Text>
-                  <Text style={[styles.totalRewardHeading, { color: theme?.WHITE }]} >{(((getObject.stakeReward * getObject.stakePercent) / 100) * 365).toFixed(2)}%</Text>
+                  <Text style={[styles.totalRewardHeading, { color: theme?.WHITE, fontWeight: 500, marginBottom: 6 }]} >APR</Text>
+                  <Text style={[styles.totalRewardHeading, { color: theme?.WHITE }]} >{getObject.apr}%</Text>
 
                 </View>
 
@@ -267,79 +279,94 @@ function Stake(props) {
 
                   style={[styles.btnStyleSend, { opacity: disable === true ? 0.7 : 1, }]}>
                   {isLoading ? <ActivityIndicator></ActivityIndicator> :
-                    <Text style={styles.textStyleSend}>Claim</Text>
+                    <Text style={styles.textStyleSend}>Claim Now</Text>
                   }
                 </TouchableOpacity>
               </View>
- </View>
- }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        {/* {
-          getObject.isLoading === true ? <TransactionLoader></TransactionLoader> :
-            getObject.isError === true ? <View style={{ padding: 16 }}>
-              <ErrorMessage message={getObject.message}></ErrorMessage>
             </View>
-              :
-              getObject.data.length > 0 ?
+        }
 
-                <FlatList
-                  data={getObject.data}
-                  keyExtractor={(item, index) => index.toString()}
-                  inverted={false}
-                  renderItem={({ item }) => (
-                    <View style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 12 }} >
-                      <View style={[styles.stakingCardMainViewStyle, { backgroundColor: theme?.BACKGROUND_COLOR, borderColor: theme?.STAKE_LIST_BORDER_COLOR }]}>
-                        <View style={{ flexDirection: "row", flex: 1 }}>
-                          <View style={{ flex: 1, justifyContent: "center" }}>
-                            <Text style={[styles.totalRewardHeading, { color: theme?.WHITE }]} >Total Stack ({item?.amount} USB)</Text>
-                            <Text style={{ color: theme?.WHITE, fontSize: 12, marginTop: 4 }}><Text style={{ fontWeight: "bold" }}>Date</Text>:{moment(item.timestamps.created_At).format("DD MMM YYYY, HH:mm")}</Text>
-                          </View>
-                          <View style={{ justifyContent: "flex-end", flex: 1, alignItems: "flex-end" }}>
-                            <Text style={[styles.balanceTextHeading, { fontWeight: "900", color: theme?.WHITE }]}>Reward</Text>
 
-                            <Text style={{ color: theme?.WHITE, fontSize: 12, marginTop: 4 }}>{item?.yieldAmount} USB</Text>
 
-                          </View>
+        {
+          getObject.data.length > 0 ? (
+            <>
+              <Text style={[styles.eurbMainAccountText, { color: theme?.WHITE, paddingLeft: 16, marginTop: 12 }]}>Staking Overview</Text>
+              <FlatList
+                data={getObject.data}
+                keyExtractor={(item, index) => index.toString()}
+                inverted={false}
+                renderItem={({ item }) => (
+                  <View>
+                    <View
+                      style={[
+                        styles.stakingCardMainViewStyle,
+                        {
+                          backgroundColor: theme?.BACKGROUND_COLOR,
+                          borderColor: theme?.STAKE_LIST_BORDER_COLOR,
+
+                        },
+                      ]}
+                    >
+                      <View style={{ flexDirection: "row", flex: 1 }}>
+                        <View style={{ flex: 1, justifyContent: "center" }}>
+                          <Text
+                            style={[
+                              styles.totalRewardHeading,
+                              { color: theme?.WHITE },
+                            ]}
+                          >
+                            Staked Amount: {item?.amount} USB
+                          </Text>
+                          <Text
+                            style={{
+                              color: theme?.WHITE,
+                              fontSize: 12,
+                              marginTop: 4,
+                            }}
+                          >
+                            <Text style={{ fontWeight: "bold" }}>Staked On: </Text>
+                            {moment(item.timestamps.created_At).format(
+                              "DD MMM YYYY, HH:mm"
+                            )}
+                          </Text>
                         </View>
-
+                        <View
+                          style={{
+                            justifyContent: "flex-start",
+                            flex: 1,
+                            alignItems: "flex-end"
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.balanceTextHeading,
+                              {
+                                fontWeight: "900",
+                                color: theme?.WHITE,
+                              },
+                            ]}
+                          >
+                            Total Rewards Earned
+                          </Text>
+                          <Text
+                            style={{
+                              color: theme?.WHITE,
+                              fontSize: 12,
+                              marginTop: 4,
+                            }}
+                          >
+                            {parseFloat(item?.rewardAmountOnStaking).toFixed(4)} USB
+                          </Text>
+                        </View>
                       </View>
-
                     </View>
-
-                  )}
-                />
-                :
-                <View style={{ paddingLeft: 16, paddingRight: 16, marginRight: 8 }}>
-
-                  <Text style={{ color: theme?.WHITE, textAlign: 'justify', fontSize: 12, fontFamily: "Poppins", marginRight: 8 }}>When you stake, a bucket is reserved for the staked amount for a duration of 1 month.
-                    After the month, the staked tokens are returned to you along with a yield.
-                    On average, the yield is 2.5% per month.</Text>
-                  <View style={{ padding: 16, borderRadius: 8, backgroundColor: "#4d4b70", marginTop: 16 }}>
-                    <Text style={[styles.totalRewardHeading, { alignSelf: "center", color: COLORS.WHITE }]} >You have 0 non-delegated buckets</Text>
-
                   </View>
-                </View>
-        } */}
+                )}
+              />
+            </>
+          ) : null
+        }
 
       </View>
     </React.Fragment>

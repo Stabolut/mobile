@@ -26,6 +26,8 @@ const logoStablout= require('../assets/logoStablout.png');
 const slider= require('../assets/slider.png');
 const rocket= require('../assets/rocket.png');
 const logoWhite1= require('../assets/logoWhite1.png');
+const xifinixLogo= require('../assets/xdc.webp');
+const arbitriumLogo= require('../assets/arbitrum.png');
 
 
 const btc = require('../assets/Btc-sans.png');
@@ -57,5 +59,7 @@ export const Images = {
   btc,
   slider,
   logoWhite1,
-  rocket
+  rocket,
+  xifinixLogo,
+  arbitriumLogo
 };

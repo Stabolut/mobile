@@ -24,7 +24,7 @@ import LoadingModal from '../../../components/LoadingModal/modal';
 import { errorMessageHandler, saveString } from '../../../utils/utils';
 import axios from 'axios';
 import { store } from '../../../store';
-import { setTheme } from '../../../redux/action/auth';
+import { setTheme } from '../../../redux/action/wallet';
 
 
 function Setting({ navigation }) {
@@ -40,7 +40,7 @@ function Setting({ navigation }) {
     const [visible, setVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
-    const selectedTheme = useSelector((state) => state.authReducer.theme)
+    const selectedTheme = useSelector((state) => state.walletReducer.theme)
     const theme = THEME[selectedTheme];
 
 
@@ -128,8 +128,6 @@ function Setting({ navigation }) {
         if (toggle === true) {
             store.dispatch(setTheme(ENUMS.THEME.DARK))
             saveString("theme", ENUMS.THEME.DARK)
-
-
         }
         else {
             store.dispatch(setTheme(ENUMS.THEME.LIGHT))
@@ -137,42 +135,27 @@ function Setting({ navigation }) {
         }
     }, [toggle]);
 
-
     const clearRealmDB = async () => {
-        // Define your Realm schema
-        const TransactionsHistorySchema = {
-            name: 'TransactionsHistorySchema',
-            properties: {
-                uniqueKey: 'string',
-                senderAddress: 'string',
-                receiverAddress: 'string',
-                amountToSend: 'double',
-                transactionStatus: 'string',
-                sendDate: 'date',
-                transactionHash: 'string',
-                transactionNotes: 'string',
-            },
-        };
-
-        // Open the Realm database
-        Realm.open({ schema: [TransactionsHistorySchema] })
-            .then((realm) => {
-                // Begin a write transaction
-                realm.write(() => {
-                    // Get all the objects in the TransactionsHistorySchema schema and delete them
-                    const allObjects = realm.objects('TransactionsHistorySchema');
-                    realm.delete(allObjects);
-                });
-
-                // Close the Realm database
-                realm.close();
-
-
-            })
-            .catch((error) => {
-
+        try {
+            // Get the shared Realm instance
+            const realm = getRealmInstance();
+            // Begin a write transaction to delete all objects
+            realm.write(() => {
+                const allObjects = realm.objects('TransactionsHistorySchema');
+                realm.delete(allObjects); // Delete all objects from the schema
             });
+            if (realmInstance && !realmInstance.isClosed) {
+                realmInstance.close();
+                realmInstance = null;
+            }
+
+            console.log('Realm database cleared successfully.');
+        } catch (error) {
+            console.error('Error clearing Realm database:', error);
+        }
     };
+
+
 
 
     const handleYesButtonPress = async () => {
@@ -639,8 +622,8 @@ function Setting({ navigation }) {
 
 
 
-            <SetUsernameModal selectedTheme={selectedTheme} username={username} initialUsername={initialUsername} visible={showUsernameModal} onChangeValue={(username) => {setUserName(username)}} onClose={() => {setShowUsernameModal(false)}}
-            onUpdateUsername={(value) => {setInitialUsername(value)}}
+            <SetUsernameModal selectedTheme={selectedTheme} username={username} initialUsername={initialUsername} visible={showUsernameModal} onChangeValue={(username) => { setUserName(username) }} onClose={() => { setShowUsernameModal(false) }}
+                onUpdateUsername={(value) => { setInitialUsername(value) }}
 
 
 

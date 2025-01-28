@@ -23,7 +23,7 @@ function TransactionSuccess(props) {
 
   const socketConnection = useContext(SocketContext);
   socketDisconnectMessage(socketConnection.connectionStatus);
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
   const theme = THEME[selectedTheme];
 
   return (

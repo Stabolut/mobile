@@ -1,12 +1,14 @@
-import { WALLET_CREATED, PIN_VALUE, SET_PIN, SET_THEME, REFERRAL_VALUE } from "../types/auth";
+import { WALLET_CREATED, PIN_VALUE, SET_PIN, SET_THEME, REFERRAL_VALUE,SELECTED_NETWORK } from "../types/wallet";
 
 const initialState = {
   pinValue: false,
   walletCreated: false,
   theme: "",
-  referral: {}
+  referral: {},
+  currentNetwork:{}
+
 };
-export const authReducer = (state = initialState, action) => {
+export const walletReducer = (state = initialState, action) => {
 
 
   switch (action.type) {
@@ -47,6 +49,13 @@ export const authReducer = (state = initialState, action) => {
       return {
         ...state,
         referral: action.payload,
+      };
+      
+      case SELECTED_NETWORK:
+
+      return {
+        ...state,
+        currentNetwork: action.payload,
       };
 
 

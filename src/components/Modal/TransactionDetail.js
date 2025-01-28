@@ -11,16 +11,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 export default function TransactionDetail({ item, showDetailModal, onClose, onBlochainContinue, userAddress, theme }) {
 
-    const navigation = useNavigation();
-
-    const items = {
-        amountToSend: 100000,
-        // other properties of the item
-    };
-
-
-
-
     return (
         <Modal animationType="fade"
 
@@ -41,61 +31,67 @@ export default function TransactionDetail({ item, showDetailModal, onClose, onBl
 
                     </View>
                     <Text style={{ marginTop: 16, marginBottom: 12, color: theme?.WHITE }}>
-                        {userAddress === item.senderAddress ? "You have transferred" : "You have received"}{" "}
+                        {item.transactionType === "Staking" ? "You have withdrawn your stake" : userAddress === item.senderAddress ? "You have transferred" : "You have received"}{" "}
 
 
                         <Text style={{ color: theme?.SMALL_HEADING_TEXT, fontWeight: "bold" }}>{item?.amountToSend?.toLocaleString('en-IN')} US₿</Text></Text>
-                    <Text style={{ marginBottom: 16, color: theme?.WHITE }}>
 
+                    {item.transactionType !== "Staking" && (
+                        <Text style={{ marginBottom: 16, color: theme?.WHITE }}>
+                            {userAddress === item.senderAddress ? "To" : "From"}
+                        </Text>
+                    )}
 
-                        {userAddress === item.senderAddress ? "To" : "From"}
-                    </Text>
+                    {item.transactionType !== "Staking" && (
+                        <View style={{ backgroundColor: theme?.TRANSACTION_DETAIL_ADDRESS_BACKGROUND, borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", marginHorizontal: 24 }}>
+                            <Text style={[styles.addressText, { color: theme?.SMALL_HEADING_TEXT, }]}>
+                                {userAddress === item.senderAddress ? item?.receiverAddress : item?.senderAddress}
+
+                            </Text>
+                            <TouchableOpacity
+
+                                onPress={() => {
+
+                                    try {
+                                        let res = userAddress === item.senderAddress ? item.receiverAddress : item.senderAddress
+
+                                        Clipboard.setString(res);
+                                        DropDownHolder.alert(
+                                            'sucess',
+                                            'Copy',
+                                            `The wallet information has been successfully copied to the clipboard.`,
+                                        );
+                                    }
+                                    catch (e) {
+                                        DropDownHolder.alert(
+                                            'sucess',
+                                            'Copy',
+                                            `Facing some problem to copy wallet information to the clipboard.`,
+                                        );
+
+                                    }
+
+                                }}
+
+                                style={{ justifyContent: "center", alignItems: "center" }}
+                            >
+                                <Ionicons size={25} color={theme.WHITE} name="copy" />
+
+                            </TouchableOpacity>
+                        </View>
+
+                    )}
 
 
 
                     {/* backgroundColor: "#252549" */}
-                    <View style={{ backgroundColor: theme?.TRANSACTION_DETAIL_ADDRESS_BACKGROUND, borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", marginHorizontal: 24 }}>
-                        <Text style={[styles.addressText, { color: theme?.SMALL_HEADING_TEXT, }]}>
-                            {userAddress === item.senderAddress ? item?.receiverAddress?.replace(/^0x/i, "xdc") : item?.senderAddress?.replace(/^0x/i, "xdc")}
 
-                        </Text>
-                        <TouchableOpacity
 
-                            onPress={() => {
-
-                                try {
-                                    let res = userAddress === item.senderAddress ? item.receiverAddress : item.senderAddress
-
-                                    Clipboard.setString(res);
-                                    DropDownHolder.alert(
-                                        'sucess',
-                                        'Copy',
-                                        `The wallet information has been successfully copied to the clipboard.`,
-                                    );
-                                }
-                                catch (e) {
-                                    DropDownHolder.alert(
-                                        'sucess',
-                                        'Copy',
-                                        `Facing some problem to copy wallet information to the clipboard.`,
-                                    );
-
-                                }
-
-                            }}
-
-                            style={{ justifyContent: "center", alignItems: "center" }}
-                        >
-                            <Ionicons size={25} color={theme.WHITE} name="copy" />
-
-                        </TouchableOpacity>
-                    </View>
                     {
                         item.transactionNotes && <Text style={{ alignSelf: "flex-start", color: theme?.SMALL_HEADING_TEXT, marginBottom: 4, padding: 4, paddingLeft: 24 }}>Notes: <Text style={{ color: theme?.WHITE, fontWeight: "500" }}>{item.transactionNotes != "" ? item.transactionNotes : ""}</Text></Text>
                     }
 
-
-                    <Text style={{ alignSelf: "flex-start", marginBottom: 16, color: theme?.SMALL_HEADING_TEXT, paddingLeft: 24 }}>Date: <Text style={{ color: theme?.WHITE }}>{moment(item.sendDate).format('MMMM D, YYYY')}</Text></Text>
+                    <Text style={{ alignSelf: item.transactionType !== "Staking" ? "flex-start" : "center", marginBottom: 16, color: theme?.SMALL_HEADING_TEXT, paddingLeft: item.transactionType !== "Staking" ? 24 : 0 }}>Date: <Text style={{ color: theme?.WHITE }}>{moment(item.sendDate).format('MMMM D, YYYY')}</Text></Text>
 
                     {/* <Text style={{ alignSelf: "flex-start", color: "gray", marginBottom: 4 }}>Notes: <Text style={{ color: COLORS.APP_BLUE_COLOR, fontWeight: "500" }}>{props.item.transactionNotes}</Text></Text>
                     <Text style={{ alignSelf: "flex-start", marginBottom: 24, color: "gray" }}>Send Data: <Text style={{ color: COLORS.BLACK }}>{props.item.sendDate}</Text></Text> */}

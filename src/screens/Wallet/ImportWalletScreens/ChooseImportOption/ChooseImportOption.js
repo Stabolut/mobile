@@ -13,7 +13,7 @@ import messaging from '@react-native-firebase/messaging';
 import { useSelector } from 'react-redux';
 function ChooseImportOption({ navigation }) {
 
-    let selectedTheme = useSelector((state) => state.authReducer.theme)
+    let selectedTheme = useSelector((state) => state.walletReducer.theme)
     const theme = THEME[selectedTheme];
 
     useEffect(() => {

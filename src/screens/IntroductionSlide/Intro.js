@@ -13,7 +13,7 @@ let Intro = props => {
   const isCarousel = React.useRef(null);
   const [index, setIndex] = React.useState(0);
   const navigation = useNavigation();
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
   const theme = THEME[selectedTheme];
   let data = [
     {
@@ -224,8 +224,8 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => {
   return {
 
-    authState: state.authReducer.walletCreated,
-    pinValue: state.authReducer.pinValue
+    authState: state.walletReducer.walletCreated,
+    pinValue: state.walletReducer.pinValue
   }
 }
 export default connect(mapStateToProps)(Intro);

@@ -179,7 +179,7 @@ class CreateWallet extends React.Component {
 
   render() {
 
-    let selectedTheme = store.getState().authReducer?.theme
+    let selectedTheme = store.getState().walletReducer?.theme
     let theme = THEME[selectedTheme]
     return (
       <React.Fragment>

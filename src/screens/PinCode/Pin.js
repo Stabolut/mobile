@@ -8,7 +8,7 @@ import PINCode from '@haskkor/react-native-pincode';
 import Biometrics from 'react-native-biometrics';
 import TouchID from 'react-native-touch-id';
 import { store } from '../../store';
-import { setPin } from '../../redux/action/auth';
+import { setPin } from '../../redux/action/wallet';
 class Pin extends React.Component {
 
   state = {
@@ -39,7 +39,7 @@ class Pin extends React.Component {
 
 
   render() {
-    let selectedTheme = store.getState().authReducer?.theme
+    let selectedTheme = store.getState().walletReducer?.theme
     let theme = THEME[selectedTheme]
 
     return (

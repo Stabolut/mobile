@@ -20,6 +20,7 @@ import NoTransactionFound from './NoTransactionFound';
 import TransactionLoader from './TransactionLoader';
 import { checkInternetConnectivity } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
+import { getWalletTransactionList } from '../../api/wallet';
 
 
 
@@ -30,7 +31,8 @@ function AllTransaction({ navigation }) {
     const [transactionRecord, setTransactionRecord] = useState([]);
 
     socketDisconnectMessage(socketConnection.connectionStatus);
-    let selectedTheme = useSelector((state) => state.authReducer.theme)
+    let selectedTheme = useSelector((state) => state.walletReducer.theme)
+    let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
     const theme = THEME[selectedTheme];
 
 
@@ -63,7 +65,7 @@ function AllTransaction({ navigation }) {
         }
         try {
             setTransactionLoading(true)
-            let { data } = await axios.post(`${Str.apiUrl}/wallet/transacions-list`, { walletAddress: userAddress })
+            let { data } = await  getWalletTransactionList({ walletAddress: userAddress, network: currentNetwork.name })
             setTransactionRecord(data.data.wallet)
             setTransactionLoading(false)
 

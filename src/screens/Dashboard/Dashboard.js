@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,18 +7,14 @@ import {
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
-import { COLORS, ENUMS, Str, THEME } from '../../common';
+import { COLORS, ENUMS, THEME } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import AsyncStorage from '@react-native-community/async-storage';
 import { ethers } from 'ethers';
 import Transaction from './Transaction';
-import MnemonicsShowModal from '../../components/Modal/MnemonicsShowModal';
-import uuid from 'react-native-uuid';
-import Realm from 'realm';
 import moment from 'moment';
 import { SocketContext } from '../../App';
 import socketDisconnectMessage from '../../components/CustomHook/socketDisconnectMessage';
-import axios from 'axios';
 import BalanceCard from './BalanceCard';
 // import Clipboard from '@react-native-community/clipboard';
 import DropDownHolder from '../../components/dropDownHolder';
@@ -29,158 +25,109 @@ import TransactionLoader from './TransactionLoader';
 import { checkInternetConnectivity } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
 import SwitchNetworkModal from '../../components/Modal/SwitchNetworkModal';
-
-
-
-const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl)
+import { networkConfig } from '../../common/NetworkConfig';
+import { isEmpty } from 'lodash';
+import { getLimitedTransactionList, updateUserTransactionStatus } from '../../api/wallet';
+import { store } from '../../store';
+import { storeNetworkInfo } from '../../redux/action/wallet';
+import { getERC20Balance, getUserTransactionListFromLocalDb, saveDB } from '../../utils/helperMethod';
+import { getRealmInstance } from '../../utils/realmDbCreation';
 
 function Dashboard({ navigation }) {
   const [userAddress, setUserAddress] = useState('');
   const socketConnection = useContext(SocketContext);
   const [balance, setBalance] = useState(0);
+  const [balanceError, setBalanceError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isTransactionLoading, setTransactionLoading] = useState(false);
   const [transactionRecord, setTransactionRecord] = useState([]);
-  const [networkSwitchModal, setNetworkSwitchModal] = useState(true);
-
-
+  const [networkSwitchModal, setNetworkSwitchModal] = useState(false);
+  const userAddressRef = useRef('');
+  let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
   socketDisconnectMessage(socketConnection.connectionStatus);
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
   const theme = THEME[selectedTheme];
 
 
   useEffect(() => {
-    getLocalData();
-    getFromDB();
-  }, []);
-
-  let getLocalData = async () => {
-
-    getUserTransactionListFromLocalDb()
-    let address = await AsyncStorage.getItem('address');
-    setUserAddress(address);
-
-  };
-
-  // if user address get from localStorage then we get the balance of address
-  useEffect(() => {
-    if (userAddress) {
-      getUserTransactionListFromApi()
-      getERC20Balance(userAddress, Str.contractAddress);
+    if (!isEmpty(currentNetwork)) {
+      setupLocalData()
     }
-  }, [userAddress]);
+  }, [currentNetwork])
+
+  setupLocalData = async () => {
 
 
-  // get user balance
-  let getERC20Balance = async (address, contractAddress) => {
-    let isConnected = await checkInternetConnectivity()
-    if (!isConnected) {
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-      return
-
-    }
     try {
+      let isConnected = await checkInternetConnectivity()
+      if (!isConnected) {
+        alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+        return
+      }
       setIsLoading(true);
+      setTransactionLoading(true)
+      let address = await AsyncStorage.getItem('address');
 
-      const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
-      console.log("contract", contract, address)
-      const balance = await contract.balanceOf(address);
-      console.log("balance", balance.toString())
-      setBalance(balance / 1e2);
-      setIsLoading(false);
-    } catch (e) {
-      console.log("balance issue", e)
-      setIsLoading(false);
-      alert('We are experiencing difficulties retrieving the balance at the moment.');
-    }
-  };
-
-  // Method to retrieve the transaction list of the user from the local database
-  getUserTransactionListFromLocalDb = async () => {
-    try {
-      // Define the schema for the transaction history database
-      const transactionHistoryDBSchema = {
-        name: 'TransactionsHistorySchema',
-        properties: {
-          uniqueKey: 'string',
-          senderAddress: 'string',
-          receiverAddress: 'string',
-          amountToSend: 'double',
-          transactionStatus: 'string',
-          sendDate: 'date',
-          transactionHash: 'string', // Unique identifier for transactions
-          transactionNotes: 'string'
-        },
-      };
-
-      // Open a connection to the Realm database
-      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
-
-      // Retrieve transaction data from the database and sort it by date in descending order
-      let transaction = realm
-        .objects('TransactionsHistorySchema')
-        .sorted('sendDate', true);
-
-      // Remove duplicate transactions based on transactionHash
-      const uniqueArr = [];
-      const uniqueObj = {};
-
-      // Iterate through transactions to filter out duplicates
-      transaction.forEach((elem) => {
-        if (!uniqueObj[elem.transactionHash]) {
-          uniqueObj[elem.transactionHash] = true;
-          uniqueArr.push(elem);
-        }
-      });
-
-      // Set the unique transaction records in the state for further processing
+      setUserAddress(address)
+      let provider = new ethers.providers.JsonRpcProvider(currentNetwork.rpcUrl)
+      let balance = await getERC20Balance(address, currentNetwork.contractAddress, provider)
+      let uniqueArr = await getUserTransactionListFromLocalDb(currentNetwork.name)
       setTransactionRecord(uniqueArr);
 
-    } catch (e) {
-      // Handle any errors that occur during database access
+      setBalance(balance);
+      if (uniqueArr.length === 0) setTransactionLoading(false)
+      setIsLoading(false);
+      userAddressRef.current = currentNetwork
+    }
+    catch (e) {
+      console.log("catch", e)
+      setIsLoading(false);
+      setTransactionLoading(false)
     }
   }
 
-
-  getUserTransactionListFromApi = async () => {
-
-    // Check internet connectivity
-    let isConnected = await checkInternetConnectivity();
-    if (!isConnected) {
-      // If there's no internet, display an alert and return
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
-      return;
+  useEffect(() => {
+    if (!isEmpty(transactionRecord)) {
+      getUserTransactionListFromApi()
     }
+  }, [transactionRecord])
+
+
+
+  let getUserTransactionListFromApi = async () => {
 
     try {
+      console.log("samamammaddddd", userAddress)
       // Set loading state to true before making the API request
-      setTransactionLoading(true);
 
       // Make API request to fetch transaction data
-      let { data } = await axios.post(`${Str.apiUrl}/wallet/transacions-list-with-limit`, { walletAddress: userAddress });
-
+      let { data } = await getLimitedTransactionList({ walletAddress: userAddress, network: currentNetwork.name });
 
       // Filter out records that are already present in the local database
       const filteredApiRecords = data.data.wallet.filter(apiRecord => {
         return !transactionRecord.find(localDbRecord => localDbRecord.transactionHash === apiRecord.transactionHash);
       });
-
-
-      // Store filtered records in the local database
+      // // Store filtered records in the local database
       if (filteredApiRecords.length > 0) {
         for (var i = 0; i < filteredApiRecords.length; i++) {
-          saveDB(
+
+          let saveResponse = await saveDB(
             filteredApiRecords[i].sendDate,
             filteredApiRecords[i].transactionHash,
             filteredApiRecords[i].senderAddress,
             filteredApiRecords[i].receiverAddress,
             filteredApiRecords[i].amountToSend,
             filteredApiRecords[i].transactionStatus,
-            filteredApiRecords[i].transactionNotes
+            filteredApiRecords[i].transactionNotes,
+            filteredApiRecords[i].network,
+            filteredApiRecords[i].transactionType
           );
+          if (saveResponse) {
+            let uniqueArr = await getUserTransactionListFromLocalDb(currentNetwork.name)
+            setTransactionRecord(uniqueArr);
+          }
         }
       }
-
       // Reset loading state to false after API request is completed
       setTransactionLoading(false);
     }
@@ -190,37 +137,83 @@ function Dashboard({ navigation }) {
     }
   }
 
+  // connecte socket and receive incoming transaction and store in DB
+  useEffect(() => {
+    if (socketConnection.isSocketConnected && userAddress) {
+      socketConnection.socket.emit('addUser', { address: userAddress });
+      socketConnection.socket.on('getTransaction', data => {
+        // console.log("reeeee", data, data.network, currentNetwork.name)
+        setupDbAtTransactionReceived(data)
+
+        let formatDate = moment(data.data.date).format(
+          'dddd, MMMM Do YYYY, h:mm:ss a',
+        );
+        // return () => {
+        socketConnection.socket.off('getTransaction');
+        navigation.navigate(`${ENUMS.SCREENS.SUCCESS}`, {
+          amount: parseFloat(data.data.amount),
+          date: formatDate,
+          transactionHash: data.data.transactionHash,
+        });
+
+      });
+    }
+  }, [userAddress, socketConnection.isSocketConnected]);
+
+  setupDbAtTransactionReceived = async (data) => {
+    try {
+      let saveResponse = await saveDB(
+        data.data.date,
+        data.data.transactionHash,
+        data.data.senderAddress,
+        data.data.receiverAddress,
+        data.data.amount,
+        "Pending",
+        data.data.transactionNotes,
+        data.data.network,
+        data.data.transactionType
+      );
+      if (saveResponse) {
+        let uniqueArr = await getUserTransactionListFromLocalDb(currentNetwork.name)
+        setTransactionRecord(uniqueArr);
+      }
+    }
+    catch (e) {
+
+    }
+
+  }
 
 
+  useEffect(() => {
 
+    let interval = null;
+    navigation.addListener('focus', () => {
+      interval = setInterval(() => {
+        getFromDB();
+      }, 1000);
+    });
+    navigation.addListener('blur', () => {
+      clearInterval(interval);
+    });
+
+  }, [navigation]);
 
 
 
   // Method to retrieve data from the local database
   const getFromDB = async () => {
+
     try {
-      // Define the schema for the transaction history database
-      const transactionHistoryDBSchema = {
-        name: 'TransactionsHistorySchema',
-        properties: {
-          uniqueKey: 'string',
-          senderAddress: 'string',
-          receiverAddress: 'string',
-          amountToSend: 'double',
-          transactionStatus: 'string',
-          sendDate: 'date',
-          transactionHash: 'string', // Unique identifier for transactions
-          transactionNotes: 'string'
-        },
-      };
 
-      // Open a connection to the Realm database
-      const realm = await Realm.open({ schema: [transactionHistoryDBSchema] });
-
+      let currentNetwork = userAddressRef.current
+      let provider = new ethers.providers.JsonRpcProvider(currentNetwork.rpcUrl)
+      const realm = getRealmInstance()
       // Retrieve pending transactions from the database
       const pendingEntries = realm
         .objects('TransactionsHistorySchema')
-        .filtered('transactionStatus = "Pending"');
+        .filtered('network == $0 AND transactionStatus == "Pending"', currentNetwork.name) // Filter by network and status
+
 
       // If there are pending transactions, check their status
       if (pendingEntries.length > 0) {
@@ -230,22 +223,30 @@ function Dashboard({ navigation }) {
             // Verify the status of the transaction from an external provider
             status = await verifyTransactionSuccess(provider, entry.transactionHash);
 
+
             // Update transaction status based on verification result
             if (status === 1) {
               // If transaction is successful, update status to 'Success'
-              updateTransactionStatus(entry.transactionHash, status);
-              realm.write(() => {
-                entry.transactionStatus = 'Success';
-                // Update user transaction list from local database
-                getUserTransactionListFromLocalDb();
-              });
+              try {
+                await updateTransactionStatus(entry.transactionHash, status);
+                realm.write(async () => {
+                  entry.transactionStatus = 'Success';
+                  // Update user transaction list from local database
+                  let uniqueArr = await getUserTransactionListFromLocalDb(currentNetwork.name)
+                  setTransactionRecord(uniqueArr);
+                });
+              }
+              catch (e) {
+                // console.log("status updated")
+              }
             } else if (status === 0) {
               // If transaction failed, update status to 'Fail'
-              updateTransactionStatus(entry.transactionHash);
-              realm.write(() => {
+              updateTransactionStatus(status, entry.transactionHash);
+              realm.write(async () => {
                 entry.transactionStatus = 'Fail';
                 // Update user transaction list from local database
-                getUserTransactionListFromLocalDb();
+                let uniqueArr = await getUserTransactionListFromLocalDb(currentNetwork.name)
+                setTransactionRecord(uniqueArr);
               });
             }
           } catch (e) {
@@ -256,11 +257,8 @@ function Dashboard({ navigation }) {
     } catch (e) {
       // Handle any errors that occur during database access
     }
+
   };
-
-
-
-
 
   let verifyTransactionSuccess = async (provider, transactionHash) => {
 
@@ -269,146 +267,61 @@ function Dashboard({ navigation }) {
       const transaction = await provider.getTransactionReceipt(transactionHash);
       return transaction.status;
     } catch (error) {
-
+      // console.log("verify transaction error", error, error.response.data)
       throw error;
     }
   };
 
-  updateTransactionStatus = async (transactionHash, status) => {
-    let isConnected = await checkInternetConnectivity()
-    if (!isConnected) {
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-      return
+  let updateTransactionStatus = async (transactionHash, status) => {
+    // console.log("sanchaaa",
+    //   console.log("userrr", userAddress))
 
-    }
+
     try {
-      await axios.post(`${Str.apiUrl}/wallet/update-transaction-status`, {
+      let userAddress = await AsyncStorage.getItem('address');
+      console.log("i am call first", {
         walletAddress: userAddress,
         transactionHash: transactionHash,
         status: status
-      });
+      })
+      await updateUserTransactionStatus({
+        walletAddress: userAddress,
+        transactionHash: transactionHash,
+        status: status
+      })
+      console.log("transaction verify")
     }
     catch (e) {
+      console.log("update transaction status error", e, e.response.data)
+      throw e
+
     }
 
   }
 
-  // connecte socket and receive incoming transaction and store in DB
-  useEffect(() => {
-    if (socketConnection.isSocketConnected && userAddress) {
-      socketConnection.socket.emit('addUser', { address: userAddress });
-      socketConnection.socket.on('getTransaction', data => {
-
-        saveDB(
-          data.data.date,
-          data.data.transactionHash,
-          data.data.senderAddress,
-          data.data.receiverAddress,
-          data.data.amount,
-          "Pending",
-          data.data.transactionNotes
-        );
-
-        let formatDate = moment(data.data.date).format(
-          'dddd, MMMM Do YYYY, h:mm:ss a',
-        );
-
-        // return () => {
-        socketConnection.socket.off('getTransaction');
-        navigation.navigate(`${ENUMS.SCREENS.SUCCESS}`, {
-          amount: parseFloat(data.data.amount),
-          date: formatDate,
-          transactionHash: data.data.transactionHash,
-        });
-        // };
-        getERC20Balance(userAddress, Str.contractAddress);
-      });
-    }
-  }, [userAddress, socketConnection.isSocketConnected]);
-
-
-  useEffect(() => {
-    let interval = null;
-    navigation.addListener('focus', () => {
-      interval = setInterval(() => {
-        getFromDB();
-      }, 1000);
-    });
-    navigation.addListener('blur', () => {
-      clearInterval(interval);
-    });
-  }, [navigation]);
-
-  const saveDB = (date, transactionHash, sender, receiver, amount, status, notes = "") => {
-
-
-    try {
-      const uniqueID = uuid.v4();
-      const transactionHistoryDBSchema = {
-        name: 'TransactionsHistorySchema',
-        properties: {
-          uniqueKey: 'string',
-          senderAddress: 'string',
-          receiverAddress: 'string',
-          amountToSend: 'double',
-          transactionStatus: 'string',
-          sendDate: 'date',
-          transactionHash: 'string', // Add the date property
-          transactionNotes: 'string'
-        },
-      };
-      // Create a new Realm with the transaction schema
-      let realm;
-      try {
-        realm = new Realm({ schema: [transactionHistoryDBSchema] });
-      } catch (e) {
-
-      }
-
-      // Create a w transaction object with the current date
-      const transactionObject = {
-        uniqueKey: uniqueID,
-        senderAddress: sender,
-        receiverAddress: receiver,
-        amountToSend: parseFloat(amount),
-        transactionStatus: status,
-        sendDate: date, // Set the date property to the current date
-        transactionHash: transactionHash,
-        transactionNotes: notes
-      };
-
-      // Save the transaction object to the Realm
-      realm.write(() => {
-        realm.create('TransactionsHistorySchema', transactionObject);
-      });
-      getUserTransactionListFromLocalDb()
-    } catch (e) {
-
-    }
-  };
-
   onRefresh = () => {
-
-    getERC20Balance(userAddress, Str.contractAddress);
-    getUserTransactionListFromApi()
+    setupLocalData()
   };
+
+
 
   return (
+
     <React.Fragment>
       <StatusBarNU
         backgroundColor={theme?.BACKGROUND_COLOR}
       />
 
 
-
-
       <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
 
-        <BalanceCard selectedTheme={selectedTheme} isLoading={isLoading} balance={balance} userAddress={userAddress} copy={() => {
+        <BalanceCard switchNetwork={() => {
+          setNetworkSwitchModal(true)
+        }} selectedTheme={selectedTheme} isLoading={isLoading} balance={balance} userAddress={userAddress} copy={() => {
 
           Clipboard.setString(userAddress);
           DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
-        }}></BalanceCard>
+        }} currentNetwork={currentNetwork} balanceError={balanceError}></BalanceCard>
 
 
 
@@ -442,6 +355,7 @@ function Dashboard({ navigation }) {
 
 
 
+
         {
           isTransactionLoading === true ? <TransactionLoader></TransactionLoader>
             :
@@ -464,28 +378,27 @@ function Dashboard({ navigation }) {
         }
 
 
-
-
-
-
-
-
-
-        {/* </ScrollView> */}
       </View>
 
       {/* // Modal to change the network */}
 
-      {/* <SwitchNetworkModal
+      <SwitchNetworkModal
 
         visible={networkSwitchModal}
+        switchNetworkCallback={async (item) => {
+          store.dispatch(storeNetworkInfo(item))
+
+        }}
 
         onClose={() => {
           setNetworkSwitchModal(false);
         }}
         theme={theme}
-        
-        ></SwitchNetworkModal> */}
+        data={networkConfig}
+        currentNetwork={currentNetwork}
+
+
+      ></SwitchNetworkModal>
 
 
 

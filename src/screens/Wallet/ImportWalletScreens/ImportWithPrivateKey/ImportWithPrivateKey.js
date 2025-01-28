@@ -15,7 +15,7 @@ import Header from '../../../../components/Header/Header';
 import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
-import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/auth';
+import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/wallet';
 import { store } from '../../../../store';
 import { ErrorMessages } from '../../../../messages/errorMessage';
 import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
@@ -84,7 +84,7 @@ class ImportWithPrivateKey extends React.Component {
                 // Get FCM token
                 const mobileFcmToken = await getFcmTokenFromLocalStorage();
                 if (!mobileFcmToken) {
-                    throw new Error('Failed to retrieve FCM token. Please try again later.');
+                   // throw new Error('Failed to retrieve FCM token. Please try again later.');
                 }
 
 
@@ -129,7 +129,7 @@ class ImportWithPrivateKey extends React.Component {
     };
 
     render() {
-        let selectedTheme = store.getState().authReducer?.theme
+        let selectedTheme = store.getState().walletReducer?.theme
         let theme = THEME[selectedTheme]
 
         return (
