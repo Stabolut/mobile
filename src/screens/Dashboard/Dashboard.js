@@ -55,9 +55,9 @@ function Dashboard({ navigation }) {
   useEffect(() => {
     const checkIntro = async () => {
       const hasSeenIntro = await AsyncStorage.getItem("hasSeenIntro");
-      // if (!hasSeenIntro) {
-      setShowIntro(true);
-      // }
+      if (!hasSeenIntro) {
+        setShowIntro(true);
+      }
     };
     checkIntro();
   }, []);
