@@ -67,7 +67,7 @@ class Transaction extends React.Component {
 
           <Text style={[styles.fromToText, { color: theme?.ADDRESS_TEXT }]}>
 
-            {item.transactionType === "Staking" ? `Transaction ID: ${item.transactionHash.substring(0, 10)}...${item.transactionHash.substring(item.transactionHash.length - 10)}` : item.receiverAddress === this.props.userAddress
+            {item.transactionType === "Staking" ? `Transaction ID: ${item.transactionHash.substring(0, 10)}...${item.transactionHash.substring(item.transactionHash.length - 10)}` : item.transactionType === "Free Mint" ? `Free token from Stabolut: ${item.senderAddress}` : item.receiverAddress === this.props.userAddress
               ? `From: ${item.senderAddress}`
               : `To: ${item.receiverAddress}`}
 

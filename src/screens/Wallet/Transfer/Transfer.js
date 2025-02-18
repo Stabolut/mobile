@@ -216,6 +216,8 @@ function Transfer({ navigation, route }) {
         parseInt(nonce),
       );
 
+    
+
       const signature = await wallet.signMessage(
         ethers.utils.arrayify(transferHex),
       );

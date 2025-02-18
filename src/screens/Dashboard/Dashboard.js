@@ -3,7 +3,8 @@ import {
   View,
   StyleSheet,
   FlatList,
-  Dimensions
+  Dimensions,
+  Modal
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
@@ -32,6 +33,8 @@ import { store } from '../../store';
 import { storeNetworkInfo } from '../../redux/action/wallet';
 import { getERC20Balance, getUserTransactionListFromLocalDb, saveDB } from '../../utils/helperMethod';
 import { getRealmInstance } from '../../utils/realmDbCreation';
+import IntroSlider from './IntroSlider';
+import { BlurView } from "@react-native-community/blur";
 
 function Dashboard({ navigation }) {
   const [userAddress, setUserAddress] = useState('');
@@ -42,11 +45,26 @@ function Dashboard({ navigation }) {
   const [isTransactionLoading, setTransactionLoading] = useState(false);
   const [transactionRecord, setTransactionRecord] = useState([]);
   const [networkSwitchModal, setNetworkSwitchModal] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
   const userAddressRef = useRef('');
   let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
   socketDisconnectMessage(socketConnection.connectionStatus);
   let selectedTheme = useSelector((state) => state.walletReducer.theme)
   const theme = THEME[selectedTheme];
+
+  useEffect(() => {
+    const checkIntro = async () => {
+      const hasSeenIntro = await AsyncStorage.getItem("hasSeenIntro");
+      if (!hasSeenIntro) {
+        setShowIntro(true);
+      }
+    };
+    checkIntro();
+  }, []);
+  const closeIntro = async () => {
+    setShowIntro(false);
+    await AsyncStorage.setItem("hasSeenIntro", "true");
+  };
 
 
   useEffect(() => {
@@ -57,7 +75,6 @@ function Dashboard({ navigation }) {
 
   setupLocalData = async () => {
 
-
     try {
       let isConnected = await checkInternetConnectivity()
       if (!isConnected) {
@@ -67,15 +84,16 @@ function Dashboard({ navigation }) {
       setIsLoading(true);
       setTransactionLoading(true)
       let address = await AsyncStorage.getItem('address');
-
       setUserAddress(address)
       let provider = new ethers.providers.JsonRpcProvider(currentNetwork.rpcUrl)
       let balance = await getERC20Balance(address, currentNetwork.contractAddress, provider)
+
       let uniqueArr = await getUserTransactionListFromLocalDb(currentNetwork.name)
       setTransactionRecord(uniqueArr);
-
       setBalance(balance);
-      if (uniqueArr.length === 0) setTransactionLoading(false)
+      if (uniqueArr.length === 0) {
+        getUserTransactionListFromApi(transactionRecord, address)
+      }
       setIsLoading(false);
       userAddressRef.current = currentNetwork
     }
@@ -88,16 +106,16 @@ function Dashboard({ navigation }) {
 
   useEffect(() => {
     if (!isEmpty(transactionRecord)) {
-      getUserTransactionListFromApi()
+      console.log("dataaaaa in hookk transction record", transactionRecord)
+      getUserTransactionListFromApi(transactionRecord, userAddress)
     }
   }, [transactionRecord])
 
 
 
-  let getUserTransactionListFromApi = async () => {
+  let getUserTransactionListFromApi = async (newTransactionRecord, userAddress) => {
 
     try {
-      console.log("samamammaddddd", userAddress)
       // Set loading state to true before making the API request
 
       // Make API request to fetch transaction data
@@ -105,7 +123,7 @@ function Dashboard({ navigation }) {
 
       // Filter out records that are already present in the local database
       const filteredApiRecords = data.data.wallet.filter(apiRecord => {
-        return !transactionRecord.find(localDbRecord => localDbRecord.transactionHash === apiRecord.transactionHash);
+        return !newTransactionRecord.find(localDbRecord => localDbRecord.transactionHash === apiRecord.transactionHash);
       });
       // // Store filtered records in the local database
       if (filteredApiRecords.length > 0) {
@@ -226,6 +244,7 @@ function Dashboard({ navigation }) {
 
             // Update transaction status based on verification result
             if (status === 1) {
+              console.log("entry.transactionHash, status", entry.transactionHash, status)
               // If transaction is successful, update status to 'Success'
               try {
                 await updateTransactionStatus(entry.transactionHash, status);
@@ -237,7 +256,7 @@ function Dashboard({ navigation }) {
                 });
               }
               catch (e) {
-                // console.log("status updated")
+                console.log("status updated", e)
               }
             } else if (status === 0) {
               // If transaction failed, update status to 'Fail'
@@ -267,7 +286,7 @@ function Dashboard({ navigation }) {
       const transaction = await provider.getTransactionReceipt(transactionHash);
       return transaction.status;
     } catch (error) {
-      // console.log("verify transaction error", error, error.response.data)
+      console.log("verify transaction error", error, error.response.data)
       throw error;
     }
   };
@@ -279,17 +298,13 @@ function Dashboard({ navigation }) {
 
     try {
       let userAddress = await AsyncStorage.getItem('address');
-      console.log("i am call first", {
-        walletAddress: userAddress,
-        transactionHash: transactionHash,
-        status: status
-      })
+
       await updateUserTransactionStatus({
         walletAddress: userAddress,
         transactionHash: transactionHash,
         status: status
       })
-      console.log("transaction verify")
+      // console.log("transaction verify")
     }
     catch (e) {
       console.log("update transaction status error", e, e.response.data)
@@ -311,6 +326,17 @@ function Dashboard({ navigation }) {
       <StatusBarNU
         backgroundColor={theme?.BACKGROUND_COLOR}
       />
+
+      <Modal visible={showIntro} animationType="fade" transparent={true}>
+        <View style={[styles.modalBackground]}>
+          <BlurView style={styles.absoluteBlur} blurType="dark" blurAmount={1} />
+
+          <View style={[styles.introContainer, { backgroundColor: COLORS.BALANCE_CARD_BACKGROUND }]}>
+            <IntroSlider theme={theme} onDone={closeIntro} />
+          </View>
+        </View>
+      </Modal>
+
 
 
       <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
@@ -427,7 +453,30 @@ const styles = StyleSheet.create({
   iconDesign: {
     fontWeight: "800"
   },
+  modalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  introContainer: {
+    width: "90%",
+    height: "50%",
+    backgroundColor: "white", // White box for the intro slider
+    borderRadius: 10,
 
+
+    paddingBottom: 16,
+    paddingHorizontal: 10,
+    elevation: 5, // Shadow for Android
+    shadowColor: "#000", // Shadow for iOS
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+
+  absoluteBlur: {
+    ...StyleSheet.absoluteFillObject, // Covers the entire screen
+  },
 
 
 

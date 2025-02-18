@@ -18,11 +18,14 @@ const TransactionsHistorySchema = {
 
 let realmInstance;
 
+
+
+
 export const getRealmInstance = () => {
-  if (!realmInstance) {
+  if (!realmInstance || realmInstance.isClosed) { // Ensure it's open
     realmInstance = new Realm({
       schema: [TransactionsHistorySchema],
-      schemaVersion: 1, // Increment this if schema changes
+      schemaVersion: 1, // Increment if schema changes
     });
   }
   return realmInstance;

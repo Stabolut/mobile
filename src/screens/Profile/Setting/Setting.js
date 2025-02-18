@@ -25,6 +25,7 @@ import { errorMessageHandler, saveString } from '../../../utils/utils';
 import axios from 'axios';
 import { store } from '../../../store';
 import { setTheme } from '../../../redux/action/wallet';
+import { getRealmInstance } from '../../../utils/realmDbCreation';
 
 
 function Setting({ navigation }) {
@@ -48,6 +49,10 @@ function Setting({ navigation }) {
     let getLocalData = async () => {
         let address = await AsyncStorage.getItem('address');
         let privateKey = await AsyncStorage.getItem('mnemonics');
+        let privateKey1 = await AsyncStorage.getItem('privateKey');
+        console.log("privateKey1", privateKey1)
+
+
         setUserAddress(address);
         setPrivateKey(privateKey);
     };
@@ -138,11 +143,11 @@ function Setting({ navigation }) {
     const clearRealmDB = async () => {
         try {
             // Get the shared Realm instance
-            const realm = getRealmInstance();
+            let realmInstance = getRealmInstance();
             // Begin a write transaction to delete all objects
-            realm.write(() => {
-                const allObjects = realm.objects('TransactionsHistorySchema');
-                realm.delete(allObjects); // Delete all objects from the schema
+            realmInstance.write(() => {
+                const allObjects = realmInstance.objects('TransactionsHistorySchema');
+                realmInstance.delete(allObjects); // Delete all objects from the schema
             });
             if (realmInstance && !realmInstance.isClosed) {
                 realmInstance.close();

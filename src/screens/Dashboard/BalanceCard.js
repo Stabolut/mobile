@@ -26,23 +26,12 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme, cur
 
             }]}>
 
-                <View style={{ flexDirection: "row" }}>
-                    <View style={{ flex: 1, paddingLeft: 24, marginTop: 8, alignItems: "baseline", }}>
-                        <Text style={[styles.balanceTextHeading, { color: theme?.WHITE }]}>Balance</Text>
+                <View style={{ flexDirection: "column" }}>
+                    <View style={{ flexDirection: "row" }}>
+                        <View style={{ flex: 1,justifyContent:"flex-end",paddingLeft:24 }}> 
+                        <Text style={[styles.balanceTextHeading, { color: theme?.WHITE}]}>Balance</Text>
+                        </View>
 
-                        {
-                            isLoading === true ? <Text style={{ color: COLORS.WHITE }}>....</Text> :
-                                <View style={{ flexDirection: "row" }}>
-                                    <Image style={styles.imageLogo} source={Images.usdbLogo} />
-
-                                    <Text style={[styles.balanceTextValue, { color: theme?.WHITE }]}> {balance.toLocaleString() + ' US₿'}</Text>
-
-
-                                </View>}
-
-                    </View>
-
-                    <View>
                         <View style={{ backgroundColor: "red", padding: 4, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
 
                             <Text style={{
@@ -54,7 +43,7 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme, cur
                                 fontFamily: "Poppins"
                             }}>{currentNetwork.name} Testnet</Text>
 
-                            <TouchableOpacity style={{ paddingHorizontal: 6, paddingVertical: 6, marginLeft: 2, backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,borderRadius:6, }} onPress={() => switchNetwork()}>
+                            <TouchableOpacity style={{ paddingHorizontal: 6, paddingVertical: 6, marginLeft: 2, backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, borderRadius: 6, }} onPress={() => switchNetwork()}>
 
                                 <Text style={{
                                     padding: 0, fontSize: 12,
@@ -72,23 +61,40 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme, cur
 
                     </View>
 
+                    <View>
+                      
+
+                        {
+                            isLoading === true ? <Text style={{ color: COLORS.WHITE, paddingLeft: 24 }}>....</Text> :
+                                <View style={{ flexDirection: "row", paddingLeft: 24 }}>
+                                    <Image style={styles.imageLogo} source={Images.usdbLogo} />
+
+                                    <Text style={[styles.balanceTextValue, { color: theme?.WHITE }]}> {balance.toLocaleString() + ' US₿'}</Text>
+
+
+                                </View>}
+
+                        <View style={{ flexDirection: "row", marginTop: 12, paddingLeft: 24, paddingRight: 24, paddingBottom: 8 }}>
+                            <View style={{ flex: 80 }}><Text style={[styles.addressText, { color: theme?.WHITE }]}>{userAddress}</Text></View>
+                            <TouchableOpacity onPress={copy} style={{ flex: 10 }}>
+
+                                <Ionicons
+                                    name="copy-outline"
+                                    style={styles.copyText}
+                                    size={20}
+                                    color={theme?.WHITE}
+                                />
+                            </TouchableOpacity>
+
+
+                        </View>
+
+                    </View>
+
                 </View>
 
 
-                <View style={{ flexDirection: "row", marginTop: 12, paddingLeft: 24, paddingRight: 24, paddingBottom: 8 }}>
-                    <View style={{ flex: 80 }}><Text style={[styles.addressText, { color: theme?.WHITE }]}>{userAddress}</Text></View>
-                    <TouchableOpacity onPress={copy} style={{ flex: 10 }}>
 
-                        <Ionicons
-                            name="copy-outline"
-                            style={styles.copyText}
-                            size={20}
-                            color={theme?.WHITE}
-                        />
-                    </TouchableOpacity>
-
-
-                </View>
 
 
 
@@ -128,7 +134,6 @@ const styles = StyleSheet.create({
 
     balanceTextHeading: {
 
-        marginTop: 12,
         fontSize: 12,
         fontWeight: "400",
         fontFamily: "Poppins",

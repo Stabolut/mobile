@@ -42,7 +42,7 @@ function StakingBalance(props) {
 
 
 
-            <View style={[styles.balanceCardMainViewStyle, { backgroundColor: props?.theme?.BACKGROUND_COLOR , borderColor:props?.theme?.STAKE_LIST_BORDER_COLOR}]}>
+            <View style={[styles.balanceCardMainViewStyle, { backgroundColor: props?.theme?.BACKGROUND_COLOR, borderColor: props?.theme?.STAKE_LIST_BORDER_COLOR }]}>
                 <View style={{ flexDirection: "row" }}>
 
                     <View style={{ flex: 1, flexDirection: "column" }}>

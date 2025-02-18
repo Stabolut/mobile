@@ -235,7 +235,6 @@ const styles = StyleSheet.create({
     },
     totalRewardHeading: {
         color: COLORS.WHITE,
-
         fontSize: 14,
         fontWeight: "700",
         fontFamily: "Poppins"

@@ -1,6 +1,5 @@
 import { Str } from "../common";
 import { ethers } from 'ethers';
-import Realm from 'realm';
 import uuid from 'react-native-uuid';
 import { getRealmInstance } from "./realmDbCreation";
 // get user balance
@@ -22,6 +21,7 @@ export const getUserTransactionListFromLocalDb = async (networkName) => {
   try {
 
     const realm = getRealmInstance();
+    
     // Retrieve transaction data from the database and sort it by date in descending order
     let transaction = realm
       .objects('TransactionsHistorySchema')

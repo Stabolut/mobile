@@ -84,10 +84,8 @@ class ImportWithPrivateKey extends React.Component {
                 // Get FCM token
                 const mobileFcmToken = await getFcmTokenFromLocalStorage();
                 if (!mobileFcmToken) {
-                   // throw new Error('Failed to retrieve FCM token. Please try again later.');
+                    // throw new Error('Failed to retrieve FCM token. Please try again later.');
                 }
-
-
                 // Initialize wallet
                 const wallet = new ethers.Wallet(this.state.privateKey.trim());
 

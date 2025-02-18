@@ -1,206 +1,125 @@
-import React, { useEffect, useState, useContext } from 'react';
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  Text
-} from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
+import React, { useRef, useState } from "react";
+import { View, Text, TouchableOpacity, Dimensions, StyleSheet, Image } from "react-native";
+import Carousel from "react-native-snap-carousel";
+import { COLORS, Images, THEME } from "../../common";
 import { useSelector } from 'react-redux';
-import { COLORS, ENUMS, Str, THEME } from '../../common';
-import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
-import AsyncStorage from '@react-native-community/async-storage';
-import { ethers } from 'ethers';
-import Transaction from './Transaction';
-import MnemonicsShowModal from '../../components/Modal/MnemonicsShowModal';
-import uuid from 'react-native-uuid';
-import Realm from 'realm';
-import moment from 'moment';
-import { SocketContext } from '../../App';
-import socketDisconnectMessage from '../../components/CustomHook/socketDisconnectMessage';
-import axios from 'axios';
-import BalanceCard from './BalanceCard';
-// import Clipboard from '@react-native-community/clipboard';
-import DropDownHolder from '../../components/dropDownHolder';
-import SliderOption from './SliderOption';
-import TransactionRefreshAndView from './TransactionRefreshAndView';
-import NoTransactionFound from './NoTransactionFound';
-import TransactionLoader from './TransactionLoader';
-import { checkInternetConnectivity } from '../../utils/utils';
-import { ErrorMessages } from '../../messages/errorMessage';
-import SwitchNetworkModal from '../../components/Modal/SwitchNetworkModal';
-import { networkConfig } from '../../common/NetworkConfig';
-import { isEmpty } from 'lodash';
-import { getLimitedTransactionList, updateUserTransactionStatus } from '../../api/wallet';
-import RNFS from 'react-native-fs'; // FileSystem for React Native
-import { store } from '../../store';
-import { storeNetworkInfo } from '../../redux/action/wallet';
+const { width } = Dimensions.get("window");
 
-function Dashboard({ navigation }) {
-  const [userAddress, setUserAddress] = useState('');
-  const socketConnection = useContext(SocketContext);
-  const [balance, setBalance] = useState(0);
-  const [balanceError, setBalanceError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isTransactionLoading, setTransactionLoading] = useState(false);
-  const [transactionRecord, setTransactionRecord] = useState([]);
-  const [networkSwitchModal, setNetworkSwitchModal] = useState(false);
-  let selectedNetwork = useSelector((state) => state.walletReducer.currentNetwork)
-  const [currentNetwork, setCurrentNetwork] = useState({});
-  const [provider, setProvider] = useState({});
-  // let provider = new ethers.providers.JsonRpcProvider(currentNetwork.rpcUrl)
-  socketDisconnectMessage(socketConnection.connectionStatus);
-  let selectedTheme = useSelector((state) => state.walletReducer.theme)
-  const theme = THEME[selectedTheme];
+const slides = [
+    {
+        id: 1,
+        image: Images.purchageUSBWithETH, // Replace with your actual image path
+        title: "Buy USB Coin with ETH",
+        description: "Buy USB coins directly from our live panel by depositing ETH to your unique deposit address. Once the payment is confirmed, you’ll receive the corresponding amount of USB coins instantly."
+    },
+    {
+        id: 2,
+        image: Images.purchageUSBWithBTC,
+        title: "Buy USB Coin with BTC",
+        description: "You can also purchase USB coins using Bitcoin (BTC). Simply send BTC to the deposit address provided on our live panel, and you'll receive the corresponding USB coins seamlessly."
+    },
+    {
+        id: 3,
+        image: Images.exchangeUSBWithETH,
+        title: "Convert USB to ETH",
+        description: "Exchange your USB coins for Ethereum (ETH) easily. Simply send your USB coins to us, and we’ll process the conversion, returning the corresponding ETH to your wallet."
+    },
+    {
+        id: 4,
+        image: Images.exchangeUSBWithBTC,
+        title: "Convert USB to BTC",
+        description: "Swap your USB coins for Bitcoin (BTC) with ease. Transfer your USB coins, and we’ll exchange them for the equivalent BTC, sending it directly to your wallet."
+    },
+];
+const IntroSlider = (props) => {
+    const carouselRef = useRef(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+    let selectedTheme = useSelector((state) => state.walletReducer.theme)
+    const theme = THEME[selectedTheme];
 
+    const renderItem = ({ item }) => (
+        <View style={[styles.slide]}>
+            <Image source={item.image} style={styles.image} resizeMode="contain" />
 
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.description}>{item.description}</Text>
+        </View>
+    );
 
+    return (
+        <View style={styles.container}>
+            <Carousel
+                ref={carouselRef}
+                data={slides}
+                renderItem={renderItem}
+                sliderWidth={width}
+                itemWidth={width}
+                onSnapToItem={(index) => setActiveIndex(index)}
+            />
 
+            {/* Dots Indicator */}
+            <View style={styles.dotsContainer}>
+                {slides.map((_, index) => (
+                    <View key={index} style={[styles.dot, activeIndex === index && styles.activeDot]} />
+                ))}
+            </View>
 
-
-
-
-  
- 
-
- 
-
- 
-
-
-
-
- 
-
-
-  return (
-    <React.Fragment>
-      <StatusBarNU
-        backgroundColor={theme?.BACKGROUND_COLOR}
-      />
-
-
-
-
-      <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
-
-        <BalanceCard switchNetwork={() => {
-          setNetworkSwitchModal(true)
-        }} selectedTheme={selectedTheme} isLoading={isLoading} balance={balance} userAddress={userAddress} copy={() => {
-
-          Clipboard.setString(userAddress);
-          DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
-        }} currentNetwork={currentNetwork} balanceError={balanceError}></BalanceCard>
-
-
-
-
-
-        <SliderOption
-          balance={balance}
-          selectedTheme={selectedTheme}
-          transfer={async () => {
-            let contactOnly = await AsyncStorage.getItem("allowContact")
-            if (contactOnly === "true") {
-              navigation.navigate(`${ENUMS.SCREENS.SHOW_CONTACT_LIST}`)
-            }
-            else {
-              navigation.navigate(`${ENUMS.SCREENS.TRANSFER}`)
-            }
-          }}
-          showKey={() => navigation.navigate(`${ENUMS.SCREENS.STAKE}`, { userAddress: userAddress, balance: balance ? balance : 0 })}
-          receive={() => navigation.navigate(`${ENUMS.SCREENS.RECEIVE}`)}
-          purchase={() => navigation?.navigate(ENUMS.SCREENS.SETTING)}
-        >
-
-        </SliderOption>
-        <TransactionRefreshAndView selectedTheme={selectedTheme} viewAll={() => navigation.navigate(`${ENUMS.SCREENS.ALL_TRANSACTION}`)}
-          refresh={() => this.onRefresh()}
-
-
-
-
-        ></TransactionRefreshAndView>
-
-
-
-
-        {
-          isTransactionLoading === true ? <TransactionLoader></TransactionLoader>
-            :
-            transactionRecord.length > 0 ?
-
-              <FlatList
-
-                data={transactionRecord}
-                keyExtractor={(item, index) => index.toString()}
-                inverted={false}
-                renderItem={({ item }) => (
-                  <Transaction
-                    userAddress={userAddress}
-                    navigation={navigation}
-                    selectedTheme={selectedTheme}
-                    item={item}></Transaction>
+            {/* Navigation Buttons */}
+            <View style={styles.buttonContainer}>
+                {activeIndex > 0 && (
+                    <TouchableOpacity onPress={() => carouselRef.current.snapToPrev()} style={styles.button}>
+                        <Text style={styles.buttonText}>Previous</Text>
+                    </TouchableOpacity>
                 )}
-              />
-              : <NoTransactionFound theme={theme}></NoTransactionFound>
-        }
 
-        {/* </ScrollView> */}
-      </View>
-
-      {/* // Modal to change the network */}
-
-      <SwitchNetworkModal
-
-        visible={networkSwitchModal}
-        switchNetworkCallback={async (item) => {
-          store.dispatch(storeNetworkInfo(item))
-
-        }}
-
-        onClose={() => {
-          setNetworkSwitchModal(false);
-        }}
-        theme={theme}
-        data={networkConfig}
-        currentNetwork={currentNetwork}
-
-
-      ></SwitchNetworkModal>
-
-
-
-
-
-    </React.Fragment>
-  );
-}
+                {activeIndex < slides.length - 1 ? (
+                    <TouchableOpacity onPress={() => carouselRef.current.snapToNext()} style={styles.button}>
+                        <Text style={styles.buttonText}>Next</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity onPress={() => console.log("Get Started Pressed")} style={styles.button}>
+                        <Text style={styles.buttonText}>Get Started</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-
-  },
-
-  iconViewStyle: {
-    width: Dimensions.get("window").width * 0.2098,
-    height: 100,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-    borderColor: COLORS.SLIDER_BORDER_COLOR,
-    borderWidth: 2
-
-  },
-  iconDesign: {
-    fontWeight: "800"
-  },
+    container: { flex: 1, justifyContent: "center", alignItems: "center",backgroundColor:"blue" },
+    slide: { width: "85%", height: "100%", alignSelf: "center" },
+    title: { fontSize: 24, fontWeight: "bold", alignSelf: "center", marginBottom: 10, color: "white" },
+    description: { fontSize: 16, textAlign: "justify", paddingHorizontal: 12, alignSelf: "center", color: "white" ,backgroundColor:"yellow"},
+    dotsContainer: { flexDirection: "row",backgroundColor:"pink"},
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#ccc", marginHorizontal: 5 },
+    activeDot: { backgroundColor: "#007BFF" },
+    buttonContainer: { flexDirection: "row", marginTop: 20,backgroundColor:"yellow",width:"95%" },
+    //   button: { padding: 10, backgroundColor: "#007BFF", borderRadius: 5, marginHorizontal: 10 },
 
 
+    button: {
+        padding: 10,
+        backgroundColor: COLORS.BTN_BACKGROUND_COLOR,
+        flex:1,
+        marginHorizontal: 4,
+        color: COLORS.WHITE,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowOpacity: 0.29,
+        shadowRadius: 4.65,
+        elevation: 7,
+    },
+    image: {
+        width: "100%",
+        height: "45%",
 
+    },
+
+
+    buttonText: { color: "#fff", fontSize: 16 },
 
 });
 
-export default Dashboard;
+export default IntroSlider;

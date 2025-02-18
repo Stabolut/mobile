@@ -21,6 +21,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { store } from '../../../../store';
 import { checkInternetConnectivity, errorMessageHandler, getFcmTokenFromLocalStorage } from '../../../../utils/utils';
 import { ErrorMessages } from '../../../../messages/errorMessage';
+import { addWalletWithFcm } from '../../../../api/wallet';
 
 class ImportWallet extends React.Component {
   constructor(props) {
@@ -77,20 +78,25 @@ class ImportWallet extends React.Component {
     setTimeout(async () => {
 
       // Obtain FCM token
-      const mobileFcmToken = await getFcmTokenFromLocalStorage();
-      // if (!mobileFcmToken) {
-      //   this.setState({ isLoading: false, disable: false })
-      //   Alert.alert('Failed to retrieve FCM token. Please try again later.');
-      //   return
-      // }
+      let mobileFcmToken = null
+      try {
+        mobileFcmToken = await getFcmTokenFromLocalStorage();
+        // if (!mobileFcmToken) {
+        //   this.setState({ isLoading: false, disable: false })
+        //   Alert.alert('Failed to retrieve FCM token. Please try again later.');
+        //   return
+        // }
+      }
+      catch (e) {
 
+      }
       try {
 
         const wallet = ethers.Wallet.fromMnemonic(
           this.state.mnemonicText.trim(),
         );
 
-        let { data } = await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+        let { data } = await addWalletWithFcm({
           account: wallet.address,
           token: mobileFcmToken,
           referenceCode: referenceCode
@@ -110,7 +116,7 @@ class ImportWallet extends React.Component {
         this.props.navigation.replace(`${ENUMS.SCREENS.DASHBOARD}`);
       }
       catch (error) {
-        console.log("error",error)
+        console.log("error", error)
 
         let msg = errorMessageHandler(error)
         this.setState({
@@ -197,9 +203,9 @@ class ImportWallet extends React.Component {
 
           <View style={{
             marginTop: 24,
-           
+
             borderColor: 'gray',
-            padding:8,
+            padding: 8,
             borderWidth: 1,
             borderRadius: 10,
             flexDirection: "row",
@@ -212,7 +218,7 @@ class ImportWallet extends React.Component {
                 this.setState({ referenceCode: newValue });
               }}
 
-              placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80,padding:6 }}></TextInput>
+              placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80, padding: 6 }}></TextInput>
             <Text style={{ color: theme?.WHITE, flex: 20 }}>Optional</Text>
 
 

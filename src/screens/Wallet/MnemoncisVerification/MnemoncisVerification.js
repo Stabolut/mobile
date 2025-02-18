@@ -20,6 +20,7 @@ import axios from "axios"
 import { store } from '../../../store';
 import { checkInternetConnectivity, errorMessageHandler, getFcmTokenFromLocalStorage } from '../../../utils/utils';
 import { ErrorMessages } from '../../../messages/errorMessage';
+import { addWalletWithFcm } from '../../../api/wallet';
 const windowHeight = Dimensions.get('window').height;
 
 
@@ -256,26 +257,27 @@ class MnemoncisVerification extends React.Component {
               onPress={async () => {
 
 
-                let isConnected = await checkInternetConnectivity()
-              
-                if (!isConnected) {
-                
-                  Alert.alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-                  return
+                // let isConnected = await checkInternetConnectivity()
 
-                }
-               
+                // if (!isConnected) {
+
+                //   Alert.alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
+                //   return
+
+                // }
+
                 this.setState({ isLoading: true, disabled: true });
                 setTimeout(async () => {
+                  let mobileFcmToken = null
 
-                  // Obtain FCM token
-                  const mobileFcmToken = await getFcmTokenFromLocalStorage();
-                  // if (!mobileFcmToken) {
-                  
-                  //   this.setState({ isLoading: false, disable: false })
-                  //   Alert.alert('Failed to retrieve FCM token. Please try again later.');
-                  //   return
-                  // }
+                  try {
+                    // Obtain FCM token
+                    mobileFcmToken = await getFcmTokenFromLocalStorage();
+                  }
+                  catch (e) {
+
+                  }
+
                   try {
 
 
@@ -283,10 +285,11 @@ class MnemoncisVerification extends React.Component {
                       this.props.route.params.actualMnemonics,
                     );
 
-                    let { data } = await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+                    let { data } = await addWalletWithFcm({
                       account: wallet.address,
                       token: mobileFcmToken,
-                      referenceCode: this.state.referenceCode
+                      referenceCode: this.state.referenceCode,
+                      type: "New"
                     })
 
                     await AsyncStorage.setItem('address', wallet.address);
