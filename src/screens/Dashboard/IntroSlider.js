@@ -89,9 +89,9 @@ const IntroSlider = (props) => {
 const styles = StyleSheet.create({
     container: { flex: 1, justifyContent: "center", alignItems: "center" },
     slide: { width: "85%", height: "100%", alignSelf: "center" },
-    title: { fontSize: 24, fontFamily: 'Poppins', fontWeight: "bold", alignSelf: "center", marginBottom: 10, color: "white" },
-    description: { fontSize: 16, textAlign: "justify", ontFamily: 'Poppins', alignSelf: "center", color: "white" },
-    dotsContainer: { flexDirection: "row" },
+    title: { fontSize: 24, fontFamily: 'Poppins', fontWeight: "bold", alignSelf: "center", marginBottom: 10, color: "white",marginTop:10, },
+    description: { fontSize: 16, textAlign: "justify", ontFamily: 'Poppins', alignSelf: "flex-start", color: "white" },
+    dotsContainer: { flexDirection: "row" ,marginTop:20},
     dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#ccc", marginHorizontal: 5 },
     activeDot: { backgroundColor: COLORS.BTN_BACKGROUND_COLOR },
     buttonContainer: { flexDirection: "row", marginTop: 20, idth: "95%" },

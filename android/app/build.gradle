@@ -115,7 +115,7 @@ implementation project(':react-native-biometrics')
    implementation project(':react-native-push-notification')
    implementation project(':react-native-contacts')
 implementation 'com.google.firebase:firebase-analytics:17.3.0'
-
+implementation 'com.facebook.fbjni:fbjni:0.2.2'
 
 
 

@@ -55,9 +55,9 @@ function Dashboard({ navigation }) {
   useEffect(() => {
     const checkIntro = async () => {
       const hasSeenIntro = await AsyncStorage.getItem("hasSeenIntro");
-      if (!hasSeenIntro) {
-        setShowIntro(true);
-      }
+      // if (!hasSeenIntro) {
+      setShowIntro(true);
+      // }
     };
     checkIntro();
   }, []);
@@ -339,6 +339,8 @@ function Dashboard({ navigation }) {
 
 
 
+
+
       <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
 
         <BalanceCard switchNetwork={() => {
@@ -464,7 +466,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white", // White box for the intro slider
     borderRadius: 10,
 
-
+    paddingTop: 12,
     paddingBottom: 16,
     paddingHorizontal: 10,
     elevation: 5, // Shadow for Android
