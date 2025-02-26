@@ -56,8 +56,8 @@ function Dashboard({ navigation }) {
     const checkIntro = async () => {
       const hasSeenIntro = await AsyncStorage.getItem("hasSeenIntro");
       if (!hasSeenIntro) {
-        setShowIntro(true);
-      }
+      setShowIntro(true);
+       }
     };
     checkIntro();
   }, []);
@@ -120,6 +120,7 @@ function Dashboard({ navigation }) {
 
       // Make API request to fetch transaction data
       let { data } = await getLimitedTransactionList({ walletAddress: userAddress, network: currentNetwork.name });
+      console.log("data.data.walle",data.data.wallet)
 
       // Filter out records that are already present in the local database
       const filteredApiRecords = data.data.wallet.filter(apiRecord => {
@@ -466,9 +467,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white", // White box for the intro slider
     borderRadius: 10,
 
-    paddingTop: 12,
-    paddingBottom: 16,
-    paddingHorizontal: 10,
+    padding: 16,
     elevation: 5, // Shadow for Android
     shadowColor: "#000", // Shadow for iOS
     shadowOffset: { width: 0, height: 4 },

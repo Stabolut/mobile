@@ -34,16 +34,24 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme, cur
 
                         <View style={{ backgroundColor: "red", padding: 4, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
 
-                            <Text style={{
+                            {/* <Text style={{
                                 padding: 0, fontSize: 12,
                                 fontWeight: 'bold',
                                 textAlign: 'center',
                                 color: THEME?.commonColor.commonWhite,
 
                                 fontFamily: "Poppins"
-                            }}>{currentNetwork.name} Testnet</Text>
+                            }}>{currentNetwork.name} Testnet</Text> */}
+                              <Text style={{
+                                padding: 0, fontSize: 12,
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                color: THEME?.commonColor.commonWhite,
 
-                            <TouchableOpacity style={{ paddingHorizontal: 6, paddingVertical: 6, marginLeft: 2, backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, borderRadius: 6, }} onPress={() => switchNetwork()}>
+                                fontFamily: "Poppins"
+                            }}>Testnet</Text>
+
+                            {/* <TouchableOpacity style={{ paddingHorizontal: 6, paddingVertical: 6, marginLeft: 2, backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, borderRadius: 6, }} onPress={() => switchNetwork()}>
 
                                 <Text style={{
                                     padding: 0, fontSize: 12,
@@ -52,7 +60,7 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme, cur
                                     fontFamily: "Poppins"
                                 }}>Switch Network</Text>
 
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
 
 
                         </View>
