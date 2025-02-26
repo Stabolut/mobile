@@ -1,10 +1,10 @@
 const Str = {
   fees: 0.1,
 
-  apiUrl: "http://192.168.100.176:8003/api/v1/stabolut",
-  socketUrl: "http://192.168.100.176:8003",
-  // apiUrl: "https://ares.stabolut.com/api/v1/stabolut",
-  // socketUrl: "https://ares.stabolut.com",
+  // apiUrl: "http://192.168.100.189:8003/api/v1/stabolut",
+  // socketUrl: "http://192.168.100.189:8003",
+  apiUrl: "https://ares.stabolut.com/api/v1/stabolut",
+  socketUrl: "https://ares.stabolut.com",
   TOKEN_DECIMAL: 1e2,
 
   ABI: [
