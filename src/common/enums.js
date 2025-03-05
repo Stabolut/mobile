@@ -25,14 +25,15 @@ const ENUMS = {
     STAKE: "STAKE",
     SHOW_CONTACT_LIST: "SHOW_CONTACT_LIST",
     ADD_CONTACT_LIST: "ADD_CONTACT_LIST",
-    ADD_STAKE: "ADD_STAKE"
+    ADD_STAKE: "ADD_STAKE",
+    LEADERBOARD:"LEADERBOARD"
 
 
   },
   EXTERNAL_URL: {
     NEWS: "https://nitter.net/stabolut",
-    TWITTER: "https://twitter.com/stabolut",
-    TELEGRAM: "https://t.me/stabolut",
+    TWITTER: "https://x.com/stabolut",
+    TELEGRAM: "https://t.me/stabolutnews",
     EXPLORER_URL: "https://apothem.xdcscan.io/tx"
 
   },

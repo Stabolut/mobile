@@ -6,6 +6,7 @@ const invoke = ({
   data,
   headers = { Accept: "application/json" },
 }) => {
+  console.log("url", `${baseURL}/${route}`)
   return axios({
     method,
     url: `${baseURL}/${route}`,

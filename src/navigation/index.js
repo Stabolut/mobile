@@ -34,6 +34,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { get } from '../utils/utils';
+import LeaderBoard from '../screens/LeaderBoard';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -65,6 +66,7 @@ function TabNav() {
       <Stack.Screen name={ENUMS.SCREENS.STAKE} component={Stake} />
 
       <Stack.Screen name={ENUMS.SCREENS.BIO} component={Bio} />
+      <Stack.Screen name={ENUMS.SCREENS.LEADERBOARD} component={LeaderBoard} />
 
       <Stack.Screen name={ENUMS.SCREENS.ABOUT} component={About} />
       <Stack.Screen name={ENUMS.SCREENS.SHOW_CONTACT_LIST} component={ShowContact} />

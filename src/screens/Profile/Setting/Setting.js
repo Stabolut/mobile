@@ -421,41 +421,40 @@ function Setting({ navigation }) {
 
 
 
-                        {/* <TouchableOpacity onPress={() => {
-                            console.log("News page call")
-
-                            navigation?.navigate(ENUMS.SCREENS.BIO)
 
 
-                        }} style={{ flexDirection: "row", marginTop: 32 }}>
+                    </View>
+
+                    <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
+
+                        <TouchableOpacity onPress={() => {
+
+
+                            navigation?.navigate(ENUMS.SCREENS.LEADERBOARD)
+
+
+                        }} style={{ flexDirection: "row" }}>
 
                             <View style={{ width: 30, height: 30, backgroundColor: "#f3b854", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
-                                <FontAwesome
-                                    name="euro"
-                                    style={{ fontWeight: '900' }}
-                                    size={18}
-                                    color={COLORS.WHITE}
-                                />
-                              
-
-
+                                <FontAwesome style={{ fontWeight: '900' }} name="trophy" size={18} color={COLORS.WHITE} />
 
                             </View>
-
-
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
-                                >News </Text>
+                                >Badges & Rewards </Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
                             </View>
 
 
-                        </TouchableOpacity> */}
+                        </TouchableOpacity>
+
 
                     </View>
+
+
                     {
                         bioMetricSupport === true &&
                         <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>

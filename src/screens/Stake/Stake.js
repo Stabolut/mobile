@@ -247,7 +247,7 @@ function Stake(props) {
                   paddingVertical: 24,
                   backgroundColor: theme?.BALANCE_CARD_BACKGROUND
                 }}>
-                  <Text style={[styles.totalRewardHeading, { color: theme?.WHITE, fontWeight: 500, marginBottom: 6 }]} >Stakig Reward</Text>
+                  <Text style={[styles.totalRewardHeading, { color: theme?.WHITE, fontWeight: 500, marginBottom: 6 }]} >Staking Reward</Text>
                   <Text style={[styles.totalRewardHeading, { color: theme?.WHITE }]} >{parseFloat(getObject?.stakeReward).toFixed(4)} USB</Text>
 
                 </View>

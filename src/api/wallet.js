@@ -74,6 +74,24 @@ export const addInStake = (data) => {
   });
 };
 
+export const getTransactionCount = (data) => {
+  return invoke({
+    method: "POST",
+    baseURL: Str.apiUrl,
+    route: "wallet/transaction-count",
+    data: data,
+  });
+};
+
+export const mintCoin = (data) => {
+  return invoke({
+    method: "POST",
+    baseURL: Str.apiUrl,
+    route: "wallet/mint-coin",
+    data: data,
+  });
+};
+
 
 
 
