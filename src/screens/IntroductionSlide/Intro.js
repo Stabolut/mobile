@@ -117,11 +117,11 @@ let Intro = props => {
                 if (isPinAlreadySet === 'true')
                   navigation?.navigate(ENUMS.SCREENS.WARNING_SCREEN);
                 else
-                  // navigation?.navigate(ENUMS.SCREENS.PIN_CODE, {
-                  //   goToScreen: ENUMS.SCREENS.WARNING_SCREEN,
-                  //   pinState: 'choose',
-                  // });
-                  navigation?.navigate(ENUMS.SCREENS.WARNING_SCREEN);   
+                  navigation?.navigate(ENUMS.SCREENS.PIN_CODE, {
+                    goToScreen: ENUMS.SCREENS.WARNING_SCREEN,
+                    pinState: 'choose',
+                  });
+                 // navigation?.navigate(ENUMS.SCREENS.WARNING_SCREEN);   
               }
               catch (e) {
                 console.log("dddd", e)
@@ -142,11 +142,11 @@ let Intro = props => {
               if (isPinAlreadySet === 'true')
                 navigation?.navigate(ENUMS.SCREENS.CHOOSE_IMPORT_OPTION);
               else
-                // navigation?.navigate(ENUMS.SCREENS.PIN_CODE, {
-                //   goToScreen: ENUMS.SCREENS.CHOOSE_IMPORT_OPTION,
-                //   pinState: 'choose',
-                // });
-                navigation?.navigate(ENUMS.SCREENS.CHOOSE_IMPORT_OPTION);
+                navigation?.navigate(ENUMS.SCREENS.PIN_CODE, {
+                  goToScreen: ENUMS.SCREENS.CHOOSE_IMPORT_OPTION,
+                  pinState: 'choose',
+                });
+                //navigation?.navigate(ENUMS.SCREENS.CHOOSE_IMPORT_OPTION);
             }}
             style={{
               justifyContent: 'center',

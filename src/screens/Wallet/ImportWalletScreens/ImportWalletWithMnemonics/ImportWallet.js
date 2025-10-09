@@ -80,7 +80,7 @@ class ImportWallet extends React.Component {
 
       // Obtain FCM token
       let deviceId = null
-      mobileFcmToken = await getFcmTokenFromLocalStorage();
+      let mobileFcmToken = await getFcmTokenFromLocalStorage();
       try {
         // Obtain FCM token
         deviceId = await getStableDeviceId();

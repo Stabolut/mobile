@@ -95,6 +95,7 @@ function Dashboard({ navigation }) {
       setUserAddress(address)
       let provider = new ethers.providers.JsonRpcProvider(currentNetwork.rpcUrl)
       let balance = await getERC20Balance(address, currentNetwork.contractAddress, provider)
+      console.log("balance",balance)
 
       let uniqueArr = await getUserTransactionListFromLocalDb(currentNetwork.name)
       setTransactionRecord(uniqueArr);

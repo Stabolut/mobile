@@ -5,8 +5,10 @@ import { getRealmInstance } from "./realmDbCreation";
 // get user balance
 export let getERC20Balance = async (address, contractAddress, provider) => {
   try {
+    console.log("Log balance meta",address, contractAddress)
     const contract = new ethers.Contract(contractAddress, Str.ABI, provider);
     const balance = await contract.balanceOf(address);
+    console.log("Log balance",address)
     return balance / 1e2
 
   } catch (e) {

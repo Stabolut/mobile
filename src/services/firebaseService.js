@@ -102,7 +102,7 @@ export class FirebaseService {
       // console.log('🚀 Sending token to server:', token);
       try {
         let fcmToken = await AsyncStorage.getItem("fcmToken");
-        console.log("token in storage", fcmToken, "currentToken", token)
+        console.log("token in storage dkdkddk", fcmToken, "currentToke kdkdkn", token)
         if (fcmToken === token) {
           // Token matches the stored value; no further action needed
           console.log("FCM token already exists in storage.");

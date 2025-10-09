@@ -10,6 +10,7 @@ function TransactionDetail(props) {
   let selectedTheme = useSelector((state) => state.walletReducer.theme)
   let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
   const theme = THEME[selectedTheme];
+  console.log("props.route.params.transactionHash",props.route.params.transactionHash, `${currentNetwork.explorerURL}/${props.route.params.transactionHash}`)
 
   return (
     <React.Fragment>

@@ -1,36 +1,44 @@
-
-
-
-// import PushNotification from 'react-native-push-notification';
-// import useNotificationStore from '../features/notifcation/redux/useNotificationStore';
-
-import { showNotificationToast } from "./toast";
-
-// // Configure once (e.g., in App.js startup)
-// PushNotification.configure({
-//     onNotification: function (notification) {
-//         console.log("LOCAL NOTIFICATION ==>", notification);
-//     },
-//     requestPermissions: false, // We handle permissions ourselves
-// });
+import notifee, { AndroidImportance } from '@notifee/react-native';
 
 export async function onDisplayNotification(remoteMessage) {
     const { title, body } = remoteMessage.notification || {};
-    alert("titltttt")
-    //showNotificationToast(title, body)
+    try {
+        // Create a channel (required for Android)
+        const channelId = await notifee.createChannel({
+            id: 'default',
+            name: 'Default Channel',
+            importance: AndroidImportance.HIGH,
+            sound: 'default',
+            vibration: true,
+        });
 
-    // // Store in Redux
-    // if (remoteMessage.data) {
-    //     const store = useNotificationStore.getState();
-    //     const existingNotification = store.notificationList.find(
-    //         notification => notification.id === remoteMessage.data.id
-    //     );
-
-    //     if (!existingNotification) {
-    //         store.setNewNotification(remoteMessage.data);
-    //     }
-    // }
+        // Display the notification
+        await notifee.displayNotification({
+            title: title || 'New Notification',
+            body: body || '',
+            android: {
+                channelId,
+                smallIcon: 'ic_notification', // Your app icon
+                importance: AndroidImportance.HIGH,
+                pressAction: {
+                    id: 'default',
+                },
+            },
+            ios: {
+                sound: 'default',
+                foregroundPresentationOptions: {
+                    badge: true,
+                    sound: true,
+                    banner: true,
+                    list: true,
+                },
+            },
+        });
+    } catch (error) {
+        console.error('Error displaying notification:', error);
+    }
 }
+
 
 
 
