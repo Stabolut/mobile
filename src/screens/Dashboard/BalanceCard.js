@@ -77,7 +77,7 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme, cur
                                 <View style={{ flexDirection: "row", paddingLeft: 24 }}>
                                     <Image style={styles.imageLogo} source={Images.usdbLogo} />
 
-                                    <Text style={[styles.balanceTextValue, { color: theme?.WHITE }]}> {balance.toLocaleString() + ' US₿'}</Text>
+                                    <Text style={[styles.balanceTextValue, { color: theme?.WHITE }]}> {balance?.toLocaleString() + ' US₿'}</Text>
 
 
                                 </View>}

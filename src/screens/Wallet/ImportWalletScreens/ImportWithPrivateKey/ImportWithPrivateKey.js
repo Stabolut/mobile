@@ -108,7 +108,7 @@ class ImportWithPrivateKey extends React.Component {
                 await AsyncStorage.setItem('address', wallet.address);
                 await AsyncStorage.setItem('privateKey', this.state.privateKey.trim());
                 await AsyncStorage.setItem('mnemonics', this.state.privateKey.trim());//we are stroing private key actually
-                if (mobileFcmToken) { await AsyncStorage.setItem("fcmToken", token); }
+                if (mobileFcmToken) { await AsyncStorage.setItem("fcmToken", mobileFcmToken); }
 
                 store.dispatch(storeWalletInfo(true));
                 store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }));
@@ -123,6 +123,7 @@ class ImportWithPrivateKey extends React.Component {
             }
 
             catch (error) {
+                console.log("existingWallet",error)
 
                 let msg = errorMessageHandler(error)
                 this.setState({
