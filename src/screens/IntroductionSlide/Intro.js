@@ -1,20 +1,24 @@
 import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity,Platform } from 'react-native';
-import { COLORS, ENUMS, Images,THEME } from '../../common';
+import { View, StyleSheet, Text, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { COLORS, ENUMS, Images, THEME } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
-import Carousel, { Pagination } from 'react-native-snap-carousel';
-import CarouselCardItem, { SLIDER_WIDTH, ITEM_WIDTH } from './CarouselCardItem';
+import Carousel, { ICarouselInstance, Pagination } from 'react-native-reanimated-carousel';
+import CarouselCardItem from './CarouselCardItem';
 import { useNavigation } from '@react-navigation/core';
 import AsyncStorage from '@react-native-community/async-storage';
-import { connect,useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { getStableDeviceId } from '../../utils/deviceIdentity';
 
-// import PushNotification, { Importance } from 'react-native-push-notification'
+const width = Dimensions.get('window').width;
+
 let Intro = props => {
-  const isCarousel = React.useRef(null);
-  const [index, setIndex] = React.useState(0);
+  const ref = React.useRef(null);
+  const progress = useSharedValue(0);
   const navigation = useNavigation();
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
   const theme = THEME[selectedTheme];
+
   let data = [
     {
       title: 'Truly Gasless Transactions',
@@ -26,7 +30,6 @@ let Intro = props => {
       body: 'Private keys never leave your device',
       imgUrl: Images.frame4,
     },
-
     {
       title: 'Bitcoin-backed Token',
       body: 'USB maintains the peg to 1 USD value by using perpetual shorts on Bitcoin which means you are safe from volatility',
@@ -34,99 +37,123 @@ let Intro = props => {
     },
   ];
 
+  const onPressPagination = (index) => {
+    ref.current?.scrollTo({
+      count: index - progress.value,
+      animated: true,
+    });
+  };
+
   return (
     <React.Fragment>
-
       <StatusBarNU
         backgroundColor={theme?.BACKGROUND_COLOR}
-       
       />
 
-      <View style={[styles.mainContainer,{backgroundColor: theme?.BACKGROUND_COLOR,}]}>
-        {/* {
-          Platform.OS !== 'ios'? */}
-        
-        <View style={[styles.mainContainerChild1,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+      <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
+        <View style={[styles.mainContainerChild1, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
           <Carousel
-            layout="tinder"
-            ref={isCarousel}
+            ref={ref}
+            width={width}
+            height={width * 0.8}
             data={data}
-           // renderItem={CarouselCardItem theme={theme}}
-
-           renderItem={({ item, index }) => (
-            <CarouselCardItem
-              item={item}
-              index={index}
-              theme={theme}
-              extraProp="value" // Add your extra prop here
-            />
-          )}
-
-
-            sliderWidth={SLIDER_WIDTH}
-            itemWidth={ITEM_WIDTH}
-            layoutCardOffset={9}
-            theme={theme}
-            onSnapToItem={index => setIndex(index)}
-            useScrollView={true}
+            onProgressChange={progress}
+            renderItem={({ item, index }) => (
+              <CarouselCardItem
+                item={item}
+                index={index}
+                theme={theme}
+                extraProp="value"
+              />
+            )}
+            mode="horizontal-stack"
+            modeConfig={{
+              snapDirection: 'left',
+              stackInterval: 18,
+            }}
+            style={{
+              width: width,
+              height: width * 0.8,
+            }}
+            customConfig={() => ({ type: 'positive', viewCount: 1 })}
+            pagingEnabled={true}
+            snapEnabled={true}
           />
-          <Pagination
-            dotsLength={data.length}
-            activeDotIndex={index}
-            carouselRef={isCarousel}
+
+          <Pagination.Basic
+            progress={progress}
+            data={data}
             dotStyle={{
               width: 8,
               height: 8,
               borderRadius: 5,
-              marginHorizontal: 0,
-              backgroundColor: COLORS?.BTN_BACKGROUND_COLOR,
+              backgroundColor: "#9e9e9e"
             }}
-            inactiveDotOpacity={0.4}
-            inactiveDotScale={0.6}
-            tappableDots={true}
+            activeDotStyle={{
+              width: 8,
+              height: 8,
+              borderRadius: 5,
+              backgroundColor: COLORS?.BTN_BACKGROUND_COLOR, // active dot
+            }}
+
+            containerStyle={{
+              gap: 5,
+              marginTop: 20,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+            onPress={onPressPagination}
           />
         </View>
-        {/* :null
-} */}
 
         <View style={styles.mainContainerChild2}>
           <TouchableOpacity
             onPress={async () => {
+              console.log("presssksks")
+              try {
+              
+                let isPinAlreadySet = await AsyncStorage.getItem('PinSet');
+                console.log("isPinAlreadySet", isPinAlreadySet)
+                if (isPinAlreadySet === 'true')
+                  navigation?.navigate(ENUMS.SCREENS.WARNING_SCREEN);
+                else
+                  // navigation?.navigate(ENUMS.SCREENS.PIN_CODE, {
+                  //   goToScreen: ENUMS.SCREENS.WARNING_SCREEN,
+                  //   pinState: 'choose',
+                  // });
+                  navigation?.navigate(ENUMS.SCREENS.WARNING_SCREEN);   
+              }
+              catch (e) {
+                console.log("dddd", e)
+              }
 
-              let isPinAlreadySet = await AsyncStorage.getItem('PinSet');
-              if (isPinAlreadySet === 'true')
-                navigation?.navigate(ENUMS.SCREENS.WARNING_SCREEN);
-              else
-                navigation?.navigate(ENUMS.SCREENS.PIN_CODE, {
-                  goToScreen: ENUMS.SCREENS.WARNING_SCREEN,
-                  pinState: 'choose',
-                });
             }}
             style={styles.btnStyleCreateWallet}>
             <Text style={styles.textStyleCreateWallet}>
               CREATE A NEW WALLET
             </Text>
+
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={async () => {
-
               let isPinAlreadySet = await AsyncStorage.getItem('PinSet');
 
               if (isPinAlreadySet === 'true')
                 navigation?.navigate(ENUMS.SCREENS.CHOOSE_IMPORT_OPTION);
               else
-                navigation?.navigate(ENUMS.SCREENS.PIN_CODE, {
-                  goToScreen: ENUMS.SCREENS.CHOOSE_IMPORT_OPTION,
-                  pinState: 'choose',
-                });
+                // navigation?.navigate(ENUMS.SCREENS.PIN_CODE, {
+                //   goToScreen: ENUMS.SCREENS.CHOOSE_IMPORT_OPTION,
+                //   pinState: 'choose',
+                // });
+                navigation?.navigate(ENUMS.SCREENS.CHOOSE_IMPORT_OPTION);
             }}
             style={{
               justifyContent: 'center',
               alignItems: 'center',
               marginTop: 16,
             }}>
-            <Text style={[styles.textAlreadyAccount,{ color: theme?.WHITE,}]}>
+            <Text style={[styles.textAlreadyAccount, { color: theme?.WHITE }]}>
               I already have a wallet
             </Text>
           </TouchableOpacity>
@@ -139,8 +166,7 @@ let Intro = props => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-   
-    justifyContent:"flex-end"
+    justifyContent: "flex-end"
   },
   mainContainerChild1: {
     flex: 1,
@@ -206,7 +232,6 @@ const styles = StyleSheet.create({
     elevation: 7,
   },
   textAlreadyAccount: {
-  
     fontSize: 14,
     fontFamily: 'Poppins',
   },
@@ -216,16 +241,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Poppins',
   },
+
 });
-
-
-
 
 const mapStateToProps = state => {
   return {
-
-    authState: state.authReducer.walletCreated,
-    pinValue: state.authReducer.pinValue
+    authState: state.walletReducer.walletCreated,
+    pinValue: state.walletReducer.pinValue
   }
 }
+
 export default connect(mapStateToProps)(Intro);

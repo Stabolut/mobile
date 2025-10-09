@@ -1,223 +1,432 @@
-import React, { useRef, useState, useN } from 'react';
-import Toast from 'react-native-easy-toast'
-import { View, Modal, StyleSheet, Text, TouchableOpacity, TextInput, Pressable } from 'react-native';
-import { COLORS, CS, ENUM, } from '../../common';
+import React, { useState } from 'react';
+import { View, Modal, StyleSheet, Text, TouchableOpacity, Pressable, ScrollView } from 'react-native';
+import { COLORS } from '../../common';
 import Clipboard from '@react-native-clipboard/clipboard';
 import DropDownHolder from '../dropDownHolder';
 import moment from 'moment';
-import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
 export default function TransactionDetail({ item, showDetailModal, onClose, onBlochainContinue, userAddress, theme }) {
-
-    const navigation = useNavigation();
-
-    const items = {
-        amountToSend: 100000,
-        // other properties of the item
+    
+    const [notesExpanded, setNotesExpanded] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
+    
+    const copyToClipboard = () => {
+        try {
+            let addressToCopy = userAddress === item.senderAddress ? item.receiverAddress : item.senderAddress;
+            Clipboard.setString(addressToCopy);
+            setIsCopied(true);
+            
+            // Reset copied state after 2 seconds
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (e) {
+            DropDownHolder.alert('error', 'Error', 'Failed to copy address.');
+        }
     };
 
-
-
+    const isStaking = item.transactionType === "Staking";
+    const isReceived = userAddress !== item.senderAddress;
+    
+    // Check if notes are long (more than 100 characters as threshold)
+    const isNotesLong = item.transactionNotes && item.transactionNotes.length > 100;
 
     return (
-        <Modal animationType="fade"
-
+        <Modal 
+            animationType="slide"
             transparent={true}
             visible={showDetailModal}
-            statusBarTranslucent={true}>
+            statusBarTranslucent={true}
+            onRequestClose={onClose}
+        >
+            <View style={styles.overlay}>
+                <Pressable style={styles.overlay} onPress={onClose} />
+                <View style={[styles.modalWrapper, { backgroundColor: theme?.DETAIL_CARD_BACKGROUND }]}>
+                    
+                    {/* Close Button */}
+                    <TouchableOpacity 
+                        style={styles.closeBtn}
+                        onPress={onClose}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons name="close-circle" size={28} color={theme?.WHITE} style={{ opacity: 0.6 }} />
+                    </TouchableOpacity>
 
+                    {/* Scrollable Content */}
+                    <ScrollView 
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                        bounces={false}
+                    >
+                        {/* Success Icon with Glow */}
+                        <View style={styles.iconSection}>
+                            <View style={styles.iconGlow}>
+                                <View style={styles.successIcon}>
+                                    <FontAwesomeIcon name="check" size={40} color={COLORS.WHITE} />
+                                </View>
+                            </View>
+                        </View>
 
-            <View style={styles.centeredView}>
-
-
-
-
-                <View style={[styles.modalView, { backgroundColor: theme?.DETAIL_CARD_BACKGROUND, }]}>
-                    <View style={{ width: 70, height: 70, backgroundColor: "green", borderRadius: 70 / 2, justifyContent: "center", alignItems: "center" }}>
-                        <FontAwesomeIcon
-                            name="check"
-                            size={40}
-                            color={COLORS.WHITE}></FontAwesomeIcon>
-
-                    </View>
-                    <Text style={{ marginTop: 16, marginBottom: 12, color: theme?.WHITE }}>
-                        {userAddress === item.senderAddress ? "You have transferred" : "You have received"}{" "}
-
-
-                        <Text style={{ color: theme?.SMALL_HEADING_TEXT, fontWeight: "bold" }}>{item?.amountToSend?.toLocaleString('en-IN')} US₿</Text></Text>
-                    <Text style={{ marginBottom: 16, color: theme?.WHITE }}>
-
-
-                        {userAddress === item.senderAddress ? "To" : "From"}
-                    </Text>
-
-
-
-                    {/* backgroundColor: "#252549" */}
-                    <View style={{ backgroundColor: theme?.TRANSACTION_DETAIL_ADDRESS_BACKGROUND, borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", marginHorizontal: 16 }}>
-                        <Text style={[styles.addressText,{color: theme?.SMALL_HEADING_TEXT,}]}>
-                            {userAddress === item.senderAddress ? item.receiverAddress : item.senderAddress}
-
+                        {/* Transaction Status */}
+                        <Text style={[styles.statusLabel, { color: theme?.SMALL_HEADING_TEXT }]}>
+                            {isStaking ? "STAKE WITHDRAWN" : isReceived ? "RECEIVED" : "SENT SUCCESSFULLY"}
                         </Text>
+
+                        {/* Amount Display */}
+                        <View style={styles.amountSection}>
+                            <Text style={[styles.amountValue, { color: theme?.WHITE }]}>
+                                {item?.amountToSend?.toLocaleString('en-IN')}
+                            </Text>
+                            <Text style={[styles.currencyLabel, { color: theme?.SMALL_HEADING_TEXT }]}>US₿</Text>
+                        </View>
+
+                        {/* Decorative Line */}
+                        <View style={styles.dividerLine}>
+                            <View style={[styles.dividerDot, { backgroundColor: theme?.SMALL_HEADING_TEXT }]} />
+                            <View style={[styles.dividerBar, { backgroundColor: theme?.SMALL_HEADING_TEXT }]} />
+                            <View style={[styles.dividerDot, { backgroundColor: theme?.SMALL_HEADING_TEXT }]} />
+                        </View>
+
+                        {/* Transaction Details Card */}
+                        <View style={styles.detailsCard}>
+                            
+                            {/* Date Info */}
+                            <View style={styles.infoItem}>
+                                <View style={styles.infoIconBox}>
+                                    <Ionicons name="calendar" size={18} color={theme?.SMALL_HEADING_TEXT} />
+                                </View>
+                                <View style={styles.infoContent}>
+                                    <Text style={[styles.infoTitle, { color: theme?.SMALL_HEADING_TEXT }]}>Date & Time</Text>
+                                    <Text style={[styles.infoText, { color: theme?.WHITE }]}>
+                                        {moment(item.sendDate).format('MMM DD, YYYY • hh:mm A')}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* Address Info */}
+                            {!isStaking && (
+                                <View style={styles.infoItem}>
+                                    <View style={styles.infoIconBox}>
+                                        <MaterialCommunityIcons 
+                                            name={isReceived ? "arrow-down-circle" : "arrow-up-circle"} 
+                                            size={18} 
+                                            color={theme?.SMALL_HEADING_TEXT} 
+                                        />
+                                    </View>
+                                    <View style={styles.infoContent}>
+                                        <Text style={[styles.infoTitle, { color: theme?.SMALL_HEADING_TEXT }]}>
+                                            {isReceived ? "From Address" : "To Address"}
+                                        </Text>
+                                        <View style={[
+                                            styles.addressRow,
+                                            { borderColor: isCopied ? COLORS.GREEN_SUCCESS : 'transparent' }
+                                        ]}>
+                                            <Text 
+                                                style={[styles.addressText, { color: theme?.WHITE }]} 
+                                                numberOfLines={1}
+                                                ellipsizeMode="middle"
+                                            >
+                                                {isReceived ? item?.senderAddress : item?.receiverAddress}
+                                            </Text>
+                                            <TouchableOpacity
+                                                onPress={copyToClipboard}
+                                                style={[
+                                                    styles.copyBtn,
+                                                    { backgroundColor: isCopied ? COLORS.GREEN_SUCCESS : 'transparent' }
+                                                ]}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Ionicons 
+                                                    size={16} 
+                                                    color={isCopied ? COLORS.WHITE : COLORS.BTN_BACKGROUND_COLOR} 
+                                                    name={isCopied ? "checkmark" : "copy"} 
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                        
+                                        {isCopied && (
+                                            <Text style={[styles.copiedText, { color: COLORS.GREEN_SUCCESS }]}>
+                                                ✓ Address copied!
+                                            </Text>
+                                        )}
+                                    </View>
+                                </View>
+                            )}
+
+                            {/* Notes Info with See More/Less */}
+                            {item.transactionNotes && (
+                                <View style={[styles.infoItem, { marginBottom: 0 }]}>
+                                    <View style={styles.infoIconBox}>
+                                        <Ionicons name="document-text" size={18} color={theme?.SMALL_HEADING_TEXT} />
+                                    </View>
+                                    <View style={styles.infoContent}>
+                                        <Text style={[styles.infoTitle, { color: theme?.SMALL_HEADING_TEXT }]}>Notes</Text>
+                                        <Text 
+                                            style={[styles.infoText, { color: theme?.WHITE }]}
+                                            numberOfLines={notesExpanded ? undefined : 3}
+                                        >
+                                            {item.transactionNotes}
+                                        </Text>
+                                        
+                                        {/* See More / See Less Button */}
+                                        {isNotesLong && (
+                                            <TouchableOpacity
+                                                onPress={() => setNotesExpanded(!notesExpanded)}
+                                                style={styles.seeMoreBtn}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Text style={[styles.seeMoreText, { color: COLORS.BTN_BACKGROUND_COLOR }]}>
+                                                    {notesExpanded ? "See Less" : "See More"}
+                                                </Text>
+                                                <Ionicons 
+                                                    name={notesExpanded ? "chevron-up" : "chevron-down"} 
+                                                    size={16} 
+                                                    color={COLORS.BTN_BACKGROUND_COLOR} 
+                                                />
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                </View>
+                            )}
+                        </View>
+                    </ScrollView>
+
+                    {/* Action Buttons - Fixed at Bottom */}
+                    <View style={styles.actionsContainer}>
                         <TouchableOpacity
-
-                            onPress={() => {
-
-                                try {
-                                    let res = userAddress === item.senderAddress ? item.receiverAddress : item.senderAddress
-
-                                    Clipboard.setString(res);
-                                    DropDownHolder.alert(
-                                        'sucess',
-                                        'Copy',
-                                        `The wallet information has been successfully copied to the clipboard.`,
-                                    );
-                                }
-                                catch (e) {
-                                    DropDownHolder.alert(
-                                        'sucess',
-                                        'Copy',
-                                        `Facing some problem to copy wallet information to the clipboard.`,
-                                    );
-
-                                }
-
-                            }}
-
-                            style={{ justifyContent: "center", alignItems: "center" }}
-                        >
-                            <Ionicons size={25} color={theme.WHITE} name="copy" />
-
-                        </TouchableOpacity>
-                    </View>
-                    {
-                        item.transactionNotes && <Text style={{ alignSelf: "flex-start", color: theme?.SMALL_HEADING_TEXT, marginBottom: 4, padding: 4, paddingLeft: 28 }}>Notes: <Text style={{ color: theme?.WHITE, fontWeight: "500" }}>{item.transactionNotes != "" ? item.transactionNotes : ""}</Text></Text>
-                    }
-
-
-                    <Text style={{ alignSelf: "flex-start", marginBottom: 16, color: theme?.SMALL_HEADING_TEXT, paddingLeft: 28 }}>Date: <Text style={{ color: theme?.WHITE }}>{moment(item.sendDate).format('MMMM D, YYYY')}</Text></Text>
-
-                    {/* <Text style={{ alignSelf: "flex-start", color: "gray", marginBottom: 4 }}>Notes: <Text style={{ color: COLORS.APP_BLUE_COLOR, fontWeight: "500" }}>{props.item.transactionNotes}</Text></Text>
-                    <Text style={{ alignSelf: "flex-start", marginBottom: 24, color: "gray" }}>Send Data: <Text style={{ color: COLORS.BLACK }}>{props.item.sendDate}</Text></Text> */}
-
-                    <View style={{ flexDirection: "row", justifyContent: "center", marginBottom: 16, padding: 32 }}>
-
-
-                        <TouchableOpacity
-                            style={[styles.Button_Ok, { marginRight: 8, backgroundColor: COLORS.BTN_BACKGROUND_COLOR }]}
-
+                            style={[styles.btnPrimary, { backgroundColor: COLORS.BTN_BACKGROUND_COLOR }]}
                             onPress={() => onBlochainContinue(item.transactionHash)}
+                            activeOpacity={0.85}
                         >
-
-                            <Text style={styles.Text_style_ok}>View On Blockchain</Text>
+                            <Ionicons name="globe-outline" size={20} color={COLORS.WHITE} />
+                            <Text style={styles.btnPrimaryText}>View on Blockchain</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[styles.Button_Ok, { backgroundColor: "gray" }]}
-                            onPress={() => onClose()}
+                            style={[styles.btnSecondary, { borderColor: theme?.SMALL_HEADING_TEXT }]}
+                            onPress={onClose}
+                            activeOpacity={0.85}
                         >
-
-                            <Text style={styles.Text_style_ok}>Close</Text>
+                            <Text style={[styles.btnSecondaryText, { color: theme?.WHITE }]}>Close</Text>
                         </TouchableOpacity>
-
                     </View>
-
-
-
                 </View>
-
             </View>
         </Modal>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
-    centeredView: {
-        flex: 1,
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: '#0008'
-
-
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
     },
-    modalView: {
-        margin: 20,
-        width: "90%",
-        paddingTop: 32,
-        borderRadius: 20,
-        flexDirection: 'column',
-
-        alignItems: 'center',
+    modalWrapper: {
+        margin: 24,
+        width: "92%",
+        maxWidth: 440,
+        maxHeight: '85%',
+        borderRadius: 28,
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
-            height: 2
+            height: 10
         },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+        elevation: 15,
     },
-    addressText: {
-        fontSize: 14,
-        fontWeight: '500',
-        
-        paddingHorizontal: 6,
-        fontFamily: 'Poppins',
+    scrollView: {
+        flexGrow: 0,
+        flexShrink: 1,
     },
-    _Modal_inner_text1: {
-
-        fontFamily: "Poppins",
-        fontWeight: '500',
-        textDecorationLine: "none",
-        fontSize: 16,
-        lineHeight: 30,
-        letterSpacing: 0.1,
+    scrollContent: {
+        paddingHorizontal: 24,
+        paddingTop: 32,
+        paddingBottom: 16,
     },
-
-    modalText: {
-        marginVertical: 15,
-        textAlign: "center",
-        color: COLORS.WHITE,
-        fontSize: 17,
-        marginLeft: 15,
+    closeBtn: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        zIndex: 10,
     },
-    Button_Ok: {
-
-        borderRadius: 5,
-        opacity: 1,
-        padding: 12,
+    iconSection: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    iconGlow: {
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        backgroundColor: 'rgba(34, 197, 94, 0.15)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    successIcon: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: '#22C55E',
         justifyContent: "center",
         alignItems: "center",
-        alignContent: "center",
-
-
-
     },
-
-    Text_style_ok: {
-        fontFamily: "Poppins",
-        fontWeight: '500',
-        textDecorationLine: "none",
+    statusLabel: {
+        fontSize: 13,
+        fontFamily: 'Poppins-SemiBold',
+        textAlign: 'center',
+        letterSpacing: 1.5,
+        marginBottom: 12,
+        opacity: 0.7,
+    },
+    amountSection: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'baseline',
+        marginBottom: 28,
+    },
+    amountValue: {
+        fontSize: 42,
+        fontFamily: 'Poppins-Bold',
+        marginRight: 8,
+    },
+    currencyLabel: {
+        fontSize: 28,
+        fontFamily: 'Poppins-SemiBold',
+        opacity: 0.8,
+    },
+    dividerLine: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+        paddingHorizontal: 40,
+    },
+    dividerDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        opacity: 0.3,
+    },
+    dividerBar: {
+        flex: 1,
+        height: 1,
+        marginHorizontal: 12,
+        opacity: 0.2,
+    },
+    detailsCard: {
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 16,
+    },
+    infoItem: {
+        flexDirection: 'row',
+        marginBottom: 18,
+        alignItems: 'flex-start',
+    },
+    infoIconBox: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    infoContent: {
+        flex: 1,
+        paddingTop: 2,
+    },
+    infoTitle: {
+        fontSize: 12,
+        fontFamily: 'Poppins-Regular',
+        marginBottom: 4,
+        opacity: 0.6,
+    },
+    infoText: {
+        fontSize: 15,
+        fontFamily: 'Poppins-Medium',
+        lineHeight: 22,
+    },
+    addressRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    addressText: {
+        fontSize: 13,
+        fontFamily: 'Poppins-Regular',
+        flex: 1,
+        marginRight: 8,
+    },
+    copyBtn: {
+        padding: 4,
+        borderRadius: 8,
+    },
+    copiedText: {
+        fontSize: 12,
+        fontFamily: 'Poppins-Regular',
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    seeMoreBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+        paddingVertical: 4,
+    },
+    seeMoreText: {
+        fontSize: 13,
+        fontFamily: 'Poppins-SemiBold',
+        marginRight: 4,
+    },
+    actionsContainer: {
+        paddingHorizontal: 24,
+        paddingVertical: 20,
+        gap: 12,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    },
+    btnPrimary: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 14,
+        paddingVertical: 16,
+        gap: 8,
+        shadowColor: COLORS.BTN_BACKGROUND_COLOR,
+        shadowOffset: {
+            width: 0,
+            height: 4
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    btnPrimaryText: {
+        fontFamily: "Poppins-SemiBold",
         fontSize: 16,
         color: COLORS.WHITE,
-
-        letterSpacing: 0.1,
     },
-    container: {
-        backgroundColor: COLORS.WHITE,
-        width: '100%',
-        height: 150,
-        marginTop: 16,
-
-        borderColor: COLORS.SLIDER_BORDER_COLOR,
-        borderWidth: 1,
-        borderRadius: 5,
-        padding: 8,
-
-
-
+    btnSecondary: {
+        borderRadius: 14,
+        paddingVertical: 16,
+        alignItems: 'center',
+        borderWidth: 1.5,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    btnSecondaryText: {
+        fontFamily: "Poppins-Medium",
+        fontSize: 16,
     },
 });

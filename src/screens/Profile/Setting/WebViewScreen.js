@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 // import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 
 function WebViewScreen(props) {
-    const selectedTheme = useSelector((state) => state.authReducer.theme)
+    const selectedTheme = useSelector((state) => state.walletReducer.theme)
     const theme = THEME[selectedTheme];
 
     return (

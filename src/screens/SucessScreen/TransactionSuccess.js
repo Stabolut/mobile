@@ -23,7 +23,7 @@ function TransactionSuccess(props) {
 
   const socketConnection = useContext(SocketContext);
   socketDisconnectMessage(socketConnection.connectionStatus);
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
   const theme = THEME[selectedTheme];
 
   return (
@@ -133,7 +133,7 @@ function TransactionSuccess(props) {
                 ? 'TOTAL AMOUNT PAID'
                 : 'TOTAL AMOUNT RECEIVED'}
             </Text>
-            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+            <View style={{ flex: 1, alignItems: 'flex-end',justifyContent:"flex-end"}}>
               <Text
                 style={{
                   color: theme?.SMALL_HEADING_TEXT,
@@ -169,7 +169,7 @@ function TransactionSuccess(props) {
               }}>
               TRANSACTION DATE
             </Text>
-            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+            <View style={{ flex: 1, alignItems: 'flex-end',justifyContent:"flex-start",alignItems:"flex-end" }}>
               <Text
                 style={{
                   color: theme?.SMALL_HEADING_TEXT,
@@ -217,13 +217,14 @@ function TransactionSuccess(props) {
                   },
                 );
               }}
-              style={{ flex: 1, alignItems: 'flex-end' }}>
+              style={{ flex: 1, alignItems: 'flex-end',justifyContent:"flex-start",alignItems:"flex-end" }}>
               <Text
                 style={{
                   color: theme?.SMALL_HEADING_TEXT,
                   fontWeight: '700',
                   fontSize: 12,
                   fontFamily: 'Poppins',
+                
                 }}>
                 {props.route.params.transactionHash}
               </Text>

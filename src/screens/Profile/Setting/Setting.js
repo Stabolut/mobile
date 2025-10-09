@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Alert } from 'react-native';
 import MnemonicsShowModal from '../../../components/Modal/MnemonicsShowModal';
 import Header from '../../../components/Header/Header';
 import { COLORS, ENUMS, Str, THEME } from '../../../common';
@@ -7,8 +7,9 @@ import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-
+import ReferralModal from '../../../components/Modal/ReferralModal';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ToggleSwitch from 'toggle-switch-react-native'
@@ -20,10 +21,11 @@ import SetUsernameModal from '../../../components/Modal/SetUsernameModal';
 import AsyncStorage from '@react-native-community/async-storage';
 import { useSelector } from 'react-redux';
 import LoadingModal from '../../../components/LoadingModal/modal';
-import { errorMessageHandler, get, saveString } from '../../../utils/utils';
+import { errorMessageHandler, saveString } from '../../../utils/utils';
 import axios from 'axios';
 import { store } from '../../../store';
-import { setTheme } from '../../../redux/action/auth';
+import { setTheme } from '../../../redux/action/wallet';
+import { getRealmInstance } from '../../../utils/realmDbCreation';
 
 
 function Setting({ navigation }) {
@@ -35,18 +37,41 @@ function Setting({ navigation }) {
     const [privateKey, setPrivateKey] = useState('');
     const [userAddress, setUserAddress] = useState('');
     const [username, setUserName] = useState('');
+    const [initialUsername, setInitialUsername] = useState('');
     const [visible, setVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const selectedTheme = useSelector((state) => state.authReducer.theme)
+    const [modalVisible, setModalVisible] = useState(false);
+    const selectedTheme = useSelector((state) => state.walletReducer.theme)
     const theme = THEME[selectedTheme];
+
 
 
     let getLocalData = async () => {
         let address = await AsyncStorage.getItem('address');
         let privateKey = await AsyncStorage.getItem('mnemonics');
+        let privateKey1 = await AsyncStorage.getItem('privateKey');
+        console.log("privateKey1", privateKey1)
+
+
         setUserAddress(address);
         setPrivateKey(privateKey);
     };
+    // if user address get from localStorage then we get the balance of address
+    useEffect(() => {
+        if (userAddress) {
+            getUsername()
+        }
+    }, [userAddress]);
+
+    useEffect(() => {
+        getDarkModeToggle()
+        getLocalData();
+        getAllowContacts()
+        getBiometrics()
+        checkBioMetrics()
+
+
+    }, []);
 
     let getUsername = async () => {
         try {
@@ -54,6 +79,7 @@ function Setting({ navigation }) {
                 userID: userAddress
             });
             setUserName(data?.data?.username)
+            setInitialUsername(data?.data?.username)
         }
         catch (e) {
             console.log("api error", errorMessageHandler(e))
@@ -101,72 +127,40 @@ function Setting({ navigation }) {
         }
 
     }
-  
 
-    // if user address get from localStorage then we get the balance of address
     useEffect(() => {
-        if (userAddress) {
-            getUsername()
+
+        if (toggle === true) {
+            store.dispatch(setTheme(ENUMS.THEME.DARK))
+            saveString("theme", ENUMS.THEME.DARK)
         }
-    }, [userAddress]);
+        else {
+            store.dispatch(setTheme(ENUMS.THEME.LIGHT))
+            saveString("theme", ENUMS.THEME.LIGHT)
+        }
+    }, [toggle]);
 
-    const handleThemeChange = useCallback(async (isDark) => {
-        const newTheme = isDark ? ENUMS.THEME.DARK : ENUMS.THEME.LIGHT;
-        store.dispatch(setTheme(newTheme));
-        await saveString("theme", newTheme);
-    }, []);
-
-    useEffect(() => {
-        handleThemeChange(toggle);
-    }, [toggle, handleThemeChange]);
-
-
-    useEffect(() => {
-        getDarkModeToggle()
-        getLocalData();
-        getAllowContacts()
-        getBiometrics()
-        checkBioMetrics()
-
-
-    }, []);
-
-
- const clearRealmDB = async () => {
-        // Define your Realm schema
-        const TransactionsHistorySchema = {
-            name: 'TransactionsHistorySchema',
-            properties: {
-                uniqueKey: 'string',
-                senderAddress: 'string',
-                receiverAddress: 'string',
-                amountToSend: 'double',
-                transactionStatus: 'string',
-                sendDate: 'date',
-                transactionHash: 'string',
-                transactionNotes: 'string',
-            },
-        };
-
-        // Open the Realm database
-        Realm.open({ schema: [TransactionsHistorySchema] })
-            .then((realm) => {
-                // Begin a write transaction
-                realm.write(() => {
-                    // Get all the objects in the TransactionsHistorySchema schema and delete them
-                    const allObjects = realm.objects('TransactionsHistorySchema');
-                    realm.delete(allObjects);
-                });
-
-                // Close the Realm database
-                realm.close();
-
-
-            })
-            .catch((error) => {
-
+    const clearRealmDB = async () => {
+        try {
+            // Get the shared Realm instance
+            let realmInstance = getRealmInstance();
+            // Begin a write transaction to delete all objects
+            realmInstance.write(() => {
+                const allObjects = realmInstance.objects('TransactionsHistorySchema');
+                realmInstance.delete(allObjects); // Delete all objects from the schema
             });
+            if (realmInstance && !realmInstance.isClosed) {
+                realmInstance.close();
+                realmInstance = null;
+            }
+
+            console.log('Realm database cleared successfully.');
+        } catch (error) {
+            console.error('Error clearing Realm database:', error);
+        }
     };
+
+
 
 
     const handleYesButtonPress = async () => {
@@ -200,7 +194,7 @@ function Setting({ navigation }) {
         );
     };
 
-   
+
 
 
 
@@ -209,21 +203,14 @@ function Setting({ navigation }) {
 
             <StatusBarNU
                 backgroundColor={theme?.BACKGROUND_COLOR}
-                />
+            />
             <Header
                 backButton={true}
                 headerText="settings"
                 theme={theme}
                 navigation={navigation}></Header>
 
-
-
-
-
-
             <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
-
-
 
                 <ScrollView>
                     <TouchableOpacity onPress={() => {
@@ -237,9 +224,6 @@ function Setting({ navigation }) {
                                 size={18}
                                 color={COLORS.WHITE}
                             />
-
-
-
                         </View>
                         <Text style={{ marginLeft: 30, fontSize: 15, alignSelf: "center", color: theme?.WHITE, fontFamily: "Poppins" }}>About</Text>
 
@@ -247,7 +231,7 @@ function Setting({ navigation }) {
                     </TouchableOpacity>
 
 
-                    <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
+                    {/* <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
 
                         <View style={{ width: 30, height: 30, backgroundColor: COLORS.BLACK, borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
                             <MaterialIcons
@@ -256,8 +240,6 @@ function Setting({ navigation }) {
                                 size={18}
                                 color={COLORS.WHITE}
                             />
-
-
                         </View>
                         <Text style={{ marginLeft: 30, fontSize: 15, color: theme?.WHITE, flex: 1, alignSelf: "center" }}>Dark Mode</Text>
 
@@ -271,11 +253,9 @@ function Setting({ navigation }) {
                         />
 
 
-                    </View>
+                    </View> */}
 
                     <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
-
-
 
                         <TouchableOpacity onPress={showAlertDialog} style={{ flexDirection: "row" }}>
                             {/* // when contact us on  use marginTop: 32  */}
@@ -290,8 +270,6 @@ function Setting({ navigation }) {
 
 
                             </View>
-
-
 
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
@@ -312,10 +290,6 @@ function Setting({ navigation }) {
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => {
-
-
-
-
                             navigation?.navigate(ENUMS.SCREENS.UPDATE_PIN, {
                                 goToScreen: ENUMS.SCREENS.SETTING,
                                 pinState: 'choose',
@@ -378,25 +352,7 @@ function Setting({ navigation }) {
 
                         </TouchableOpacity>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     </View>
-
-
-
 
                     <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
@@ -405,7 +361,6 @@ function Setting({ navigation }) {
                             navigation?.navigate(ENUMS.SCREENS.WEB_VIEW, {
                                 url: ENUMS.EXTERNAL_URL.TWITTER,
                                 headerText: "Twitter"
-
                             });
 
 
@@ -419,8 +374,6 @@ function Setting({ navigation }) {
                                     size={18}
                                     color={COLORS.WHITE}
                                 />
-
-
                             </View>
 
 
@@ -440,11 +393,7 @@ function Setting({ navigation }) {
                             navigation?.navigate(ENUMS.SCREENS.WEB_VIEW, {
                                 url: ENUMS.EXTERNAL_URL.TELEGRAM,
                                 headerText: "Telegram"
-
                             });
-
-
-
                         }} style={{ flexDirection: "row", marginTop: 32 }}>
 
                             <View style={{ width: 30, height: 30, backgroundColor: COLORS.APP_BLUE_COLOR, borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
@@ -454,8 +403,6 @@ function Setting({ navigation }) {
                                     size={25}
                                     color={COLORS.WHITE}
                                 />
-
-
                             </View>
 
 
@@ -474,49 +421,40 @@ function Setting({ navigation }) {
 
 
 
-                        {/* <TouchableOpacity onPress={() => {
-                            console.log("News page call")
-
-                            navigation?.navigate(ENUMS.SCREENS.BIO)
 
 
-                        }} style={{ flexDirection: "row", marginTop: 32 }}>
+                    </View>
+
+                    {/* <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
+
+                        <TouchableOpacity onPress={() => {
+
+
+                            navigation?.navigate(ENUMS.SCREENS.LEADERBOARD)
+
+
+                        }} style={{ flexDirection: "row" }}>
 
                             <View style={{ width: 30, height: 30, backgroundColor: "#f3b854", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
-                                <FontAwesome
-                                    name="euro"
-                                    style={{ fontWeight: '900' }}
-                                    size={18}
-                                    color={COLORS.WHITE}
-                                />
-                              
-
-
+                                <FontAwesome style={{ fontWeight: '900' }} name="trophy" size={18} color={COLORS.WHITE} />
 
                             </View>
-
-
                             <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
                                 <Text
 
-                                    style={{ fontSize: 15, color: COLORS.WHITE, flex: 1, fontFamily: "Poppins" }}
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
 
-                                >News </Text>
+                                >Badges & Rewards </Text>
                                 <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
                             </View>
 
 
-                        </TouchableOpacity> */}
+                        </TouchableOpacity>
 
 
+                    </View> */}
 
 
-
-
-
-
-
-                    </View>
                     {
                         bioMetricSupport === true &&
                         <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, flexDirection: "row", marginTop: 16 }}>
@@ -560,7 +498,6 @@ function Setting({ navigation }) {
                     <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, padding: 16, marginTop: 12 }}>
 
                         <TouchableOpacity onPress={async () => {
-
                             setShowUsernameModal(true)
                         }} style={{ flexDirection: "row" }}>
 
@@ -617,6 +554,36 @@ function Setting({ navigation }) {
                         </TouchableOpacity>
 
 
+                        <TouchableOpacity onPress={() => setModalVisible(true)} style={{ flexDirection: "row", marginTop: 32 }}>
+
+                            <View style={{ width: 30, height: 30, backgroundColor: "#808080", borderRadius: 6, justifyContent: "center", alignItems: "center", alignSelf: "center" }}>
+
+                                <Feather
+                                    name="user-plus"
+                                    style={{ fontWeight: '900' }}
+                                    size={18}
+                                    color={theme?.WHITE}
+                                />
+
+
+                            </View>
+
+
+                            <View style={{ flexDirection: "column", marginLeft: 30, flex: 1, alignSelf: "center", marginTop: 8 }}>
+                                <Text
+
+                                    style={{ fontSize: 15, color: theme?.WHITE, flex: 1, fontFamily: "Poppins" }}
+
+                                >Invites</Text>
+                                <View style={{ height: 1, backgroundColor: COLORS.SLIDER_BORDER_COLOR, marginTop: 12, width: "100%", opacity: 0.2 }}></View>
+                            </View>
+
+
+
+                        </TouchableOpacity>
+
+
+
 
                     </View>
 
@@ -659,14 +626,8 @@ function Setting({ navigation }) {
 
 
 
-            <SetUsernameModal selectedTheme={selectedTheme} initialUsername={username} visible={showUsernameModal} onSet={(username) => {
-
-                setUserName(username)
-
-            }} onClose={() => {
-                setShowUsernameModal(false)
-
-            }}
+            <SetUsernameModal selectedTheme={selectedTheme} username={username} initialUsername={initialUsername} visible={showUsernameModal} onChangeValue={(username) => { setUserName(username) }} onClose={() => { setShowUsernameModal(false) }}
+                onUpdateUsername={(value) => { setInitialUsername(value) }}
 
 
 
@@ -686,7 +647,14 @@ function Setting({ navigation }) {
                 }}></MnemonicsShowModal>
 
 
+            <ReferralModal
 
+                visible={modalVisible}
+                theme={theme}
+                selectedTheme={selectedTheme}
+                onClose={() => {
+                    setModalVisible(false);
+                }}></ReferralModal>
 
 
 

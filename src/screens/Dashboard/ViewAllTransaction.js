@@ -3,7 +3,8 @@ import {
     View,
     StyleSheet,
     FlatList,
-    Dimensions
+    Dimensions,
+    RefreshControl
 } from 'react-native';
 import { COLORS, THEME, Str } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
@@ -20,6 +21,8 @@ import NoTransactionFound from './NoTransactionFound';
 import TransactionLoader from './TransactionLoader';
 import { checkInternetConnectivity } from '../../utils/utils';
 import { ErrorMessages } from '../../messages/errorMessage';
+import { getWalletTransactionList } from '../../api/wallet';
+import { TransactionShimmer } from '../../components/Shimmer';
 
 
 
@@ -28,14 +31,15 @@ function AllTransaction({ navigation }) {
     const socketConnection = useContext(SocketContext);
     const [isTransactionLoading, setTransactionLoading] = useState(false);
     const [transactionRecord, setTransactionRecord] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
 
     socketDisconnectMessage(socketConnection.connectionStatus);
-    let selectedTheme = useSelector((state) => state.authReducer.theme)
+    let selectedTheme = useSelector((state) => state.walletReducer.theme)
+    let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
     const theme = THEME[selectedTheme];
 
 
     useEffect(() => {
-
         getLocalData();
 
     }, []);
@@ -46,12 +50,15 @@ function AllTransaction({ navigation }) {
 
         let address = await AsyncStorage.getItem('address');
         setUserAddress(address);
-        if (address) {
+    };
+
+    useEffect(() => {
+        if (userAddress) {
             getUserTransactionListFromApi()
 
         }
 
-    };
+    }, [userAddress])
 
 
     getUserTransactionListFromApi = async () => {
@@ -60,29 +67,27 @@ function AllTransaction({ navigation }) {
         if (!isConnected) {
             alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
             return
-
         }
-
-
         try {
             setTransactionLoading(true)
-            let { data } = await axios.post(`${Str.apiUrl}/wallet/transacions-list`, { walletAddress: userAddress })
-
+            let { data } = await getWalletTransactionList({ walletAddress: userAddress, network: currentNetwork.name })
             setTransactionRecord(data.data.wallet)
             setTransactionLoading(false)
 
         }
         catch (e) {
-
+            console.log("import RNFS from 'react-native-fs';", e.response, userAddress)
             setTransactionLoading(false)
             alert("We seem to be encountering a problem in retrieving the transaction. It's possible that this issue is related to your internet connection.")
 
         }
     }
 
-
-
-
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await getUserTransactionListFromApi();
+        setRefreshing(false);
+    };
 
 
 
@@ -93,15 +98,15 @@ function AllTransaction({ navigation }) {
 
             <StatusBarNU
                 backgroundColor={theme?.BACKGROUND_COLOR}
-                
+
             />
             <Header headerText="All Transactions" theme={theme} navigation={navigation}></Header>
 
 
-            <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR}]}>
+            <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
 
                 {
-                    isTransactionLoading === true ? <TransactionLoader></TransactionLoader>
+                    isTransactionLoading === true ? <TransactionShimmer></TransactionShimmer>
                         :
                         transactionRecord.length > 0 ?
 
@@ -109,6 +114,14 @@ function AllTransaction({ navigation }) {
                                 data={transactionRecord}
                                 keyExtractor={(item, index) => index.toString()}
                                 inverted={false}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={onRefresh}
+                                        tintColor={theme?.PRIMARY_COLOR || '#007AFF'}
+                                        colors={[theme?.PRIMARY_COLOR || '#007AFF']}
+                                    />
+                                }
                                 renderItem={({ item }) => (
                                     <View style={{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND, marginLeft: 8, marginRight: 8, borderRadius: 10, marginTop: 16 }}>
                                         <Transaction

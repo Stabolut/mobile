@@ -12,7 +12,7 @@ import { COLORS, Images, THEME } from '../../common';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
-function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
+function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme, currentNetwork, switchNetwork, balanceError }) {
     const theme = THEME[selectedTheme];
 
     return (
@@ -22,30 +22,27 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
                 backgroundColor: theme?.BALANCE_CARD_BACKGROUND,// COLORS.BALANCE_CARD_BACKGROUND,
                 borderTopColor: theme?.BALANCE_CARD_UPPER_BORDER,
                 shadowColor: theme?.WHITE,
-                opacity:1
+                opacity: 1
 
             }]}>
 
-                <View style={{ flexDirection: "row" }}>
-                    <View style={{ flex: 1, paddingLeft: 24, marginTop: 8, alignItems: "baseline", }}>
-                        <Text style={[styles.balanceTextHeading, { color: theme?.WHITE }]}>Balance</Text>
+                <View style={{ flexDirection: "column" }}>
+                    <View style={{ flexDirection: "row" }}>
+                        <View style={{ flex: 1,justifyContent:"flex-end",paddingLeft:24 }}> 
+                        <Text style={[styles.balanceTextHeading, { color: theme?.WHITE}]}>Balance</Text>
+                        </View>
 
-                        {
-                            isLoading === true ? <Text style={{ color: COLORS.WHITE }}>....</Text> :
-                                <View style={{ flexDirection: "row" }}>
-                                    <Image style={styles.imageLogo} source={Images.usdbLogo} />
+                        <View style={{ backgroundColor: "red", padding: 4, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
 
-                                    <Text style={[styles.balanceTextValue, { color: theme?.WHITE }]}> {balance.toLocaleString() + ' US₿'}</Text>
+                            {/* <Text style={{
+                                padding: 0, fontSize: 12,
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                color: THEME?.commonColor.commonWhite,
 
-                                </View>
-                        }
-
-                    </View>
-
-                    <View>
-                        <View style={{ backgroundColor: "red", padding: 3 }}>
-
-                            <Text style={{
+                                fontFamily: "Poppins"
+                            }}>{currentNetwork.name} Testnet</Text> */}
+                              <Text style={{
                                 padding: 0, fontSize: 12,
                                 fontWeight: 'bold',
                                 textAlign: 'center',
@@ -53,29 +50,59 @@ function BalanceCard({ isLoading, balance, userAddress, copy, selectedTheme }) {
 
                                 fontFamily: "Poppins"
                             }}>Testnet</Text>
+
+                            {/* <TouchableOpacity style={{ paddingHorizontal: 6, paddingVertical: 6, marginLeft: 2, backgroundColor: COLORS.BALANCE_CARD_BACKGROUND, borderRadius: 6, }} onPress={() => switchNetwork()}>
+
+                                <Text style={{
+                                    padding: 0, fontSize: 12,
+                                    fontWeight: 'bold',
+                                    color: THEME?.commonColor.commonWhite,
+                                    fontFamily: "Poppins"
+                                }}>Switch Network</Text>
+
+                            </TouchableOpacity> */}
+
+
                         </View>
 
 
 
                     </View>
 
+                    <View>
+                      
+
+                        {
+                            isLoading === true ? <Text style={{ color: COLORS.WHITE, paddingLeft: 24 }}>....</Text> :
+                                <View style={{ flexDirection: "row", paddingLeft: 24 }}>
+                                    <Image style={styles.imageLogo} source={Images.usdbLogo} />
+
+                                    <Text style={[styles.balanceTextValue, { color: theme?.WHITE }]}> {balance.toLocaleString() + ' US₿'}</Text>
+
+
+                                </View>}
+
+                        <View style={{ flexDirection: "row", marginTop: 12, paddingLeft: 24, paddingRight: 24, paddingBottom: 8 }}>
+                            <View style={{ flex: 80 }}><Text style={[styles.addressText, { color: theme?.WHITE }]}>{userAddress}</Text></View>
+                            <TouchableOpacity onPress={copy} style={{ flex: 10 }}>
+
+                                <Ionicons
+                                    name="copy-outline"
+                                    style={styles.copyText}
+                                    size={20}
+                                    color={theme?.WHITE}
+                                />
+                            </TouchableOpacity>
+
+
+                        </View>
+
+                    </View>
+
                 </View>
 
 
-                <View style={{ flexDirection: "row", marginTop: 12, paddingLeft: 24, paddingRight: 24, paddingBottom: 8 }}>
-                    <View style={{ flex: 80 }}><Text style={[styles.addressText,{color:theme?.WHITE}]}>{userAddress}</Text></View>
-                    <TouchableOpacity onPress={copy} style={{ flex: 10 }}>
 
-                        <Ionicons
-                            name="copy-outline"
-                            style={styles.copyText}
-                            size={20}
-                            color={theme?.WHITE}
-                        />
-                    </TouchableOpacity>
-
-
-                </View>
 
 
 

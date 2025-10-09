@@ -12,7 +12,7 @@ import * as Animatable from "react-native-animatable";
 
 
 function About({ navigation }) {
-    const selectedTheme = useSelector((state) => state.authReducer.theme)
+    const selectedTheme = useSelector((state) => state.walletReducer.theme)
     const theme = THEME[selectedTheme];
 
     return (

@@ -12,6 +12,7 @@ import { COLORS, ENUMS, THEME } from '../../common';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 
@@ -28,7 +29,7 @@ if (Platform.OS === "ios") {
 
 }
 
-function SliderOption({ transfer, showKey, receive, purchase, selectedTheme }) {
+function SliderOption({ transfer, showKey, receive, purchase, selectedTheme,invites }) {
     const theme = THEME[selectedTheme];
 
     return (
@@ -44,7 +45,7 @@ function SliderOption({ transfer, showKey, receive, purchase, selectedTheme }) {
                     <Feather
                         name="send"
                         style={styles.iconDesign}
-                        size={25}
+                      size={25}
                         color={theme?.WHITE}
                     />
                     <Text style={[styles.textStyle, { marginBottom: 0, color: theme?.WHITE, }]}>SEND</Text>
@@ -64,7 +65,7 @@ function SliderOption({ transfer, showKey, receive, purchase, selectedTheme }) {
 
                 </TouchableOpacity>
                 {
-                    Platform.OS === "ios" ? null :
+                    // Platform.OS === "ios" ? null :
                         <TouchableOpacity onPress={showKey} style={[styles.iconViewStyle, { marginLeft: 8, borderColor: theme?.SLIDER_BORDER_COLOR,backgroundColor:selectedTheme===ENUMS.THEME.LIGHT?theme?.BALANCE_CARD_BACKGROUND:null }]}>
                             <FontAwesome5
                                 name="coins"
@@ -92,6 +93,19 @@ function SliderOption({ transfer, showKey, receive, purchase, selectedTheme }) {
 
 
                 </TouchableOpacity>
+
+                {/* <TouchableOpacity onPress={invites} style={[styles.iconViewStyle, { marginLeft: 8, borderColor: theme?.SLIDER_BORDER_COLOR,backgroundColor:selectedTheme===ENUMS.THEME.LIGHT?theme?.BALANCE_CARD_BACKGROUND:null }]}>
+                    <Feather
+                        name="user-plus"
+                        style={[styles.iconDesign, {}]}
+                        size={25}
+                        color={theme?.WHITE}
+                    />
+                    <Text style={[styles.textStyle, { marginBottom: 4,color: theme?.WHITE }]}>Invites</Text>
+
+
+                </TouchableOpacity> */}
+
 
             </ScrollView>
         </View>

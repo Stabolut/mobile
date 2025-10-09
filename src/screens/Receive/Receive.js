@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import { COLORS } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
@@ -12,18 +12,18 @@ import { useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import DropDownHolder from '../../../components/dropDownHolder';
 import socketDisconnectMessage from '../../../components/CustomHook/socketDisconnectMessage';
-let imageByteData
 
 export default Receive = props => {
   const navigation = useNavigation();
   const [address, setAddress] = useState("");
   const [qrCodeImageByte, setQrCodeImageByte] = useState("");
-  const [showShare, setShowShare] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   const socketConnection = useContext(SocketContext);
   socketDisconnectMessage(socketConnection.connectionStatus);
 
   const ref = useRef(null);
+  const svg = useRef();
 
   useEffect(() => {
     let getAddress = async () => {
@@ -33,65 +33,64 @@ export default Receive = props => {
     getAddress();
   }, []);
 
-
-
-
-
-
-
-
-
-  const svg = useRef();
   const callback = (dataURL) => {
-    setQrCodeImageByte(dataURL)
-    imageByteData = dataURL
-    // console.log("datavurlrr",dataURL);
-
+    console.log("QR Code dataURL received:", dataURL ? "Yes" : "No");
+    if (dataURL) {
+      setQrCodeImageByte(dataURL);
+      shareQRCodeImage(dataURL);
+    }
   }
-  useEffect(() => {
 
-
-    const shareQRCodes = async () => {
-
-
-      try {
-        const shareOptions = {
-          type: 'image/svg+xml',
-          title: 'Share QR Code',
-          message: `My Public Address to Receive US₿ ${address}`,
-          url: `data:image/svg+xml;base64,${qrCodeImageByte}`, // Set the URL to the base64-encoded SVG image
-        };
-        await Share.open(shareOptions); // Share the QR code
-
+  const shareQRCodeImage = async (dataURL) => {
+    try {
+      console.log("Starting share process...");
+      
+      const shareOptions = {
+        title: 'Share QR Code',
+        message: `My Public Address to Receive US₿ ${address}`,
+        url: dataURL, // Use the dataURL directly
+        type: 'image/svg+xml',
+      };
+      
+      console.log("Share options:", shareOptions);
+      const result = await Share.open(shareOptions);
+      console.log("Share successful:", result);
+    }
+    catch (error) {
+      console.log("Error sharing QR code:", error);
+      if (error.message !== 'User did not share') {
+        Alert.alert('Error', 'Failed to share QR code. Please try again.');
       }
-      catch (e) {
-        console.log("Error in catch")
-
-      }
-    };
-    if (qrCodeImageByte) shareQRCodes()
-
-
-
-  }, [qrCodeImageByte, showShare])
-
-
-  const shareQRCode = async () => {
-    setShowShare(!showShare)
-    svg.current?.toDataURL(callback);
-
+    }
+    finally {
+      setIsSharing(false);
+    }
   };
 
-
-
+  const shareQRCode = async () => {
+    console.log("Share button pressed");
+    setIsSharing(true);
+    
+    // Add a small delay to ensure the QR code is rendered
+    setTimeout(() => {
+      if (svg.current) {
+        console.log("Calling toDataURL...");
+        svg.current.toDataURL(callback);
+      } else {
+        console.log("SVG ref is not available");
+        setIsSharing(false);
+        Alert.alert('Error', 'QR Code not ready. Please try again.');
+      }
+    }, 200);
+  };
 
   let copyToClipBoard = () => {
-    try{
-    Clipboard.setString(address);
-    DropDownHolder.alert('Success', 'Copy', `Wallet address is copied`);
+    try {
+      Clipboard.setString(address);
+      DropDownHolder.alert('Success', 'Copy', `Wallet address is copied`);
     }
-    catch(e){
-
+    catch (e) {
+      console.log("Error copying to clipboard:", e);
     }
   };
 
@@ -102,21 +101,14 @@ export default Receive = props => {
         barStyle="light-content"
       />
       <Header headerText="Receive Stabolut(US₿)" navigation={navigation}></Header>
-   
+
       <View style={styles.mainContainer}>
-        {/* <View style={{ width: 300, height: 300 }}> */}
         <View style={styles.qrCodeScanCard}>
           <QRCode
             size={200}
             value={address ? address : 'null'}
-            // logo={Images.coinIcon}
-            
             getRef={(c) => (svg.current = c)}
-          //ref={qrCodeRef}
-
-
-          ></QRCode>
-
+          />
           <Text
             style={{
               textAlign: 'center',
@@ -127,15 +119,15 @@ export default Receive = props => {
             }}>
             {address}
           </Text>
-          {/* <Text style={{ textAlign: "center", color: COLORS.HEADING_BLACK_COLOR, fontSize: 12, marginTop: 16, fontWeight: "700", fontFamily: "Poppins" }}>No memo required</Text> */}
         </View>
+        
         <View style={{ marginTop: 30 }}>
           <Text
             style={{
               textAlign: 'center',
               fontSize: 12,
               marginTop: 20,
-              color:COLORS.WHITE,
+              color: COLORS.WHITE,
               fontFamily: 'Poppins',
             }}>
             Send only{' '}
@@ -159,8 +151,6 @@ export default Receive = props => {
             Sending any other coins may result in a permanent loss.
           </Text>
         </View>
-
-        {/* </View> */}
 
         <View style={{ flexDirection: 'row', marginTop: 40 }}>
           <View
@@ -187,16 +177,23 @@ export default Receive = props => {
             </Text>
           </View>
 
-
           <View
             style={{
               justifyContent: 'center',
               alignItems: 'center',
               alignContent: 'center',
-
             }}>
-            <TouchableOpacity onPress={shareQRCode} style={[styles.send, { backgroundColor: '#eaf4fd' }]}>
-              <Ionicons name="share-social" style={{ fontWeight: '800' }} size={20} color={COLORS.APP_BLUE_COLOR} />
+            <TouchableOpacity 
+              onPress={shareQRCode} 
+              style={[styles.send, { backgroundColor: '#eaf4fd' }]}
+              disabled={isSharing}
+            >
+              <Ionicons 
+                name="share-social" 
+                style={{ fontWeight: '800' }} 
+                size={20} 
+                color={isSharing ? COLORS.GRAY : COLORS.APP_BLUE_COLOR} 
+              />
             </TouchableOpacity>
             <Text
               style={{
@@ -204,18 +201,9 @@ export default Receive = props => {
                 color: COLORS.WHITE,
                 fontFamily: 'Poppins',
               }}>
-              Share
+              {isSharing ? 'Sharing...' : 'Share'}
             </Text>
           </View>
-
-
-
-
-
-
-
-
-
         </View>
       </View>
     </React.Fragment>

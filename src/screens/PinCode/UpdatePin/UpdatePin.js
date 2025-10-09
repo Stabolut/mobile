@@ -5,16 +5,17 @@ import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 import AsyncStorage from '@react-native-community/async-storage';
 import { store } from '../../../store';
-
 import PINCode from '@haskkor/react-native-pincode';
 import DropDownHolder from '../../../components/dropDownHolder';
-
+import * as Keychain from 'react-native-keychain';
+const SERVICE_NAME = 'myAppPin';
 class UpdatePin extends React.Component {
 
 
     render() {
-        let selectedTheme = store.getState().authReducer?.theme
+        let selectedTheme = store.getState().walletReducer?.theme
         let theme = THEME[selectedTheme]
+        console.log("his.props.route.params.pinState", this.props.route.params.pinState, this.props.route.params.goToScreen)
         return (
             <React.Fragment>
 
@@ -25,7 +26,7 @@ class UpdatePin extends React.Component {
                     theme={theme}
                     navigation={this.props.navigation}></Header>
 
-                <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR}]}>
+                <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR }]}>
                     <PINCode
                         stylePinCodeCircle={styles.selectedDot}
                         numbersButtonOverlayColor={theme?.BACKGROUND_COLOR}
@@ -35,6 +36,10 @@ class UpdatePin extends React.Component {
                         colorCircleButtons={theme?.BALANCE_CARD_BACKGROUND}
                         stylePinCodeDeleteButtonColorHideUnderlay={theme?.WHITE}
                         stylePinCodeButtonNumber={theme?.WHITE}
+                        storePin={async (pin) => {
+                            await Keychain.setGenericPassword('user', pin, { service: SERVICE_NAME });
+                            return true;
+                        }}
                         finishProcess={async () => {
                             await AsyncStorage.setItem('PinSet', 'true');
                             DropDownHolder.alert(

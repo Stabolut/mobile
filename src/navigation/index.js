@@ -34,13 +34,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { get } from '../utils/utils';
+import LeaderBoard from '../screens/LeaderBoard';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 export const ThemeContext = React.createContext()
 function TabNav() {
   const theme = useContext(ThemeContext);
-  console.log("my theme value",theme)
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
@@ -66,6 +66,7 @@ function TabNav() {
       <Stack.Screen name={ENUMS.SCREENS.STAKE} component={Stake} />
 
       <Stack.Screen name={ENUMS.SCREENS.BIO} component={Bio} />
+      <Stack.Screen name={ENUMS.SCREENS.LEADERBOARD} component={LeaderBoard} />
 
       <Stack.Screen name={ENUMS.SCREENS.ABOUT} component={About} />
       <Stack.Screen name={ENUMS.SCREENS.SHOW_CONTACT_LIST} component={ShowContact} />
@@ -140,7 +141,6 @@ const Navigation = () => {
   const [theme, setTheme] = useState();
   useEffect(() => {
     get("theme").then(theme => {
-      console.log("theme",theme)
       setTheme(theme)
 
     })

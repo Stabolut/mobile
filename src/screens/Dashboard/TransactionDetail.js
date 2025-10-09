@@ -4,9 +4,11 @@ import Header from '../../components/Header/Header';
 import { COLORS, ENUMS,THEME } from '../../common';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import { useSelector } from 'react-redux';
+import { Text } from 'react-native';
 
 function TransactionDetail(props) {
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
+  let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
   const theme = THEME[selectedTheme];
 
   return (
@@ -21,10 +23,9 @@ function TransactionDetail(props) {
         theme={theme}
         navigation={props.navigation}></Header>
       
-
       <WebView
         source={{
-          uri: `${ENUMS.EXTERNAL_URL.EXPLORER_URL}/${props.route.params.transactionHash}`,
+          uri: `${currentNetwork.explorerURL}/${props.route.params.transactionHash}`,
         }}
       />
     </React.Fragment>

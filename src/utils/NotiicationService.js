@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import messaging from '@react-native-firebase/messaging';
-import PushNotification, { Importance } from 'react-native-push-notification'
+// import PushNotification, { Importance } from 'react-native-push-notification'
 import { Images } from '../common';
 export async function requestUserPermission() {
     try {
@@ -47,7 +47,7 @@ export const notificationListener = () => {
         messaging().onMessage(async remoteMessage => {
 
             console.log(
-                'Notification caused app to open from quit state:',
+                'Notification caused app to open from quit state like:',
                 remoteMessage,
             );
         })
@@ -55,10 +55,10 @@ export const notificationListener = () => {
         messaging()
             .getInitialNotification()
             .then(remoteMessage => {
-                console.log("hit there")
+              
                 if (remoteMessage) {
                     console.log(
-                        'Notification caused app to open from quit state:',
+                        'Notification caused app to open from quit state dislike:',
                         remoteMessage.notification,
                     );
 
@@ -73,29 +73,30 @@ export const notificationListener = () => {
 }
 
 
-export const notificationChannel = (title,body) => {
+export const notificationChannel = (title, body) => {
    
-    let channelID = Math.random().toString(36).substring(7);
-    PushNotification.createChannel(
-        {
-            channelId: channelID,
-            channelName: "Stabolut notifcation channel",
-            channelDescription: "A channel to categorize your notifications",
-            playSound: true,
-            soundName: "default",
-            importance: Importance.HIGH,
-            vibrate: true,
-        },
-        (created) => {
-            PushNotification.localNotification({
-                title: title,
-                message: body,
-                channelId: channelID,
-                smallIcon: Images.coinIcon,
-                bigLargeIconUrl: Images.coinIcon,
-            });
-        }
-    );
+
+    // let channelID = Math.random().toString(36).substring(7);
+    // PushNotification.createChannel(
+    //     {
+    //         channelId: channelID,
+    //         channelName: "Stabolut notifcation channel",
+    //         channelDescription: "A channel to categorize your notifications",
+    //         playSound: true,
+    //         soundName: "default",
+    //         importance: Importance.HIGH,
+    //         vibrate: true,
+    //     },
+    //     (created) => {
+    //         PushNotification.localNotification({
+    //             title: title,
+    //             message: body,
+    //             channelId: channelID,
+    //             smallIcon: Images.coinIcon,
+    //             bigLargeIconUrl: Images.coinIcon,
+    //         });
+    //     }
+    // );
 
 }
 

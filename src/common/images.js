@@ -22,10 +22,16 @@ const blockchain3 = require('../assets/blockchain3.jpeg');
 const blockchain4 = require('../assets/blockchain4.jpeg');
 const blockchain5 = require('../assets/blockchain5.jpeg');
 const blockchain6 = require('../assets/blockchain6.jpeg');
-const logoStablout= require('../assets/logoStablout.png');
-const slider= require('../assets/slider.png');
-const rocket= require('../assets/rocket.png');
-const logoWhite1= require('../assets/logoWhite1.png');
+const logoStablout = require('../assets/logoStablout.png');
+const slider = require('../assets/slider.png');
+const rocket = require('../assets/rocket.png');
+const logoWhite1 = require('../assets/logoWhite1.png');
+const xifinixLogo = require('../assets/xdc.webp');
+const arbitriumLogo = require('../assets/arbitrum.png');
+const exchangeUSBWithBTC = require('../assets/Exchange-USB-With-BTC.png');
+const exchangeUSBWithETH = require('../assets/Exchange-USB-With-ETH.png');
+const purchageUSBWithETH = require('../assets/Purchase-USB-With-BTC.png');
+const purchageUSBWithBTC = require('../assets/Purchase-USB-With-ETH.png');
 
 
 const btc = require('../assets/Btc-sans.png');
@@ -57,5 +63,11 @@ export const Images = {
   btc,
   slider,
   logoWhite1,
-  rocket
+  rocket,
+  xifinixLogo,
+  arbitriumLogo,
+  exchangeUSBWithBTC,
+  exchangeUSBWithETH,
+  purchageUSBWithETH,
+  purchageUSBWithBTC,
 };

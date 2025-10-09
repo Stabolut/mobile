@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, createContext } from 'react';
-import { useColorScheme } from 'react-native';
+import { StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
+
 import Navigation from './navigation';
 import Toast from 'react-native-easy-toast';
 import DropDownHolder from './components/dropDownHolder';
@@ -9,23 +10,27 @@ import io from 'socket.io-client';
 import { persistor, store } from "./store";
 import { PersistGate } from "redux-persist/integration/react";
 import { requestUserPermission, notificationListener } from './utils/NotiicationService';
+import theme from './common/theme';
+import { NotificationPermissionService } from './services/notificationPermissions';
 export const SocketContext = createContext(null);
 
 
 
 const App = () => {
+  console.log("I am call")
   const [socketConnected, setSocketConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('connected');
 
 
 
   useEffect(() => {
-    requestUserPermission()
-    notificationListener()
+    // requestUserPermission()
+    // notificationListener()
+    showPermissionPrompt()
   }, [])
 
 
- const socketRef = useRef(null);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     socketRef.current = io(Str.socketUrl);
@@ -51,7 +56,16 @@ const App = () => {
     };
   }, []);
 
+  const showPermissionPrompt = async () => {
+    try {
+      await NotificationPermissionService.initNotificationSystem();
+    } catch (err) {
+      console.error('❌ Error checking permission:', err);
+    }
+  };
+
   return (
+
     <Provider store={store}>
       <PersistGate persistor={persistor}>
         <SocketContext.Provider
@@ -60,8 +74,28 @@ const App = () => {
             isSocketConnected: socketConnected,
             connectionStatus: connectionStatus,
           }}>
-          <Navigation  value={socketConnected}></Navigation>
+          <Navigation value={socketConnected}></Navigation>
         </SocketContext.Provider>
+        {/* <Toast
+          style={{
+            backgroundColor: COLORS.BLACK,
+            paddingHorizontal: 20,
+            paddingVertical: 18,
+            marginHorizontal: 16,
+            borderRadius: 8,
+            minHeight: 60,
+            width:"90%"
+          }}
+          position="top"
+          fadeInDuration={300}
+          fadeOutDuration={300}
+          textStyle={{
+            color: COLORS.WHITE,
+            fontSize: 16,
+            fontWeight: '600',
+          }}
+          ref={ref => DropDownHolder.setDropDown(ref)}
+        /> */}
         <Toast
           style={{ backgroundColor: COLORS.BALANCE_CARD_BACKGROUND }}
           position="bottom"

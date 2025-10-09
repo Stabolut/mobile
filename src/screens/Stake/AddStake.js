@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import StatusBarNU from '../../components/StatusBarNU/StatusBarNU';
 import Header from '../../components/Header/Header';
 import { COLORS, ENUMS, THEME, Str } from '../../common';
@@ -10,19 +10,19 @@ import { ErrorMessages } from '../../messages/errorMessage';
 import { checkInternetConnectivity } from '../../utils/utils';
 import SuccessMessage from '../../components/SuccessComponent/SuccessMessage';
 import { ethers } from 'ethers';
-import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 import { useSelector } from 'react-redux';
+import { addInStake } from '../../api/wallet';
+
 const AddStake = (props) => {
     const [stakingAmount, setStakingAmount] = useState(0);
     const [yieldAmount, setYieldAmount] = useState('');
     const [isError, setIsError] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [message, setMessage] = useState("")
-    let selectedTheme = useSelector((state) => state.authReducer.theme)
+    let selectedTheme = useSelector((state) => state.walletReducer.theme)
+    let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
     const theme = THEME[selectedTheme];
-
-
 
     const handleStake = async () => {
 
@@ -33,8 +33,6 @@ const AddStake = (props) => {
             return
 
         }
-
-
         if (parseFloat(stakingAmount) === 0 || stakingAmount === "" || parseFloat(stakingAmount) <= 0 || stakingAmount === undefined) {
             setIsError(true)
             setMessage("Invalid Staking Amount - The entered staking value is incorrect. Please enter a valid staking amount.")
@@ -53,9 +51,9 @@ const AddStake = (props) => {
             setIsLoading(true)
 
             let address = await AsyncStorage.getItem('address');
-            const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl);
+            const provider = new ethers.providers.JsonRpcProvider(currentNetwork.rpcUrl);
             const contract = new ethers.Contract(
-                Str.contractAddress,
+                currentNetwork.contractAddress,
                 Str.ABI,
                 provider,
             );
@@ -67,26 +65,26 @@ const AddStake = (props) => {
             const nonce = await contract.countOf(address);
 
             const transferHex = await contract.getTransferPreSignedHash(
-                Str.contractAddress,
-                Str.FUNDING_ADDRESS,
+                currentNetwork.contractAddress,
+                currentNetwork.fundindAddress,
                 amountToSend,
-                Str.fees,
+                Str.fees * Str.TOKEN_DECIMAL,
                 parseInt(nonce),
             );
             const signature = await wallet.signMessage(
                 ethers.utils.arrayify(transferHex),
             );
-
-            let { data } = await axios.post(`${Str.apiUrl}/staking/add-in-stake`, {
+            let { data } = await addInStake({
                 signature: signature,
-                toAddress: Str.FUNDING_ADDRESS,
+                toAddress: currentNetwork.fundindAddress,
                 wallet: address,
                 amount: stakingAmount,
                 nonce1: parseInt(nonce),
                 senderAddress: address,
-                amountToSend: amountToSend
-            });
-            setMessage(`You have successfully staked ${stakingAmount} USB coins, and after one month, you will yield ${data.data.yieldAmount} USB coins. The staking period is for one month, and at the end of the month, the tokens will be returned with a yield. The average yield is 2.5% per month.`)
+                amountToSend: amountToSend,
+                network: currentNetwork.name
+            })
+            setMessage(`You have successfully staked ${stakingAmount} USB coins. After one day, you will earn ${parseFloat(data.data.yieldAmount).toFixed(4)} USB coins as a reward. The staking period is one day.`)
             setStakingAmount(0)
             setIsLoading(false)
             setYieldAmount(data.data.yieldAmount)
@@ -102,11 +100,6 @@ const AddStake = (props) => {
             setMessage(msg)
             return;
         }
-
-
-
-
-
     };
 
     return (
@@ -115,18 +108,18 @@ const AddStake = (props) => {
 
             <StatusBarNU
                 backgroundColor={theme?.BACKGROUND_COLOR}
-               
+
             />
             <Header theme={theme} headerText="Stake USB" navigation={props.navigation}></Header>
 
             <LoadingModal task={'Staking US₿...'} modalVisible={isLoading} />
 
-            <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+            <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
 
 
                 <View style={{ paddingHorizontal: 16, flexDirection: "column", marginTop: 24 }}>
                     <Text style={{ color: theme?.WHITE, fontFamily: "Poppins" }} >Please enter the staking amount.</Text>
-                    <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor:  "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
+                    <View style={{ marginTop: 12, backgroundColor: selectedTheme === ENUMS.THEME.DARK ? COLORS.WHITE : theme?.BALANCE_CARD_BACKGROUND, flexDirection: "row", padding: 8, borderLeftColor: "#4d4b70", borderLeftWidth: 6, borderRadius: 8, justifyContent: "center", alignItems: "center" }}>
                         <TextInput
                             style={{ flex: 1, fontFamily: "Poppins", color: COLORS.BLACK }}
 
@@ -242,7 +235,6 @@ const styles = StyleSheet.create({
     },
     totalRewardHeading: {
         color: COLORS.WHITE,
-
         fontSize: 14,
         fontWeight: "700",
         fontFamily: "Poppins"

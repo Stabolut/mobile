@@ -1,18 +1,19 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { COLORS,THEME } from '../../../common';
+import { COLORS, THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../components/Header/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-community/async-storage';
 import { SocketContext } from '../../../App';
-import { useSelector } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share';
 import { useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import DropDownHolder from '../../../components/dropDownHolder';
 import socketDisconnectMessage from '../../../components/CustomHook/socketDisconnectMessage';
+import { useSelector } from 'react-redux';
+import RNFS from 'react-native-fs';
 let imageByteData
 
 export default Receive = props => {
@@ -20,15 +21,12 @@ export default Receive = props => {
   const [address, setAddress] = useState("");
   const [qrCodeImageByte, setQrCodeImageByte] = useState("");
   const [showShare, setShowShare] = useState(false);
- 
-const socketConnection = useContext(SocketContext);
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
+  const theme = THEME[selectedTheme];
+  const socketConnection = useContext(SocketContext);
   socketDisconnectMessage(socketConnection.connectionStatus);
 
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
-  const theme = THEME[selectedTheme];
-
   const ref = useRef(null);
-
   useEffect(() => {
     let getAddress = async () => {
       let address = await AsyncStorage.getItem('address');
@@ -37,9 +35,9 @@ const socketConnection = useContext(SocketContext);
     getAddress();
   }, []);
 
-
   const svg = useRef();
   const callback = (dataURL) => {
+    // console.log("dataURL", dataURL)
     setQrCodeImageByte(dataURL)
     imageByteData = dataURL
     // console.log("datavurlrr",dataURL);
@@ -49,21 +47,22 @@ const socketConnection = useContext(SocketContext);
 
 
     const shareQRCodes = async () => {
-
-
       try {
+        // Save the SVG as a temp file
+        const path = `${RNFS.CachesDirectoryPath}/qrcode.svg`;
+        await RNFS.writeFile(path, qrCodeImageByte, 'base64');
+    
         const shareOptions = {
-          type: 'image/svg+xml',
           title: 'Share QR Code',
-          message: `My Public Address for Receiving US₿ ${address}`,
-          url: `data:image/svg+xml;base64,${qrCodeImageByte}`, // Set the URL to the base64-encoded SVG image
+          message: `My Public Address to Receive US₿ ${address}`,
+          url: `file://${path}`, // use file URI
+          type: 'image/svg+xml',
         };
-        await Share.open(shareOptions); // Share the QR code
-
-      }
-      catch (e) {
-        console.log("Error in catch")
-
+    
+        await Share.open(shareOptions);
+    
+      } catch (e) {
+        console.log("Error in catch", e);
       }
     };
     if (qrCodeImageByte) shareQRCodes()
@@ -83,25 +82,28 @@ const socketConnection = useContext(SocketContext);
 
 
   let copyToClipBoard = () => {
-    try{
-    Clipboard.setString(address);
-    DropDownHolder.alert('Success', 'Copy', `The wallet address has been copied successfully.`);
+    try {
+      Clipboard.setString(address);
+      DropDownHolder.alert('Success', 'Copy', `Wallet address is copied`);
     }
-    catch(e){}
+    catch (e) {
 
+    }
   };
 
   return (
     <React.Fragment>
       <StatusBarNU
-        backgroundColor={theme?.BACKGROUND_COLOR}
-       
+        backgroundColor={"red"}
+        barStyle="light-content"
       />
-      <Header headerText="Receive USB" theme={theme} navigation={navigation}></Header>
+      <Header theme={theme} headerText="Receive Stabolut(US₿)" navigation={navigation}></Header>
 
-      <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+
+
+      <View style={styles.mainContainer}>
         {/* <View style={{ width: 300, height: 300 }}> */}
-        <View style={[styles.qrCodeScanCard,{ backgroundColor: theme?.BALANCE_CARD_BACKGROUND}]}>
+        <View style={styles.qrCodeScanCard}>
           <QRCode
             size={200}
             value={address ? address : 'null'}
@@ -118,7 +120,7 @@ const socketConnection = useContext(SocketContext);
               textAlign: 'center',
               fontSize: 12,
               marginTop: 20,
-              color: theme?.WHITE,
+              color: COLORS.WHITE,
               fontFamily: 'Poppins',
             }}>
             {address}
@@ -131,13 +133,13 @@ const socketConnection = useContext(SocketContext);
               textAlign: 'center',
               fontSize: 12,
               marginTop: 20,
-              color: theme?.WHITE,
+              color: COLORS.WHITE,
               fontFamily: 'Poppins',
             }}>
             Send only{' '}
             <Text
               style={{
-                color: theme?.SMALL_HEADING_TEXT,
+                color: COLORS.SMALL_HEADING_TEXT,
                 fontWeight: 'bold',
                 fontFamily: 'Poppins',
               }}>
@@ -148,7 +150,7 @@ const socketConnection = useContext(SocketContext);
           <Text
             style={{
               textAlign: 'center',
-              color: theme?.WHITE,
+              color: COLORS.WHITE,
               fontSize: 12,
               fontFamily: 'Poppins',
             }}>
@@ -176,7 +178,7 @@ const socketConnection = useContext(SocketContext);
             <Text
               style={{
                 marginTop: 8,
-                color: theme?.WHITE,
+                color: COLORS.WHITE,
                 fontFamily: 'Poppins',
               }}>
               Copy
@@ -197,7 +199,7 @@ const socketConnection = useContext(SocketContext);
             <Text
               style={{
                 marginTop: 8,
-                color: theme?.WHITE,
+                color: COLORS.WHITE,
                 fontFamily: 'Poppins',
               }}>
               Share
@@ -220,7 +222,7 @@ const socketConnection = useContext(SocketContext);
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-   
+    backgroundColor: COLORS.BACKGROUND_COLOR,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -230,7 +232,7 @@ const styles = StyleSheet.create({
     width: 290,
     paddingLeft: 8,
     paddingRight: 8,
-   
+    backgroundColor: COLORS.BALANCE_CARD_BACKGROUND,
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',

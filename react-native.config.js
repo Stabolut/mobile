@@ -1,25 +1,7 @@
-// module.exports = {
-//   project: {
-//     ios: {},
-//     android: {},
-//   },
-//   './src/assets/fonts'
-// };
+// react-native.config.js
 module.exports = {
-  assets: ['./assets/fonts']
-}
-
-// ================ Show Key=========
-
-// this.props.navigation.navigate(`${ENUMS.SCREENS.VALIDATE_PASSWROD_AND_MAKE_TRANSACTION}`, {
-//     // senderAddress: this?.props?.route?.params?.senderAddress,
-//     senderAddress: this.state.senderAddress,
-//     screenNumber:1,
-//     totalScreen:3,
-//     transactionType: `${ENUMS.TRANSACTION_TYPE.SHOW_KEY}`,
-//     title:"Submit"
-
-// })
-// return
-
-// ================ Show END=========
+  assets: [
+    './assets/fonts/',
+    './node_modules/react-native-vector-icons/Fonts/',
+  ],
+};

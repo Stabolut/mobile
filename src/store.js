@@ -11,7 +11,7 @@ const initialState = {};
  const persistConfig = {
   key: "root",
   storage: AsyncStorage,
- whitelist: ["authReducer"],
+ whitelist: ["walletReducer"],
 };
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

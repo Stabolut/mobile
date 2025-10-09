@@ -5,13 +5,21 @@ import AsyncStorage from '@react-native-community/async-storage'; // Importing A
 import * as Animatable from "react-native-animatable"; // Importing Animatable for animations
 import { get, saveString } from '../../utils/utils';
 import { store } from '../../store';
-import { setTheme } from '../../redux/action/auth';
+import { setTheme, storeNetworkInfo } from '../../redux/action/wallet';
 import { useSelector } from 'react-redux';
+import { isEmpty } from 'lodash';
+import { networkConfig } from '../../common/NetworkConfig';
 
 export default props => {
   const [loader, setLoader] = useState(false)
   const navigation = props?.navigation;
-  let selectedTheme = useSelector((state) => state.authReducer.theme)
+  let selectedTheme = useSelector((state) => state.walletReducer.theme)
+  let currentNetwork = useSelector((state) => state.walletReducer.currentNetwork)
+
+  if (isEmpty(currentNetwork)) {
+    store.dispatch(storeNetworkInfo(networkConfig.arbitrumSepolia))
+
+  }
   const theme = THEME[selectedTheme];
 
   let setUpSplashTheme = async () => {
@@ -42,7 +50,7 @@ export default props => {
 
       let isPinAlreadySet = await AsyncStorage.getItem('PinSet'); // Getting the value of 'PinSet' from AsyncStorage
       let address = await AsyncStorage.getItem('address'); // Getting the value of 'address' from AsyncStorage
-
+      console.log("isPinAlreadySet", isPinAlreadySet)
 
       if (isPinAlreadySet === 'true') {
         // If 'PinSet' is set to true
@@ -75,21 +83,20 @@ export default props => {
   }, []); // Empty dependency array indicates this effect runs only once after the component mounts
 
   return (
-  
 
-          // Render the main container for the component
-          <SafeAreaView style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
-            {/* Set the status bar color */}
-            <StatusBar backgroundColor={COLORS.BACKGROUND_COLOR} />
-            {console.log("the",theme)}
 
-            {/* Render the image with zoom-in animation */}
-            <Animatable.View animation="zoomIn" duration={1500} style={{ flexDirection: "row" }}>
-              <Image style={{ height: 200, width: 200, resizeMode: 'contain' }} source={Images.logoStablout}></Image>
-            </Animatable.View>
-          </SafeAreaView>
-      
-    
+    // Render the main container for the component
+    <SafeAreaView style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
+      {/* Set the status bar color */}
+      <StatusBar backgroundColor={COLORS.BACKGROUND_COLOR} />
+
+      {/* Render the image with zoom-in animation */}
+      <Animatable.View animation="zoomIn" duration={1500} style={{ flexDirection: "row" }}>
+        <Image style={{ height: 200, width: 200, resizeMode: 'contain' }} source={Images.logoStablout}></Image>
+      </Animatable.View>
+    </SafeAreaView>
+
+
   );
 };
 

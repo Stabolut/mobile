@@ -5,23 +5,24 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
+  Alert
 } from 'react-native';
-import { ENUMS, COLORS, Str,THEME } from '../../../../common';
+import { ENUMS, COLORS, Str, THEME } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../../components/Header/Header';
 //import Clipboard from '@react-native-community/clipboard';
 import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
-import firebase from '@react-native-firebase/app'
-import messaging from '@react-native-firebase/messaging'
 import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
-import { storeWalletInfo } from '../../../../redux/action/auth';
+import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/wallet';
 import axios from "axios"
 import Clipboard from '@react-native-clipboard/clipboard';
 import { store } from '../../../../store';
-import { checkInternetConnectivity, errorMessageHandler } from '../../../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler, getFcmTokenFromLocalStorage } from '../../../../utils/utils';
 import { ErrorMessages } from '../../../../messages/errorMessage';
+import { addWalletWithFcm } from '../../../../api/wallet';
+import { getStableDeviceId } from '../../../../utils/deviceIdentity';
 
 class ImportWallet extends React.Component {
   constructor(props) {
@@ -33,32 +34,41 @@ class ImportWallet extends React.Component {
       message: '',
       isLoading: false,
       disable: false,
+      referenceCode: ""
     };
   }
 
-  handleButtonPress = async () => {
-    const mnemoinc = await Clipboard.getString();
-    this.setState({ mnemonicText: mnemoinc });
+  handlePasteButton = async () => {
+    try {
+      const mnemoinc = await Clipboard.getString();
+      this.setState({ mnemonicText: mnemoinc });
+    }
+    catch (e) {
+
+    }
   };
 
   submitMnemonics = async () => {
 
-    if (this.state.mnemonicText === '' || this.state.mnemonicText === null) {
-      return this.setState({
+    const { mnemonicText, referenceCode } = this.state;
+
+    // Validate private key input
+    if (!mnemonicText || mnemonicText.trim() === '') {
+      this.setState({
         isError: true,
-        message: 'Please ensure that the field for the mnemonic key is filled in.',
+        message: 'Please provide a value for the mnemonic key field!',
       });
+      return;
     }
 
-    let isConnected = await checkInternetConnectivity()
+    // Check internet connectivity
+    const isConnected = await checkInternetConnectivity();
     if (!isConnected) {
-      alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-      return
-
+      Alert.alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
+      return;
     }
 
-
-
+    // Update UI state to loading
     this.setState({
       isLoading: true,
       disable: true,
@@ -66,53 +76,40 @@ class ImportWallet extends React.Component {
       message: '',
     });
 
-
-
-
-
     setTimeout(async () => {
 
+      // Obtain FCM token
+      let deviceId = null
+      mobileFcmToken = await getFcmTokenFromLocalStorage();
+      try {
+        // Obtain FCM token
+        deviceId = await getStableDeviceId();
 
-
-
-
-
-      let mobileFcmToken = null
-
-      if (Platform.OS === 'ios') {
-        let fcmToken = await AsyncStorage.getItem("fcmToken")
-        if (fcmToken) mobileFcmToken = fcmToken
-        else try {
-          mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
-        }
-        catch (e) {
-
-        }
       }
-      if (Platform.OS === 'android') {
-        let fcmToken = await AsyncStorage.getItem("fcmToken")
-        if (fcmToken) mobileFcmToken = fcmToken
-        else mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
+      catch (e) {
+        console.log("eeee", e)
       }
 
 
       try {
 
-        let mnemonics = this.state.mnemonicText.trim();
         const wallet = ethers.Wallet.fromMnemonic(
           this.state.mnemonicText.trim(),
         );
-        console.log("My wallet", wallet)
-        await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+
+        let { data } = await addWalletWithFcm({
           account: wallet.address,
-          token: mobileFcmToken
+          token: mobileFcmToken,
+          referenceCode: referenceCode,
+          deviceId: deviceId
         })
-
-
         await AsyncStorage.setItem('address', wallet.address);
-        await AsyncStorage.setItem('mnemonics', mnemonics);
         await AsyncStorage.setItem('privateKey', wallet.privateKey);
+        await AsyncStorage.setItem('mnemonics', this.state.mnemonicText.trim());
+        if (mobileFcmToken) { await AsyncStorage.setItem("fcmToken", mobileFcmToken); }
+
         store.dispatch(storeWalletInfo(true))
+        store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }))
         this.setState({
           isLoading: false,
           disable: false,
@@ -122,6 +119,8 @@ class ImportWallet extends React.Component {
         this.props.navigation.replace(`${ENUMS.SCREENS.DASHBOARD}`);
       }
       catch (error) {
+        console.log("error", error)
+
         let msg = errorMessageHandler(error)
         this.setState({
           isLoading: false,
@@ -136,14 +135,14 @@ class ImportWallet extends React.Component {
   };
 
   render() {
-    let selectedTheme = store.getState().authReducer?.theme
+    let selectedTheme = store.getState().walletReducer?.theme
     let theme = THEME[selectedTheme]
 
     return (
       <React.Fragment>
         <StatusBarNU
           backgroundColor={theme?.BACKGROUND_COLOR}
-          
+
         />
 
         <Header
@@ -156,10 +155,10 @@ class ImportWallet extends React.Component {
           modalVisible={this.state.isLoading}
         />
 
-        <View style={[styles.mainContainer,{backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+        <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
           <View style={styles.container}>
             <TouchableOpacity
-              onPress={this.handleButtonPress}
+              onPress={this.handlePasteButton}
               style={{
                 justifyContent: 'center',
                 alignItems: 'flex-end',
@@ -191,12 +190,9 @@ class ImportWallet extends React.Component {
             />
           </View>
 
-          {this.state.isError && (
-            <>
 
-              <ErrorMessage message={this.state.message}></ErrorMessage></>
 
-          )}
+
 
           <Text
             style={{
@@ -207,6 +203,37 @@ class ImportWallet extends React.Component {
             }}>
             Typically 12 (sometimes 18,24) words separated by single spaces
           </Text>
+
+          <View style={{
+            marginTop: 24,
+
+            borderColor: 'gray',
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+
+            borderWidth: 1,
+            borderRadius: 10,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center"
+          }}>
+            <TextInput
+              value={this.state.referenceCode}
+              onChangeText={newValue => {
+                this.setState({ referenceCode: newValue });
+              }}
+
+              placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80 }}></TextInput>
+            <Text style={{ color: theme?.WHITE, flex: 20 }}>Optional</Text>
+
+
+          </View>
+          {this.state.isError && (
+            <>
+
+              <ErrorMessage message={this.state.message}></ErrorMessage></>
+
+          )}
 
           <View>
             <TouchableOpacity

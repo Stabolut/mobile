@@ -5,13 +5,13 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  ToastAndroid, Dimensions
+  ToastAndroid, Dimensions, Platform
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { store } from '../../../store';
 
 import RNFetchBlob from 'rn-fetch-blob';
-import { COLORS, ENUMS,THEME } from '../../../common';
+import { COLORS, ENUMS, THEME } from '../../../common';
 import StatusBarNU from '../../../components/StatusBarNU/StatusBarNU';
 import { ethers } from 'ethers';
 //import Clipboard from '@react-native-community/clipboard';
@@ -21,6 +21,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 import { request, PERMISSIONS } from 'react-native-permissions';
 
+
 const windowHeight = Dimensions.get('window').height;
 class CreateWallet extends React.Component {
   state = {
@@ -28,20 +29,27 @@ class CreateWallet extends React.Component {
     mnemonic: '',
     address: '',
   };
+  
 
   newWallet = async () => {
-    let mnemonic = ethers.utils.HDNode.entropyToMnemonic(
-      ethers.utils.randomBytes(16),
-    );
+    try {
+      let mnemonic = ethers.utils.HDNode.entropyToMnemonic(
+        ethers.utils.randomBytes(16),
+      );
 
-    var splitMnemoncisArray = mnemonic.split(' ');
+      var splitMnemoncisArray = mnemonic.split(' ');
 
-    this.setState({
-      mnemonic: mnemonic,
-      mnemonicsArray: splitMnemoncisArray,
-    });
+      this.setState({
+        mnemonic: mnemonic,
+        mnemonicsArray: splitMnemoncisArray,
+      });
+    }
+    catch (e) {
+      console.log("eeee", e)
+    }
   };
   componentDidMount() {
+    console.log("i am call")
     this.newWallet();
   }
 
@@ -49,7 +57,7 @@ class CreateWallet extends React.Component {
     const path = RNFS.DocumentDirectoryPath + '/' + fileName;
     try {
       await RNFS.writeFile(path, content, 'utf8');
-     
+
       const fileURI = 'file://' + path;
       return { path, fileURI };
     } catch (err) {
@@ -59,24 +67,45 @@ class CreateWallet extends React.Component {
   };
 
 
-  copyToClipBoard = () => {
+  copyToClipBoard = async () => {
     try {
-      Clipboard.setString(this.state.mnemonic);
+      // Check if mnemonic exists
+      if (!this.state.mnemonic) {
+        DropDownHolder.alert(
+          'error',
+          'Copy Failed',
+          'No mnemonic available to copy.',
+        );
+        return;
+      }
+
+      // Use the modern async/await approach
+      await Clipboard.setString(this.state.mnemonic);
+      
+      // Verify the copy was successful
+      const copiedText = await Clipboard.getString();
+      
+      if (copiedText === this.state.mnemonic) {
+        DropDownHolder.alert(
+          'success',
+          'Copy',
+          'The wallet information has been successfully copied to the clipboard.',
+        );
+      } else {
+        DropDownHolder.alert(
+          'error',
+          'Copy Failed',
+          'Failed to copy wallet information to the clipboard.',
+        );
+      }
+    } catch (e) {
+      console.log('Clipboard error:', e);
       DropDownHolder.alert(
-        'sucess',
-        'Copy',
-        `The wallet information has been successfully copied to the clipboard.`,
+        'error',
+        'Copy Failed',
+        'Facing some problem to copy wallet information to the clipboard.',
       );
     }
-    catch (e) {
-      DropDownHolder.alert(
-        'sucess',
-        'Copy',
-        `Facing some problem to copy wallet information to the clipboard.`,
-      );
-
-    }
-
   };
 
 
@@ -179,22 +208,22 @@ class CreateWallet extends React.Component {
 
   render() {
 
-    let selectedTheme = store.getState().authReducer?.theme
+    let selectedTheme = store.getState().walletReducer?.theme
     let theme = THEME[selectedTheme]
     return (
       <React.Fragment>
         <StatusBarNU
           backgroundColor={theme?.BACKGROUND_COLOR}
-         
+
         />
-        <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+        <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
           <ScrollView>
             <View style={styles.mainContainerChild1}>
               <View style={[styles.mainContainerChild1View1, { paddingHorizontal: 32 }]}>
-                <Text style={[styles.mainContainerChild1View1Text_1,{ color: theme?.WHITE,}]}>
+                <Text style={[styles.mainContainerChild1View1Text_1, { color: theme?.WHITE, }]}>
                   Your Secret Phrase
                 </Text>
-                <Text style={[styles.mainContainerChild1View1Text_2,{ color: theme?.SMALL_HEADING_TEXT,}]}>
+                <Text style={[styles.mainContainerChild1View1Text_2, { color: theme?.SMALL_HEADING_TEXT, }]}>
                   Write down or copy these words in the right order and save
                   them somewhere safe
                 </Text>

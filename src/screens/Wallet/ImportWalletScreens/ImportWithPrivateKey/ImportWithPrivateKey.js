@@ -5,23 +5,23 @@ import {
     Text,
     TouchableOpacity,
     TextInput,
+    Alert
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { ENUMS, COLORS, Str,THEME } from '../../../../common';
+import { ENUMS, COLORS, THEME } from '../../../../common';
 import StatusBarNU from '../../../../components/StatusBarNU/StatusBarNU';
 import Header from '../../../../components/Header/Header';
 //import Clipboard from '@react-native-community/clipboard';
 import AsyncStorage from '@react-native-community/async-storage';
 import LoadingModal from '../../../../components/LoadingModal/modal';
 import { ethers } from 'ethers';
-import firebase from '@react-native-firebase/app'
-import messaging from '@react-native-firebase/messaging'
-import { storeWalletInfo } from '../../../../redux/action/auth';
-import axios from "axios"
+import { storeReferralInfo, storeWalletInfo } from '../../../../redux/action/wallet';
 import { store } from '../../../../store';
 import { ErrorMessages } from '../../../../messages/errorMessage';
 import ErrorMessage from '../../../../components/ErrorComponent/ErrroMessage';
-import { checkInternetConnectivity, errorMessageHandler } from '../../../../utils/utils';
+import { checkInternetConnectivity, errorMessageHandler, getFcmTokenFromLocalStorage } from '../../../../utils/utils';
+import { addWalletWithFcm } from '../../../../api/wallet';
+import { getStableDeviceId } from '../../../../utils/deviceIdentity';
 
 
 
@@ -36,10 +36,11 @@ class ImportWithPrivateKey extends React.Component {
             message: '',
             isLoading: false,
             disable: false,
+            referenceCode: ""
         };
     }
 
-    handleButtonPress = async () => {
+    handlePasteButton = async () => {
         try {
             const key = await Clipboard.getString();
             this.setState({ privateKey: key });
@@ -51,23 +52,26 @@ class ImportWithPrivateKey extends React.Component {
 
     submitPrivateKey = async () => {
 
-        // Check it privateKey is right
+        const { privateKey, referenceCode } = this.state;
 
-        if (this.state.privateKey === '' || this.state.privateKey === null) {
-            return this.setState({
+        // Validate private key input
+        if (!privateKey || privateKey.trim() === '') {
+            this.setState({
                 isError: true,
-                message: 'Please make sure to provide a value for the private key field!',
+                message: 'Please provide a value for the private key field!',
             });
+
+            return;
         }
 
-        // Check if internet is connected
-        let isConnected = await checkInternetConnectivity()
+        // Check internet connectivity
+        const isConnected = await checkInternetConnectivity();
         if (!isConnected) {
-            alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR)
-            return
-
+            Alert.alert(ErrorMessages.GENERIC.NO_INTERNET_ERROR);
+            return;
         }
-        //set initial state
+
+        // Update UI state to loading
         this.setState({
             isLoading: true,
             disable: true,
@@ -75,62 +79,39 @@ class ImportWithPrivateKey extends React.Component {
             message: '',
         });
 
-
         setTimeout(async () => {
 
+            try {
+                let deviceId = null
+                // Get FCM token
+                const mobileFcmToken = await getFcmTokenFromLocalStorage();
+                try {
+                    // Obtain FCM token
+                    deviceId = await getStableDeviceId();
 
-            let mobileFcmToken = null
+                }
+                catch (e) {
 
-            // in case of ios mobile
-            if (Platform.OS === 'ios') {
-                let fcmToken = await AsyncStorage.getItem("fcmToken")
-                if (fcmToken) mobileFcmToken = fcmToken
-                else {
-                    try {
-                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
-                    }
-                    catch (e) {
-
-                    }
                 }
 
-            }
-            //in case of android device
+                // Initialize wallet
+                const wallet = new ethers.Wallet(this.state.privateKey.trim());
 
-            if (Platform.OS === 'android') {
-
-                let fcmToken = await AsyncStorage.getItem("fcmToken")
-                if (fcmToken) mobileFcmToken = fcmToken
-                else
-                    try {
-                        mobileFcmToken = await messaging().getToken(firebase.app().options.messagingSenderId)
-
-                    }
-                    catch (e) {
-                        console.log("Firebase error", e)
-                        this.setState({ isLoading: false, disable: false });
-                        alert('We are currently experiencing issues with verifying the account. Please try again later.');
-                        return
-
-                    }
-            }
-
-
-            try {
-
-                let mnemonics = this.state.privateKey.trim();
-                const wallet = new ethers.Wallet(mnemonics);
-                console.log("mnemonics", mnemonics, "wallet", wallet)
-
-                await axios.post(`${Str.apiUrl}/wallet/add-wallet`, {
+                let { data } = await addWalletWithFcm({
                     account: wallet.address,
-                    token: mobileFcmToken
+                    token: mobileFcmToken,
+                    referenceCode: referenceCode,
+                    deviceId: deviceId
                 })
 
+                // Store wallet and referral info locally
                 await AsyncStorage.setItem('address', wallet.address);
-                await AsyncStorage.setItem('mnemonics', mnemonics);//we are stroing private key actually
-                await AsyncStorage.setItem('privateKey', mnemonics);
-                store.dispatch(storeWalletInfo(true))
+                await AsyncStorage.setItem('privateKey', this.state.privateKey.trim());
+                await AsyncStorage.setItem('mnemonics', this.state.privateKey.trim());//we are stroing private key actually
+                if (mobileFcmToken) { await AsyncStorage.setItem("fcmToken", token); }
+
+                store.dispatch(storeWalletInfo(true));
+                store.dispatch(storeReferralInfo({ referralCode: data.data.referralCode }));
 
                 this.setState({
                     isLoading: false,
@@ -156,14 +137,14 @@ class ImportWithPrivateKey extends React.Component {
     };
 
     render() {
-        let selectedTheme = store.getState().authReducer?.theme
+        let selectedTheme = store.getState().walletReducer?.theme
         let theme = THEME[selectedTheme]
-    
+
         return (
             <React.Fragment>
                 <StatusBarNU
                     backgroundColor={theme?.BACKGROUND_COLOR}
-                 
+
                 />
 
                 <Header
@@ -176,10 +157,10 @@ class ImportWithPrivateKey extends React.Component {
                     modalVisible={this.state.isLoading}
                 />
 
-                <View style={[styles.mainContainer,{ backgroundColor: theme?.BACKGROUND_COLOR,}]}>
+                <View style={[styles.mainContainer, { backgroundColor: theme?.BACKGROUND_COLOR, }]}>
                     <View style={styles.container}>
                         <TouchableOpacity
-                            onPress={this.handleButtonPress}
+                            onPress={this.handlePasteButton}
                             style={{
                                 justifyContent: 'center',
                                 alignItems: 'flex-end',
@@ -211,10 +192,6 @@ class ImportWithPrivateKey extends React.Component {
                         />
                     </View>
 
-                    {this.state.isError && (
-                        <ErrorMessage message={this.state.message}></ErrorMessage>
-                    )}
-
                     <Text
                         style={{
                             color: theme?.SMALL_HEADING_TEXT,
@@ -225,6 +202,33 @@ class ImportWithPrivateKey extends React.Component {
                         Write a private key here is hex format like (0x8028a56736671e83bd76ad9e143dbdc1d1a85b643b17dfd3e1a6be312080c13d
                         )
                     </Text>
+
+                    <View style={{
+                        marginTop: 24,
+                        borderColor: 'gray',
+                        borderWidth: 1,
+                        borderRadius: 10,
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: 8,
+
+                    }}>
+                        <TextInput
+                            value={this.state.referenceCode}
+                            onChangeText={newValue => {
+                                this.setState({ referenceCode: newValue });
+                            }}
+
+                            placeholderTextColor={theme?.SMALL_HEADING_TEXT} placeholder='Referral ID' style={{ color: theme?.WHITE, flex: 80, padding: 6 }}></TextInput>
+                        <Text style={{ color: theme?.WHITE, justifyContent: "flex-end", alignItems: "flex-end", flex: 20 }}>Optional</Text>
+
+
+                    </View>
+
+                    {this.state.isError && (
+                        <ErrorMessage message={this.state.message}></ErrorMessage>
+                    )}
 
                     <View>
                         <TouchableOpacity
@@ -245,7 +249,7 @@ const styles = StyleSheet.create({
         paddingTop: 32,
         flexDirection: 'column',
         flex: 1,
-       
+
     },
 
     container: {
