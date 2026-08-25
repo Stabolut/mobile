@@ -3,12 +3,37 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![React Native](https://img.shields.io/badge/React%20Native-0.73.6-61DAFB.svg)](https://reactnative.dev/)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey.svg)]()
+[![Google Play](https://img.shields.io/badge/Google_Play-Get_it_on_Play_Store-34A853?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.stabolut.usb)
 
 A non-custodial, gasless cryptocurrency mobile wallet built with **React Native** for the **Stabolut Ecosystem** (USB Token on Arbitrum & XDC).
 
 ---
 
-## 📱 Features
+## 📲 Download on Google Play
+
+<a href="https://play.google.com/store/apps/details?id=com.stabolut.usb">
+  <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">
+</a>
+
+👉 **Direct Link:** [https://play.google.com/store/apps/details?id=com.stabolut.usb](https://play.google.com/store/apps/details?id=com.stabolut.usb)
+
+---
+
+## 📸 App Interface & Screenshots
+
+<div align="center">
+  <img src="./docs/screenshots/slider_overview.png" alt="Stabolut Overview" width="100%" />
+</div>
+
+<br/>
+
+| **Wallet & Balances** | **Gasless Transfer** | **Security & PIN** |
+| :---: | :---: | :---: |
+| <img src="./docs/screenshots/wallet_view.png" width="260" alt="Wallet View" /> | <img src="./docs/screenshots/transfer_view.png" width="260" alt="Transfer View" /> | <img src="./docs/screenshots/security_view.png" width="260" alt="Security View" /> |
+
+---
+
+## 📱 Key Features
 
 - **Non-Custodial HD Wallet**: Create, backup, and restore wallets using 12-word mnemonic phrases or raw private keys.
 - **Gasless Token Transfers**: Send USB tokens without needing ETH for gas via ERC-865 / EIP-712 pre-signed meta-transactions.
