@@ -19,11 +19,19 @@ A non-custodial, gasless cryptocurrency mobile wallet built with **React Native*
 
 ---
 
-## 📸 Mobile App Interface & UI Screens
+## 📸 Official App Screenshots
 
-| **1. Wallet Dashboard** | **2. Gasless Transfer** | **3. Receive & QR Code** | **4. Staking & Yield** |
-| :---: | :---: | :---: | :---: |
-| <img src="./docs/screenshots/01_wallet_dashboard.png" width="220" alt="Wallet Dashboard" /> | <img src="./docs/screenshots/02_transfer_screen.png" width="220" alt="Gasless Transfer" /> | <img src="./docs/screenshots/03_receive_screen.png" width="220" alt="Receive QR Code" /> | <img src="./docs/screenshots/04_staking_screen.png" width="220" alt="Staking & Yield" /> |
+<div align="center">
+
+| **1. Wallet & Assets** | **2. Instant Transfers** | **3. Staking & Yield** |
+| :---: | :---: | :---: |
+| <img src="./docs/screenshots/playstore_screen_1.png" width="260" alt="Wallet and Assets Screen" /> | <img src="./docs/screenshots/playstore_screen_2.png" width="260" alt="Instant Transfers Screen" /> | <img src="./docs/screenshots/playstore_screen_3.png" width="260" alt="Staking and Yield Screen" /> |
+
+| **4. Contact Book** | **5. Receive & QR Code** | **6. Security & Settings** |
+| :---: | :---: | :---: |
+| <img src="./docs/screenshots/playstore_screen_4.png" width="260" alt="Contact Management" /> | <img src="./docs/screenshots/playstore_screen_5.png" width="260" alt="Receive QR Code" /> | <img src="./docs/screenshots/playstore_screen_6.png" width="260" alt="Security Settings" /> |
+
+</div>
 
 ---
 
