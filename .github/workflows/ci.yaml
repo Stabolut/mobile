@@ -22,13 +22,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: mobile/package.json
 
       - name: Install Dependencies
-        working-directory: mobile
         run: npm install --legacy-peer-deps
 
       - name: Run ESLint
-        working-directory: mobile
         run: npm run lint || true
