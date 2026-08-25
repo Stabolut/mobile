@@ -19,17 +19,11 @@ A non-custodial, gasless cryptocurrency mobile wallet built with **React Native*
 
 ---
 
-## 📸 App Interface & Screenshots
+## 📸 Mobile App Interface & UI Screens
 
-<div align="center">
-  <img src="./docs/screenshots/slider_overview.png" alt="Stabolut Overview" width="100%" />
-</div>
-
-<br/>
-
-| **Wallet & Balances** | **Gasless Transfer** | **Security & PIN** |
-| :---: | :---: | :---: |
-| <img src="./docs/screenshots/wallet_view.png" width="260" alt="Wallet View" /> | <img src="./docs/screenshots/transfer_view.png" width="260" alt="Transfer View" /> | <img src="./docs/screenshots/security_view.png" width="260" alt="Security View" /> |
+| **1. Wallet Dashboard** | **2. Gasless Transfer** | **3. Receive & QR Code** | **4. Staking & Yield** |
+| :---: | :---: | :---: | :---: |
+| <img src="./docs/screenshots/01_wallet_dashboard.png" width="220" alt="Wallet Dashboard" /> | <img src="./docs/screenshots/02_transfer_screen.png" width="220" alt="Gasless Transfer" /> | <img src="./docs/screenshots/03_receive_screen.png" width="220" alt="Receive QR Code" /> | <img src="./docs/screenshots/04_staking_screen.png" width="220" alt="Staking & Yield" /> |
 
 ---
 
