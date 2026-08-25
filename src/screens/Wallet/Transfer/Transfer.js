@@ -94,7 +94,7 @@ function Transfer({ navigation, route }) {
 
   // get user address
   useEffect(() => {
-    getLocalAddress = async () => {
+    const getLocalAddress = async () => {
       let senderAddress = await AsyncStorage.getItem('address');
       setSender(senderAddress);
     };
@@ -102,7 +102,7 @@ function Transfer({ navigation, route }) {
   }, []);
 
   useEffect(() => {
-    getLocalAddressReceiver = async () => {
+    const getLocalAddressReceiver = async () => {
 
       let contactOnly = await AsyncStorage.getItem("allowContact")
 
@@ -273,10 +273,10 @@ function Transfer({ navigation, route }) {
     // handleCameraPermission();
     setScannerOpen(true);
   };
-  closeScanner = () => {
+  const closeScanner = () => {
     setScannerOpen(false);
   };
-  onSuccess = e => {
+  const onSuccess = e => {
     setReceiver(e.data);
     // do something with the scanned QR code data
     closeScanner();

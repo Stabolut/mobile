@@ -1,102 +1,100 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import messaging from '@react-native-firebase/messaging';
-import PushNotification, { Importance } from 'react-native-push-notification'
+import PushNotification, { Importance } from 'react-native-push-notification';
 import { Images } from '../common';
+
 export async function requestUserPermission() {
     try {
-
         const authStatus = await messaging().requestPermission();
-
         const enabled =
             authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
             authStatus === messaging.AuthorizationStatus.PROVISIONAL;
         if (enabled) {
-            getFcmToken()
+            getFcmToken();
         }
-    }
-    catch (e) {
+    } catch (e) {
+        console.log("Firebase requestUserPermission info:", e.message);
     }
 }
 
 const getFcmToken = async () => {
     try {
-
-        let fcmToken = await AsyncStorage.getItem("fcmToken")
-
+        let fcmToken = await AsyncStorage.getItem("fcmToken");
         if (!fcmToken) {
-
-            let fcmToken = await messaging().getToken()
-            AsyncStorage.setItem("fcmToken", fcmToken)
+            fcmToken = await messaging().getToken();
+            if (fcmToken) {
+                await AsyncStorage.setItem("fcmToken", fcmToken);
+            }
         }
+    } catch (e) {
+        console.log("Firebase getFcmToken info:", e.message);
     }
-    catch (e) {
-
-    }
-}
-
+};
 
 export const notificationListener = () => {
     try {
-
-        messaging().onNotificationOpenedApp(remoteMessage => {
+        const unsubscribeOpen = messaging().onNotificationOpenedApp(remoteMessage => {
             console.log(
                 'Notification caused app to open from background state:',
                 remoteMessage.notification,
             );
         });
-        messaging().onMessage(async remoteMessage => {
 
+        const unsubscribeMessage = messaging().onMessage(async remoteMessage => {
             console.log(
-                'Notification caused app to open from quit state:',
+                'Foreground push notification received:',
                 remoteMessage,
             );
-        })
+        });
 
         messaging()
             .getInitialNotification()
             .then(remoteMessage => {
-                console.log("hit there")
                 if (remoteMessage) {
                     console.log(
                         'Notification caused app to open from quit state:',
                         remoteMessage.notification,
                     );
-
                 }
-
+            })
+            .catch(err => {
+                console.log("getInitialNotification error:", err.message);
             });
-        return unsubscribe
+
+        return () => {
+            if (typeof unsubscribeOpen === 'function') unsubscribeOpen();
+            if (typeof unsubscribeMessage === 'function') unsubscribeMessage();
+        };
+    } catch (e) {
+        console.log("Firebase notificationListener info:", e.message);
+        return () => {};
     }
-    catch (e) {
+};
 
-    }
-}
-
-
-export const notificationChannel = (title,body) => {
-   
-    let channelID = Math.random().toString(36).substring(7);
-    PushNotification.createChannel(
-        {
-            channelId: channelID,
-            channelName: "Stabolut notifcation channel",
-            channelDescription: "A channel to categorize your notifications",
-            playSound: true,
-            soundName: "default",
-            importance: Importance.HIGH,
-            vibrate: true,
-        },
-        (created) => {
-            PushNotification.localNotification({
-                title: title,
-                message: body,
+export const notificationChannel = (title, body) => {
+    try {
+        let channelID = Math.random().toString(36).substring(7);
+        PushNotification.createChannel(
+            {
                 channelId: channelID,
-                smallIcon: Images.coinIcon,
-                bigLargeIconUrl: Images.coinIcon,
-            });
-        }
-    );
-
-}
-
-
+                channelName: "Stabolut notification channel",
+                channelDescription: "A channel to categorize your notifications",
+                playSound: true,
+                soundName: "default",
+                importance: Importance.HIGH,
+                vibrate: true,
+            },
+            (created) => {
+                PushNotification.localNotification({
+                    title: title,
+                    message: body,
+                    channelId: channelID,
+                    smallIcon: Images.coinIcon,
+                    bigLargeIconUrl: Images.coinIcon,
+                });
+            }
+        );
+    } catch (e) {
+        console.log("notificationChannel error:", e.message);
+    }
+};

@@ -1,61 +1,133 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Stabolut Mobile Wallet
 
-# Getting Started
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React Native](https://img.shields.io/badge/React%20Native-0.73.6-61DAFB.svg)](https://reactnative.dev/)
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey.svg)]()
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+A non-custodial, gasless cryptocurrency mobile wallet built with **React Native** for the **Stabolut Ecosystem** (USB Token on Arbitrum & XDC).
 
-## Step 1: Start the Metro Server
+---
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+## 📱 Features
 
-To start Metro, run the following command from the _root_ of your React Native project:
+- **Non-Custodial HD Wallet**: Create, backup, and restore wallets using 12-word mnemonic phrases or raw private keys.
+- **Gasless Token Transfers**: Send USB tokens without needing ETH for gas via ERC-865 / EIP-712 pre-signed meta-transactions.
+- **Biometric & PIN Lock**: Secure access via Face ID / Touch ID, custom PIN codes, and hardware-backed keystores.
+- **Staking Management**: Stake USB tokens directly inside the wallet and track yields in real-time.
+- **QR Code Scanner**: Scan recipient addresses and present your own QR code to receive funds.
+- **Live Push Notifications & WebSockets**: Instant notifications when tokens are sent or received.
+- **Light & Dark Theme**: Built-in theme customization.
 
+---
+
+## 💻 Prerequisites
+
+Ensure your development environment meets the requirements for React Native CLI:
+
+1. **Node.js**: `>= 18.x` ([nodejs.org](https://nodejs.org/))
+2. **Java Development Kit**: JDK 17 (recommended for React Native 0.73)
+3. **Android Studio** (for Android):
+   - Android SDK Platform 34
+   - Android Virtual Device (AVD) emulator or physical device with USB debugging
+4. **Xcode & CocoaPods** (for iOS, macOS only):
+   - Xcode 15+
+   - CocoaPods (`sudo gem install cocoapods`)
+
+---
+
+## 🚀 Step-by-Step Setup Guide
+
+### 1. Clone the Repository
 ```bash
-# using npm
+git clone https://github.com/Stabolut/mobile.git
+cd mobile
+```
+
+### 2. Install JavaScript Dependencies
+```bash
+npm install
+```
+
+### 3. (iOS Only) Install CocoaPods
+```bash
+cd ios
+pod install
+cd ..
+```
+
+---
+
+## ⚙️ Connecting to Backend & Blockchain
+
+The mobile app connects to the **Stabolut Backend** for gasless relaying, address book contacts, and user profiles.
+
+### Local Development Setup:
+Open [`src/common/strings.js`](src/common/strings.js) and configure your endpoints:
+
+```javascript
+const Str = {
+  // Public Arbitrum Sepolia RPC (or your custom RPC endpoint)
+  rpcUrl: "https://sepolia-rollup.arbitrum.io/rpc",
+
+  // USB Token Smart Contract Address on Arbitrum
+  contractAddress: "0x24c8479b8af9742c5160e0c29197e87a584cfe99",
+
+  // Backend API URL:
+  // - For Android Emulator: Use "http://10.0.2.2:8003/api/v1/stabolut"
+  // - For Physical Device: Use "http://<YOUR_LOCAL_WIFI_IP>:8003/api/v1/stabolut"
+  // - For iOS Simulator: Use "http://localhost:8003/api/v1/stabolut"
+  apiUrl: "http://10.0.2.2:8003/api/v1/stabolut",
+  socketUrl: "http://10.0.2.2:8003",
+};
+```
+
+---
+
+## 🏃 Running the Application
+
+### Step 1: Start the Metro Bundler
+In the project root directory, run:
+```bash
 npm start
-
-# OR using Yarn
-yarn start
 ```
+*Keep this terminal window open.*
 
-## Step 2: Start the Application
+### Step 2: Launch the App
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
-
-### For Android
-
+#### For Android:
+Open a new terminal window in the `mobile/` directory:
 ```bash
-# using npm
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### For iOS
-
+#### For iOS (macOS only):
+Open a new terminal window in the `mobile/` directory:
 ```bash
-# using npm
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+---
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+## 🧪 Troubleshooting
 
-## Step 3: Modifying your App
+- **Android Build Fails with Gradle Error**:
+  Run `cd android && ./gradlew clean && cd ..` and restart Metro with `npm start -- --reset-cache`.
+- **Cannot Connect to Local Backend on Android Emulator**:
+  Use `http://10.0.2.2:8003` instead of `localhost` because `localhost` refers to the Android device itself.
+- **Node Modules / Linking Issues**:
+  Remove `node_modules` and re-run:
+  ```bash
+  rm -rf node_modules && npm install
+  ```
 
-Now that you have successfully run the app, let's modify it.
+---
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+## 🤝 Contributing
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on submitting issues and pull requests.
 
-# Troubleshooting
+---
 
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+## 📄 License
 
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.

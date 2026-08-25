@@ -47,7 +47,8 @@ import { useMemo, useCallback } from 'react';
 
 
 const provider = new ethers.providers.JsonRpcProvider(Str.rpcUrl, {
-  chainId: 97,
+  name: 'arbitrum-sepolia',
+  chainId: 421614,
 });
 
 const POLLING_INTERVAL = 5000; // 5 seconds instead of 1 second
